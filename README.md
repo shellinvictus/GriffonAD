@@ -2,6 +2,7 @@ GriffonAD
 =========
 
  ![griffon version](/doc/griffon.svg?raw=true)
+ ![gpl](/doc/gpl.svg?raw=true)
  ![offsec](/doc/offsec.svg?raw=true)
  ![python](/doc/python.svg?raw=true)
 
