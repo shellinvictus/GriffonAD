@@ -10,3 +10,5 @@ COMING SOON
 
 A new tool to analyze bad configurations in Active Directory (based on
 Bloodhound json files).
+
+![rights](/doc/hvt.png?raw=true)
