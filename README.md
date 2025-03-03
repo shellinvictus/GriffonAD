@@ -8,9 +8,11 @@ GriffonAD
 
 COMING SOON
 
-A new tool to analyze bad configurations in Active Directory (based on
+A new tool to exploit bad configurations in Active Directory (based on
 Bloodhound json files).
 
 ![rights](/doc/hvt.png?raw=true)
 
 ![fromo](/doc/fromo.png?raw=true)
+
+![fromo](/doc/script.png?raw=true)
