@@ -30,19 +30,19 @@ Tests
 Embedded tools
 ==============
 
-- ./tools/attr.py: generic script to modify one ldap attribute
-- ./tools/addspn.py: modify the attribute servicePrincipalName
-- ./tools/logonscript.py: modify the attribute msTSInitialProgram
-- ./tools/addmember.py: modify the attribute member
-- ./tools/toggleNP.py: enable or disable the donotpreauth flag
-- ./tools/getname.py: get all attributes of one object
-- ./tools/readpol.py: export Registry.pol to json and rewrite the pol file 
-- ./tools/xmltask.py: generate an xml for schedule task (mimic a real xml)
-- ./tools/scriptsini.py: re-format a scripts.ini with correct encoding
-- ./tools/gpttmpl.py: re-format a GptTmpl.inf with correct encoding
-- ./tools/readgmsa.py (from gMSADumper.py): simplified and login parameters uniformization
-- ./tools/aesKrbKeyGen.py: login parameters uniformization
-- ./tools/dacledit.py: -mask + bugfix (pull request done)
+- `./tools/attr.py`: generic script to modify one ldap attribute
+- `./tools/addspn.py`: modify the attribute servicePrincipalName
+- `./tools/logonscript.py`: modify the attribute msTSInitialProgram
+- `./tools/addmember.py`: modify the attribute member
+- `./tools/toggleNP.py`: enable or disable the donotpreauth flag
+- `./tools/getname.py`: get all attributes of one object
+- `./tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
+- `./tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
+- `./tools/scriptsini.py`: re-format a scripts.ini with correct encoding
+- `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
+- `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
+- `./tools/aesKrbKeyGen.py`: login parameters uniformization
+- `./tools/dacledit.py`: -mask + bugfix (pull request done)
 
 
 Installation
