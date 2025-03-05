@@ -48,7 +48,7 @@ an existing owned in the database or creates a new one.
                                                     │             V
               p=Alice                      p=Alice  V          p=NEW
     Alice ——> AddAllowedToAct(DESKTOP) ——> ::RBCD(DESKTOP) ——> AllowedToAct(DESKTOP) ——╮ 
-   p (parent)                 target                                                   │
+    p (parent)                 target                                                  │
                                                                                        │
       ╭————————————————————————————————————————————————————————————————————————————————╯
       │

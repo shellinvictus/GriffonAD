@@ -14,7 +14,7 @@ have to copy-paste these commands (with a few modifications). The main goal is
 to let the user a full control on what is modified: all commands are fully
 commented and parameters to change are highlighted in red.
 
-Griffon supports many scenarios, take a look into [config.ml](/doc/config.ml) !
+Griffon supports many scenarios, take a look into [config.ml](config.ml) !
 
 
 Tests
@@ -87,7 +87,7 @@ Other options:
 - `--ous`: display all ous with their rights and their members
 - `--graph`: open a js graph to view relations between objects
 
-![groups](/assets/graph.png?raw=true)
+![graph](/assets/graph.png?raw=true)
 
 > [!TIP]
 > About the `many` target: it means that you can have multiple targets.
@@ -99,6 +99,9 @@ Other options:
 > have a AddKeyCredentialLink on all users with the admincount flag set to 0
 > - AllowedToDelegate: means an unconstrained delegation
 > - SeBackup/SeRestore: can access to C$ on all computers (DC included)
+
+> [!NOTE]
+> Supported ACE here: [supported](/doc/supported.md)
 
 Step 3: Search paths
 --------------------

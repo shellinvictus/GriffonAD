@@ -67,7 +67,7 @@ List of available flags for the conditional statement:
 - `target.sensitive`
 - `target.groups` (list, use it with the operator in)
 
-### Require statements (see require.md for more explanations)
+### Require statements (see [require.md](/doc/require.md) for more explanations)
 
 - `require`: a owned object is required to apply this predicate. The parent, used inside
      a path to authenticate, is replaced at the end of the action by the require object.
