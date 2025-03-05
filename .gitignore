@@ -19,3 +19,5 @@ share/python-wheels/
 *.egg
 MANIFEST__pycache__
 owned
+pull.sh
+push.sh
