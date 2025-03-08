@@ -65,7 +65,6 @@ Retrieve Bloodhound json files.
 
 > [!NOTE]
 > Try with the option `--fakedb`, the behavior is a bit different:
-> 
 > - all scenarios are used
 > - all paths stop at the first owned target
 > 
@@ -74,7 +73,7 @@ Retrieve Bloodhound json files.
 Step 2: ACLs analysis
 ---------------------
 
-Only interesting users are kept. If you have underlined yellow users, that
+Only interesting users are kept. If you have underlined yellowed users, that
 sounds good!
 
     ./griffon.py bloodhound/*.json
@@ -83,8 +82,8 @@ sounds good!
 
 Other options:
 
-- `--groups`: display all groups with their rights and their members
-- `--ous`: display all ous with their rights and their members
+- `--groups`: display all groups with their rights and members (+ `--members`)
+- `--ous`: display all ous with their rights and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
 
 ![graph](/assets/graph.png?raw=true)
@@ -93,31 +92,35 @@ Other options:
 > About the `many` target: it means that you can have multiple targets.
 > It depends of the right you have:
 > 
-> - GenericAll: generated if the user is in the Account Operator group, you have
-> a GenericAll on all users with the admincount flag set to 0 (FIXME: also on groups)
-> - AddKeyCredentialLink: generated if the user is in a Key Admins group, you
-> have a AddKeyCredentialLink on all users with the admincount flag set to 0
-> - AllowedToDelegate: means an unconstrained delegation
-> - SeBackup/SeRestore: can access to C$ on all computers (DC included)
+> - `GenericAll`: on all users with admincount=0 (FIXME: also on groups) if in
+> the Account Operators group
+> - `AddKeyCredentialLink`: on all users with admincount=0 (FIXME: also on
+> groups) if in Key Admins group
+> - `AllowedToDelegate`: means an unconstrained delegation
+> - `SeBackup`/`SeRestore`: can access to C$ on all computers (DC included)
 
 > [!NOTE]
-> Supported ACE here: [supported](/doc/supported.md)
+> Supported ACEs here: [supported](/doc/supported.md)
 
 Step 3: Search paths
 --------------------
 
-From owned users, (the sign '+' means the path escalates to admin, you can also use
-the option `--onlyadmin`):
+From owned users, it reads the text file `owned`.
 
-    # Format is 'SAMACCOUNTNAME:TYPE:SECRET'. The separator can be changed with the
-    # option --sep (you can put a string with more than one character).
-    # SAMACCOUNTNAME is insensitive case
-    # TYPE = password|aes|nt (passwords are in hex for computers)
-    # The file could be empty
+> [!TIP]
+> Line format of the file `owned`:
+>
+> `SAMACCOUNTNAME:TYPE:SECRET`
+>
+> - `SAMACCOUNTNAME` is insensitive case
+> - `TYPE` = `password` | `aes` | `nt` (passwords are in hex for computers)
+>
+> The separator can be changed with the option --sep (you can put a string with
+> more than one character).
 
     cat owned
     alice:password:User123-
-    DESKTOP$:password:9ddb7bfd6a2e49e184d36bd7...
+    WORKSTATION_EXAMPLE$:password:9ddb7bfd6a2e49e184d36bd7...
 
     ./griffon.py *.json --fromo
 
@@ -127,8 +130,10 @@ Other options:
 
 - `--fromnk`: from users with the donotpreauth flag and from kerberoastable users
 - `--test`: test paths from a user
-- `--rights`: this is a flag to add with previous options. It allows you to view 
+- `--rights`: this is a flag to add with previous options. It allows you to view
 rights instead of actions in paths (an action is prefixed by `::`)
+- `--onlyadmin`: display only paths to domain admin (paths prefixed by the
+sign `+`)
 
 > [!NOTE]
 > With `--fakedb` try: `--fromo`, `--test 'desktop-1$'`, `--test 'server-1$'`,
@@ -159,7 +164,7 @@ is AddKeyCredentialLink.
 Available options:
 
 - `--opt noforce`: no ForceChangePassword
-- `--opt noaddcomputer`: don't se the scenario 'add a computer' with RBCD
+- `--opt noaddcomputer`: don't use the scenario 'add a computer' with RBCD
 - `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
 - `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
 

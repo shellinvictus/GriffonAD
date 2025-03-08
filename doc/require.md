@@ -1,20 +1,22 @@
 # Definitions
 
-parent: the object is an instance of lib.database.Owned. Its rights are applied
-and its credentials are used to authenticate (written as p= below).
+**parent**: the object is an instance of lib.database.Owned. Its rights
+are applied and its credentials are used to authenticate (written as
+`p=` below).
 
-target: the object is an instance of lib.database.LDAPObject or
+**target**: the object is an instance of lib.database.LDAPObject or
 lib.database.FakeLDAPObject. This is the object we want to own.
 
-require function: all functions are defined in lib.require. require_targets must
-return a list of LDAPObject. All others must return an Owned object. The convention
-of require functions for require_targets is to prefix the name by `ta_`.
+**require function**: all functions are defined in lib.require. `require_targets`
+must return a list of LDAPObject. All others must return an Owned object. The
+convention of require functions for `require_targets` is to prefix the name
+by `ta_`.
 
-Format of the argument 'require' in lib.actions.x_Action.print:
+The argument 'require' in lib.actions.x_Action.print is a dict:
 
     {
-        'object': returned_object,
-        'class_name': 'require_string_class_name',
+        'object': returned_object,    # Owned or LDAPObject or FakeLDAPObject
+        'class_name': 'require_string_class_name',  # string
         'original_target': target,    # only for require_targets
     }
 
@@ -22,10 +24,10 @@ Format of the argument 'require' in lib.actions.x_Action.print:
 # Explanation of a normal path
 
               p=Alice               p=Alice
-    Alice ——> AllExtendedRights(Bob) ——> ForceChangePassword(Bob) ——> apply_with_passwd ——╮
-    p (parent)                 target                                                     │
-                                                                                          │
-      ╭———————————————————————————————————————————————————————————————————————————————————╯
+    Alice ——> AllExtendedRights(Bob) ——> ForceChangePassword(Bob) ——> apply_with_forced_passwd ——╮
+    p (parent)                 target                                                            │
+                                                                                                 │
+      ╭——————————————————————————————————————————————————————————————————————————————————————————╯
       │  Bob is now owned, it becomes the parent of future targets
       │  An Owned object for Bob is created with a custom password.
       │
@@ -35,10 +37,9 @@ Format of the argument 'require' in lib.actions.x_Action.print:
 
 # require
 
-The required object is used by the current predicate (here ::RBCD) to complete.
-It's used as the parent for the next actions. The require function returns
-an existing owned in the database or creates a new one.
-
+The required object is used internally by the current predicate (here `::RBCD`)
+to complete. Then it's used as the parent for the next actions. The require
+function returns an existing owned in the database or creates a new one.
 
                                            require add_computer    The add_computer function creates a
                                                    NEW             FakeLDAPObject and add it in the
@@ -48,7 +49,7 @@ an existing owned in the database or creates a new one.
                                                     │             V
               p=Alice                      p=Alice  V          p=NEW
     Alice ——> AddAllowedToAct(DESKTOP) ——> ::RBCD(DESKTOP) ——> AllowedToAct(DESKTOP) ——╮ 
-    p (parent)                 target                                                  │
+    p (parent)                target                                                   │
                                                                                        │
       ╭————————————————————————————————————————————————————————————————————————————————╯
       │
@@ -66,17 +67,11 @@ an existing owned in the database or creates a new one.
 
 # require_for_auth
 
-This statement can change the parent of predicate and is used to authenticate
+This statement can change the parent of a predicate and is used to authenticate
 with this new object. Generally, it's not really useful excepted in the case we
 don't have parent!
 
-Here Bob has an SPN, so we can run the Kerberoasting scenario. If we run the
-::Kerberoasting after a WriteSPN (because we have a GenericAll for example),
-the ::Kerberoasting runs the require_for_auth in any cases.
-
-apply_with_cracked_passwd assume you have cracked the ASREP Response for Bob
-and you retrieve his password.
-
+Here Bob has an SPN, so we can run the `Kerberoasting` scenario.
 
     require_for_auth any_owned    The any_owned function takes 
             OBJECT                 arbitrarily an owned user.
@@ -101,7 +96,6 @@ This statement can be used with the 'many' type: it means we don't have a define
 target and it could be anything. The require_targets will search for interesting
 targets to achieve the operation. require_targets should return a list of LDAPObject.
 
-
                      require_targets dc         The dc function returns the object
                             DC               corresponding to the DC in the ldap database.
                             │
@@ -109,7 +103,7 @@ targets to achieve the operation. require_targets should return a list of LDAPOb
                             │  search a target...                         │
                 p=DESKTOP   V                                             V
     DESKTOP ——> AllowedToDelegate(many) ——> ::AllowedToDelegate(DC) ——> apply_with_aes ——╮
-    parent                                                              target           │
+    parent                                                    target                     │
                                                                                          │
       ╭——————————————————————————————————————————————————————————————————————————————————╯
       │  DC is now owned.
