@@ -124,7 +124,8 @@ From owned users, it reads the text file `owned`.
 
 Other options:
 
-- `--fromnk`: from users with the donotpreauth flag and from kerberoastable users
+- `--fromv`: from vulnerable users (NP users (only unprotected users), password
+not required,  and kerberoastable users)
 - `--test`: test paths from a user
 - `--rights`: this is a flag to add with previous options. It allows you to view
 rights instead of actions in paths (an action is prefixed by `::`)

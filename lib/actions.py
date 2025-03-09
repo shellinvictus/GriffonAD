@@ -355,13 +355,13 @@ class x_AddKeyCredentialLink(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/pywhisker.py -d {fqdn} -u '{parent.obj.name}' -k --no-pass --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
+            cmd = "pywhisker.py -d {fqdn} -u '{parent.obj.name}' -k --no-pass --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/pywhisker.py -d {fqdn} -u '{parent.obj.name}' -H '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
+            cmd = "pywhisker.py -d {fqdn} -u '{parent.obj.name}' -H '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/pywhisker.py -d {fqdn} -u '{parent.obj.name}' -k --no-pass --aes-key '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
+            cmd = "pywhisker.py -d {fqdn} -u '{parent.obj.name}' -k --no-pass --aes-key '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/pywhisker.py -d {fqdn} -u '{parent.obj.name}' -p '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
+            cmd = "pywhisker.py -d {fqdn} -u '{parent.obj.name}' -p '{parent.secret}' --dc-ip {dc_ip} --use-ldaps -t '{target.name}' -f '{target.name}' --action add -P pfxpassword"
 
         print_line(comment, cmd, v)
 

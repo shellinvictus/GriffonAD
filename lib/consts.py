@@ -3,7 +3,7 @@ import binascii
 
 APPLY = [
     'apply_with_ticket', 'apply_with_aes', 'apply_with_cracked_passwd',
-    'apply_group', 'apply_with_forced_passwd'
+    'apply_group', 'apply_with_forced_passwd', 'apply_with_blank_passwd',
 ]
 
 TERMINALS = APPLY + ['stop']

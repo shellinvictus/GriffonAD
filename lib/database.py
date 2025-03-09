@@ -2,6 +2,7 @@ import time
 import json
 import binascii
 import lib.consts as c
+import uuid
 from lib.utils import get_aes_256_from_hex
 from lib.ml import MiniLanguage
 
@@ -97,6 +98,7 @@ class LDAPObject():
 
 class FakeLDAPObject(LDAPObject):
     def __init__(self):
+        self.sid = str(uuid.uuid1())
         self.is_admin = False
         self.can_admin = False
         self.type = c.T_USER

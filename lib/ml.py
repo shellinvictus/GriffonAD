@@ -234,7 +234,7 @@ class MiniLanguage():
             paths += self.execute_user_rights(db, db.owned_db[user_name])
         return paths
 
-    def execute_action(self, db, target, action):
+    def execute_function(self, db, target, action):
         paths = []
         funcname = f'{c.ML_TYPES_TO_STR[target.type]}_{action.replace("::", "xx")}'
         code = self.code + f'\n{funcname}(args, set(), None, target)'
@@ -251,7 +251,7 @@ class MiniLanguage():
         paths = []
         for o in db.iter_users():
             if o.np and o.type == c.T_USER:
-                paths += self.execute_action(db, o, '::ASREPRoasting')
+                paths += self.execute_function(db, o, '::ASREPRoasting')
         return paths
 
     # Start paths from users with SPN
@@ -260,5 +260,12 @@ class MiniLanguage():
         krbtgt = f'{db.domain.sid}-502'
         for o in db.iter_users():
             if o.spn and o.sid != krbtgt and o.type == c.T_USER:
-                paths += self.execute_action(db, o, '::Kerberoasting')
+                paths += self.execute_function(db, o, '::Kerberoasting')
+        return paths
+
+    def execute_password_not_required(self, db):
+        paths = []
+        for o in db.iter_users():
+            if o.passwordnotreqd:
+                paths += self.execute_function(db, o, 'PasswordNotReqd')
         return paths

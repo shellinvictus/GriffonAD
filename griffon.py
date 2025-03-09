@@ -81,9 +81,9 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
-    arg_paths.add_argument('--fromo', action='store_true', help='All paths from owned')
-    arg_paths.add_argument('--fromnk', action='store_true', help='All paths from NP users (only unprotected users) and kerberoastable users')
-    arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromnk, display rights instead of actions')
+    arg_paths.add_argument('--fromo', action='store_true', help='Paths from owned')
+    arg_paths.add_argument('--fromv', action='store_true', help='Paths from vulnerable users (NP users (only unprotected users), password not required,  and kerberoastable users)')
+    arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromv, display rights instead of actions')
     arg_paths.add_argument('--onlyadmin', action='store_true')
     arg_paths.add_argument('--test', type=str, metavar='USER', help='Get paths from this user')
     arg_paths.add_argument('--opt', type=str, default='', metavar='OPT1,OPT2,...', help='Custom flags')
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         trace_stop(args)
         exit(0)
 
-    if not args.fromnk and not args.fromo and not args.test:
+    if not args.fromv and not args.fromo and not args.test:
         print_hvt(db)
         trace_stop(args)
         exit(0)
@@ -166,9 +166,10 @@ if __name__ == '__main__':
 
     if args.fromo:
         final_paths = ml.execute_owned(db)
-    elif args.fromnk:
+    elif args.fromv:
         final_paths = ml.execute_np(db)
         final_paths += ml.execute_user_spn(db)
+        final_paths += ml.execute_password_not_required(db)
     elif args.test:
         obj = db.search_by_name(args.test)
         if obj is None:

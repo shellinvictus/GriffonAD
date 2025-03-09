@@ -260,14 +260,15 @@ def print_script(args, db:Database, path:list):
         f"{glob['dc_ip']} {glob['dc_name']}",
     ])
 
-    last_target_sid = None
+    last_target = None
+    last_parent = None
 
     previous_action = ''
 
     for parent, symbol, target, require in path:
 
-        if not args.fakedb and target is not None and \
-                last_target_sid != target.sid and target.sid in db.users:
+        if not args.fakedb and target is not None and last_target is not None and \
+                last_target.sid != target.sid and target.sid in db.users:
             diff = time.time() - target.lastlogon
             if target.lastlogon == -1:
                 print_warning(f'{target.name} never logged, is it a honey pot?')
@@ -275,13 +276,25 @@ def print_script(args, db:Database, path:list):
                 print_warning(f'{target.name} lastlogon > 6 months, is it a honey pot?')
 
         if target is None:
-            last_target_sid = None
+            last_target = None
         else:
-            last_target_sid = target.sid
+            last_target = target
 
-        if parent is not None and parent.obj.protected and not parent.krb_auth:
-            print_comment(f'{parent.obj.name} is protected, switch to kerberos')
-            lib.actions.TGTRequest.print(glob, parent)
+        if parent is None:
+            last_parent = None
+        else:
+            if last_parent is not None and last_parent.obj.sid != parent.obj.sid \
+                    and last_parent.krb_auth:
+                print_cmd('unset KRB5CCNAME\n')
+            last_parent = parent
+
+        if parent is not None and not parent.krb_auth:
+            if parent.obj.protected:
+                print_comment(f'{parent.obj.name} is protected, switch to kerberos')
+                lib.actions.TGTRequest(glob, parent)
+            elif parent.secret_type == c.SECRET_PASSWORD and parent.secret == '':
+                print_comment(f'PASSWORD_NOTREQUIRED: the password may be blank, it\'s easier to get a TGT first')
+                lib.actions.TGTRequest(glob, parent, nopass=True)
 
         if require is not None:
             class_name = sanityze_symbol(require['class_name'])

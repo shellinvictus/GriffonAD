@@ -53,6 +53,20 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LD
     stack.pop()
     return True
 
+def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+    stack.append((parent, "apply_with_blank_passwd", target, None))
+    if args.no_follow:
+        paths.append(list(stack))
+        stack.pop()
+        return False
+    new_owned = Owned(target, secret='', secret_type={{c.SECRET_PASSWORD}})
+    db.owned_db[new_owned.obj.name.upper()] = new_owned
+    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+        paths.append(list(stack))
+    del db.owned_db[new_owned.obj.name.upper()]
+    stack.pop()
+    return True
+
 def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_group", target, None))
     if args.no_follow:
