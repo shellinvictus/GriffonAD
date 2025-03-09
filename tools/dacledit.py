@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # Impacket - Collection of Python classes for working with network protocols.
 #
 # Copyright Fortra, LLC and its affiliated companies 
@@ -98,7 +98,7 @@ WELL_KNOWN_SIDS = {
     'S-1-5-64-14': 'SChannel Authentication',
     'S-1-5-64-21': 'Digest Authority',
     'S-1-5-80': 'NT Service',
-    'S-1-5-83-0': 'NT VIRTUAL MACHINE\Virtual Machines',
+    'S-1-5-83-0': 'NT VIRTUAL MACHINE\\Virtual Machines',
     'S-1-16-0': 'Untrusted Mandatory Level',
     'S-1-16-4096': 'Low Mandatory Level',
     'S-1-16-8192': 'Medium Mandatory Level',
@@ -107,24 +107,24 @@ WELL_KNOWN_SIDS = {
     'S-1-16-16384': 'System Mandatory Level',
     'S-1-16-20480': 'Protected Process Mandatory Level',
     'S-1-16-28672': 'Secure Process Mandatory Level',
-    'S-1-5-32-554': r'BUILTIN\Pre-Windows 2000 Compatible Access',
-    'S-1-5-32-555': r'BUILTIN\Remote Desktop Users',
-    'S-1-5-32-557': r'BUILTIN\Incoming Forest Trust Builders',
+    'S-1-5-32-554': 'BUILTIN\\Pre-Windows 2000 Compatible Access',
+    'S-1-5-32-555': 'BUILTIN\\Remote Desktop Users',
+    'S-1-5-32-557': 'BUILTIN\\Incoming Forest Trust Builders',
     'S-1-5-32-556': 'BUILTIN\\Network Configuration Operators',
-    'S-1-5-32-558': r'BUILTIN\Performance Monitor Users',
-    'S-1-5-32-559': r'BUILTIN\Performance Log Users',
-    'S-1-5-32-560': r'BUILTIN\Windows Authorization Access Group',
-    'S-1-5-32-561': r'BUILTIN\Terminal Server License Servers',
-    'S-1-5-32-562': r'BUILTIN\Distributed COM Users',
-    'S-1-5-32-569': r'BUILTIN\Cryptographic Operators',
-    'S-1-5-32-573': r'BUILTIN\Event Log Readers',
-    'S-1-5-32-574': r'BUILTIN\Certificate Service DCOM Access',
-    'S-1-5-32-575': r'BUILTIN\RDS Remote Access Servers',
-    'S-1-5-32-576': r'BUILTIN\RDS Endpoint Servers',
-    'S-1-5-32-577': r'BUILTIN\RDS Management Servers',
-    'S-1-5-32-578': r'BUILTIN\Hyper-V Administrators',
-    'S-1-5-32-579': r'BUILTIN\Access Control Assistance Operators',
-    'S-1-5-32-580': r'BUILTIN\Remote Management Users',
+    'S-1-5-32-558': 'BUILTIN\\Performance Monitor Users',
+    'S-1-5-32-559': 'BUILTIN\\Performance Log Users',
+    'S-1-5-32-560': 'BUILTIN\\Windows Authorization Access Group',
+    'S-1-5-32-561': 'BUILTIN\\Terminal Server License Servers',
+    'S-1-5-32-562': 'BUILTIN\\Distributed COM Users',
+    'S-1-5-32-569': 'BUILTIN\\Cryptographic Operators',
+    'S-1-5-32-573': 'BUILTIN\\Event Log Readers',
+    'S-1-5-32-574': 'BUILTIN\\Certificate Service DCOM Access',
+    'S-1-5-32-575': 'BUILTIN\\RDS Remote Access Servers',
+    'S-1-5-32-576': 'BUILTIN\\RDS Endpoint Servers',
+    'S-1-5-32-577': 'BUILTIN\\RDS Management Servers',
+    'S-1-5-32-578': 'BUILTIN\\Hyper-V Administrators',
+    'S-1-5-32-579': 'BUILTIN\\Access Control Assistance Operators',
+    'S-1-5-32-580': 'BUILTIN\\Remote Management Users',
 }
 
 
@@ -348,9 +348,9 @@ class DACLedit(object):
                 #   - IdentifierAuthority value
                 if ace['AceType'] == compare_ace['AceType'] \
                     and ace['AceFlags'] == compare_ace['AceFlags']\
+                    and ace['Ace']['Mask']['Mask'] == compare_ace['Ace']['Mask']['Mask']\
                     and ace['Ace']['Sid']['Revision'] == compare_ace['Ace']['Sid']['Revision']\
                     and ace['Ace']['Sid']['SubAuthorityCount'] == compare_ace['Ace']['Sid']['SubAuthorityCount']\
-                    and ace['Ace']['Mask']['Mask'] == compare_ace['Ace']['Mask']['Mask']\
                     and ace['Ace']['Sid']['SubAuthority'] == compare_ace['Ace']['Sid']['SubAuthority']\
                     and ace['Ace']['Sid']['IdentifierAuthority']['Value'] == compare_ace['Ace']['Sid']['IdentifierAuthority']['Value']:
                     # If the ACE has an ObjectType, the GUIDs must match
@@ -692,7 +692,7 @@ class DACLedit(object):
             nace['AceFlags'] = 0x00
         acedata['Mask'] = ldaptypes.ACCESS_MASK()
         # WriteMembers not an extended right, we need read and write mask on the attribute (https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/c79a383c-2b3f-4655-abe7-dcbb7ce0cfbe)
-        # forcewrite: in the case we give the -rights-guid
+        # force_mask in the case we give the -rights-guid option
         if force_mask is not None:
             acedata['Mask']['Mask'] = force_mask
         elif privguid == RIGHTS_GUID.WriteMembers.value:
@@ -896,7 +896,7 @@ def ldap3_kerberos_login(connection, target, user, password, domain='', lmhash='
     authenticator['authenticator-vno'] = 5
     authenticator['crealm'] = domain
     seq_set(authenticator, 'cname', userName.components_to_asn1)
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.timezone.utc)
 
     authenticator['cusec'] = now.microsecond
     authenticator['ctime'] = KerberosTime.to_asn1(now)
