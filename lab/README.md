@@ -24,7 +24,7 @@ Don't look too much in create.ps1 if you don't want to be spoiled 🙂 !
 
     .\create.ps1
 
-> ![NOTE]
+> [!NOTE]
 > `Alyx` is an administrator, his password is `admin01.`
 
 
