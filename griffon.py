@@ -87,6 +87,8 @@ if __name__ == '__main__':
     arg_paths.add_argument('--onlyadmin', action='store_true')
     arg_paths.add_argument('--test', type=str, metavar='USER', help='Get paths from this user')
     arg_paths.add_argument('--opt', type=str, default='', metavar='OPT1,OPT2,...', help='Custom flags')
+    parser.add_argument('-f', '--no-follow', action='store_true',
+            help='Don\'t try to continue on owned targets but display all available scenarios for one target')
 
     arg_script = parser.add_argument_group('Script generation')
     arg_script.add_argument('-s', '--script', metavar='N', type=str, help='Generate commands for a given path. N is the line number')

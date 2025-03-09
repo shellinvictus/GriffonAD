@@ -41,7 +41,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
 
 def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_forced_passwd", target, None))
-    if args.fakedb:
+    if args.no_follow:
         paths.append(list(stack))
         stack.pop()
         return False
@@ -55,7 +55,7 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LD
 
 def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_group", target, None))
-    if args.fakedb:
+    if args.no_follow:
         paths.append(list(stack))
         stack.pop()
         return False
@@ -66,7 +66,7 @@ def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None
 
 def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_cracked_passwd", target, None))
-    if args.fakedb:
+    if args.no_follow:
         paths.append(list(stack))
         stack.pop()
         return False
@@ -80,7 +80,7 @@ def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:L
 
 def apply_with_ticket(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_ticket", target, None))
-    if args.fakedb:
+    if args.no_follow:
         paths.append(list(stack))
         stack.pop()
         return False
@@ -94,7 +94,7 @@ def apply_with_ticket(args, executed_symbols:set, parent:Owned, target:LDAPObjec
 
 def apply_with_aes(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_aes", target, None))
-    if args.fakedb:
+    if args.no_follow:
         paths.append(list(stack))
         stack.pop()
         return False
@@ -110,7 +110,7 @@ def stop(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bo
     stack.append((parent, "stop", target, None))
     paths.append(list(stack))
     stack.pop()
-    if args.fakedb:
+    if args.no_follow:
         return False
     return True
 
@@ -144,7 +144,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {#print(f'{parent.obj.name} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')#}
 
-    if not args.fakedb and '{{sym}}' in executed_symbols:
+    if not args.no_follow and '{{sym}}' in executed_symbols:
         return False 
 
     stack.append((parent, '{{sym}}', target, None))

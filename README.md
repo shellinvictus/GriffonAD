@@ -64,11 +64,7 @@ Retrieve Bloodhound json files.
     ./bloodhound.py -u USER -d DOMAIN -p PASSWORD -ns DNS_IP -c DCOnly
 
 > [!NOTE]
-> Try with the option `--fakedb`, the behavior is a bit different:
-> - all scenarios are used
-> - all paths stop at the first owned target
-> 
-> The fakedb can be used to get a template for a specific action.
+> Try with the option `--fakedb` or use jsons in [lab](/lab/README.md)`
 
 Step 2: ACLs analysis
 ---------------------
@@ -133,12 +129,12 @@ Other options:
 - `--rights`: this is a flag to add with previous options. It allows you to view
 rights instead of actions in paths (an action is prefixed by `::`)
 - `--onlyadmin`: display only paths to domain admin (paths prefixed by the
-sign `+`)
+- `--no-follow`: don't try to continue on owned targets but display all available
+scenarios for one target.
 
 > [!NOTE]
 > With `--fakedb` try: `--fromo`, `--test 'desktop-1$'`, `--test 'server-1$'`,
-> `--test 'server-2$'`, `--fromnk`. Reminder: the behavior with the fakedb
-> option is a bit different.
+> `--test 'server-2$'`, `--fromnk`.
 
 
 Step 4: Generate the script
