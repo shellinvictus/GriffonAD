@@ -61,7 +61,7 @@ class LDAPObject():
         self.sensitive = 'sensitive' in o['Properties'] and o['Properties']['sensitive']
         self.admincount = 'admincount' in o['Properties'] and o['Properties']['admincount']
         self.unconstraineddelegation = 'unconstraineddelegation' in o['Properties'] and o['Properties']['unconstraineddelegation']
-        self.pwdnotrequired = 'pwdnotrequired' in o['Properties'] and o['Properties']['pwdnotrequired']
+        self.passwordnotreqd = 'passwordnotreqd' in o['Properties'] and o['Properties']['passwordnotreqd']
         self.pwdneverexpires = 'pwdneverexpires' in o['Properties'] and o['Properties']['pwdneverexpires']
         self.description = o['Properties']['description'] if 'description' in o['Properties'] else ''
 
@@ -104,7 +104,7 @@ class FakeLDAPObject(LDAPObject):
         self.name = 'name'
         self.dn = 'PARENT_DN'
         self.np = False
-        self.pwdnotrequired = False
+        self.passwordnotreqd = False
         self.pwdneverexpires = False
         self.spn = []
         self.admincount = False
@@ -553,7 +553,7 @@ class Database():
         for sid in self.users:
             o = self.objects_by_sid[sid]
             if not (o.rights_by_sid or o.np or (o.spn and o.type == c.T_USER) or \
-                    o.is_admin or o.trustedtoauth or o.pwdnotrequired):
+                    o.is_admin or o.trustedtoauth or o.passwordnotreqd):
                 to_remove.append(o.sid)
         for sid in to_remove:
             self.users.remove(sid)

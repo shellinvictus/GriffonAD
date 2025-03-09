@@ -78,7 +78,7 @@ def print_hvt(db:Database):
             print(f'{Fore.GREEN} N{Style.RESET_ALL}', end='')
         if o.protected:
             print(f'{Fore.GREEN} P{Style.RESET_ALL}', end='')
-        if o.pwdnotrequired:
+        if o.passwordnotreqd:
             print(f'{Fore.GREEN} !R{Style.RESET_ALL}', end='')
         if o.sensitive:
             print(f'{Fore.GREEN} S{Style.RESET_ALL}', end='')
