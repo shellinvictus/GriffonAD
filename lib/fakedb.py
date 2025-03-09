@@ -239,13 +239,22 @@ def generate_fake_db():
         gr3.sid: [eve.sid],
     }
 
-    charlie.groups = [
+    charlie.groups_rid = [
         int(gr1.sid.split('-')[-1]),
     ]
 
-    eve.groups = [
+    eve.groups_rid = [
         int(gr2.sid.split('-')[-1]),
         int(gr3.sid.split('-')[-1]),
+    ]
+
+    charlie.groups_sid = [
+        gr1.sid,
+    ]
+
+    eve.groups_sid = [
+        gr2.sid,
+        gr3.sid,
     ]
 
     db.ous_by_dn = {

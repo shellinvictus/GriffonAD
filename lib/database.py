@@ -111,7 +111,8 @@ class FakeLDAPObject(LDAPObject):
         self.admincount = False
         self.trustedtoauth = False
         self.unconstraineddelegation = False
-        self.groups = set()
+        self.groups_sid = set()
+        self.groups_rid = set()
         self.is_local_admin = False
         self.rights_by_sid = {}
         self.bloodhound_json = None
