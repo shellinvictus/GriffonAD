@@ -152,10 +152,10 @@ class Graph():
                             'curve-style': 'bezier',
                             'content': 'data(label)',
                             'text-wrap': 'wrap',
-                            'target-arrow-color': '#B7B7B7',
+                            'target-arrow-color': '#0067ff',
                             'target-arrow-shape': 'triangle',
                             'arrow-scale': .8,
-                            'line-color': '#B7B7B7',
+                            'line-color': '#DCDCDC',
                             'font-size': '7px',
                             'width': '2px',
                             'height': '10px',
@@ -198,9 +198,9 @@ class Graph():
                     {
                         'selector': '.ou',
                         'style': {
-                            'background-color': '#f1f5d8',
-                            'border-color': '#848D49',
-                            'background-image': dash.get_asset_url('group.svg'),
+                            'background-color': '#F395D7',
+                            'border-color': '#F220B3',
+                            'background-image': dash.get_asset_url('ou.svg'),
                         },
                     },
                     {
