@@ -26,6 +26,11 @@ Tests
     - the js graph is very slow when permissions are too random
 - bloodhound-python
 
+Challenge
+---------
+
+You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
+
 
 Embedded tools
 ==============
