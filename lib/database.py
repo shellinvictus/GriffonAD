@@ -309,7 +309,7 @@ class Database():
 
             if not parent.is_owned_domain and not parent.is_owned_dc:
                 __set_or_add(parent.rights_by_sid, target_sid, right)
-                if 'GenericAll' in parent.rights_by_sid[target_sid]:
+                if target_sid != 'many' and 'GenericAll' in parent.rights_by_sid[target_sid]:
                     parent.rights_by_sid[target_sid] = {'GenericAll': None}
 
         exclude = [
