@@ -65,6 +65,7 @@ class LDAPObject():
         self.passwordnotreqd = 'passwordnotreqd' in o['Properties'] and o['Properties']['passwordnotreqd']
         self.pwdneverexpires = 'pwdneverexpires' in o['Properties'] and o['Properties']['pwdneverexpires']
         self.description = o['Properties']['description'] if 'description' in o['Properties'] else ''
+        self.enabled = 'enabled' in o['Properties'] and o['Properties']['enabled']
 
         if self.type == c.T_DOMAIN:
             self.name = o['Properties']['name']
@@ -555,7 +556,9 @@ class Database():
         # iter_users sorts by names before
         for sid in self.users:
             o = self.objects_by_sid[sid]
-            if not (o.rights_by_sid or o.np or (o.spn and o.type == c.T_USER) or \
+            if not o.enabled:
+                to_remove.append(o.sid)
+            elif not (o.rights_by_sid or o.np or (o.spn and o.type == c.T_USER) or \
                     o.is_admin or o.trustedtoauth or o.passwordnotreqd):
                 to_remove.append(o.sid)
         for sid in to_remove:
