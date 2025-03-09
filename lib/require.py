@@ -163,13 +163,13 @@ class x_add_computer(Require):
         ]
 
         if parent.krb_auth:
-            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} | grep MachineAccountQuota"
+            cmd = "./tools/getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} | grep MachineAccountQuota"
+            cmd = "./tools/getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} | grep MachineAccountQuota"
+            cmd = "./tools/getname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./getname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} | grep MachineAccountQuota"
+            cmd = "./tools/getname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} | grep MachineAccountQuota -A 2"
 
         print_line(comment, cmd, v)
 
