@@ -88,6 +88,15 @@ def print_hvt(db:Database):
             print(f'{Fore.GREEN} !X{Style.RESET_ALL}', end='')
         print()
 
+        for sid in o.groups_sid:
+            if sid == 'many':
+                name = 'many'
+            elif sid not in db.objects_by_sid:
+                name = f'UNKNOWN_{sid}'
+            else:
+                name = color1_object(db.objects_by_sid[sid])
+            print(f'    < {name}')
+
         for sid, rights in o.rights_by_sid.items():
             if sid == 'many':
                 name = 'many'

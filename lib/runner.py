@@ -15,7 +15,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
             'target.np': target.np,
             'target.protected': target.protected,
             'target.sensitive': target.sensitive,
-            'target.groups': target.groups,
+            'target.groups': target.groups_rid,
             'target.trustedtoauth': target.trustedtoauth,
         })
     if parent is not None:
@@ -28,7 +28,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
             'parent.protected': parent.obj.protected,
             'parent.sensitive': parent.obj.sensitive,
             'parent.trustedtoauth': parent.obj.trustedtoauth,
-            'parent.groups': parent.obj.groups,
+            'parent.groups': parent.obj.groups_rid,
         })
     for opt in args.opt:
         vars[opt] = True

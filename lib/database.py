@@ -43,7 +43,8 @@ class LDAPObject():
         self.type = type
         self.sid = o['ObjectIdentifier']
         self.protected = False # in protected users group
-        self.groups = set() # list of RIDs, list of groups this object belongs
+        self.groups_rid = set() # list of groups this object belongs
+        self.groups_sid = set() # list of groups this object belongs
         self.gpo_links_to_ou = [] # only for GPO, it contains the ou dn 
         self.from_domain = o['Properties']['domain']
 
@@ -214,7 +215,8 @@ class Database():
     def populate_groups(self):
         def __add(group_sid:str, members:set, o:LDAPObject):
             if o.type in [c.T_USER, c.T_COMPUTER, c.T_DC]:
-                o.groups.add(int(group_sid.split('-')[-1]))
+                o.groups_rid.add(int(group_sid.split('-')[-1]))
+                o.groups_sid.add(group_sid)
             elif o.type == c.T_GROUP:
                 for member in o.bloodhound_json['Members']:
                     sid = member['ObjectIdentifier']
