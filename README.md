@@ -47,7 +47,7 @@ Embedded tools
 - `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
 - `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
 - `./tools/aesKrbKeyGen.py`: login parameters uniformization
-- `./tools/dacledit.py`: -mask + bugfix (pull request done)
+- `./tools/dacledit.py`: -mask + bugfix (pull request done), **move it to impacket/examples/**
 
 
 Installation
