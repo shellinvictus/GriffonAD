@@ -415,18 +415,30 @@ class Database():
 
         # Backup operators
         # Just add the SeBackup to simplify
-        backup_operators = f'{self.domain.name}-S-1-5-32-551'
-        if backup_operators in self.objects_by_sid:
-            self.objects_by_sid[backup_operators].\
+        sid = f'{self.domain.name}-S-1-5-32-551'
+        if sid in self.objects_by_sid:
+            self.objects_by_sid[sid].\
                 rights_by_sid['many'] = {
                     'SeBackup': None,
                     # 'SeRestore': None,
                 }
             # Groups are already propagated, so don't need to recurse on members
-            for member_sid in self.groups_by_sid[backup_operators]:
+            for member_sid in self.groups_by_sid[sid]:
                 o = self.objects_by_sid[member_sid]
                 __add(o, 'many', 'SeBackup')
                 # __add(o, 'many', 'SeRestore')
+
+        # Remote desktop users
+        sid = f'{self.domain.name}-S-1-5-32-555'
+        if sid in self.objects_by_sid:
+            self.objects_by_sid[sid].\
+                rights_by_sid['many'] = {
+                    'CanRDP': None,
+                }
+            # Groups are already propagated, so don't need to recurse on members
+            for member_sid in self.groups_by_sid[sid]:
+                o = self.objects_by_sid[member_sid]
+                __add(o, 'many', 'CanRDP')
 
         # ACEs are stored in the reversed direction in AD
         # If A has the right GenericAll on B, so B has an ACE GenericAll from A
@@ -598,10 +610,10 @@ class Database():
                     __propagate_to_parent(parent)
 
         # Propagate backup operators
-        backup_operators = f'{self.domain.name}-S-1-5-32-551'
-        if backup_operators in self.objects_by_sid:
-            self.objects_by_sid[backup_operators].can_admin = True
-            for member_sid in self.groups_by_sid[backup_operators]:
+        sid = f'{self.domain.name}-S-1-5-32-551'
+        if sid in self.objects_by_sid:
+            self.objects_by_sid[sid].can_admin = True
+            for member_sid in self.groups_by_sid[sid]:
                 __propagate_to_parent(self.objects_by_sid[member_sid])
 
         # Propagate admins + unconstrained delegation

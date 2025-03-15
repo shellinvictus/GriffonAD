@@ -23,6 +23,8 @@ Users:
 - WriteUserAccountControl (enable the do not preauth flag)
 - SetLogonScript
 - ReadGMSAPassword
+- HasSession
+- CanRDP (only if the user is in the group Remote Desktop User, unchecked values in json for the attribute RemoteDesktopUsers)
 
 Computers:
 
@@ -73,7 +75,6 @@ TODO/Unsupported
 - OU delegation
 - Sysvol parser
 - Multi-domains
-- CanRDP
 - PSRemoteUsers
 - SACL
 - Other alternative for Self RBCD (Windows > 2022)
