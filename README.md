@@ -47,13 +47,14 @@ Embedded tools
 - `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
 - `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
 - `./tools/aesKrbKeyGen.py`: login parameters uniformization
-- `./tools/dacledit.py`: -mask + bugfix (pull request done), **move it to impacket/examples/**
+- `./tools/dacledit.py`: -mask + bugfix (pull request done)
 
 
 Installation
 ============
 
     pip install -r requirements.txt
+    mv tools/dacledit.py path_tp_impacket/examples/
 
 
 4 steps to domain admin
@@ -174,7 +175,7 @@ Available options:
 Credits
 =======
 
-- Impacket (the kerberos login function inside ./tools/ldap_auth.py which is a copy)
+- Impacket (the kerberos login function inside ./tools/ldap_auth.py is a copy)
 - https://github.com/Tw1sm/aesKrbKeyGen
 - https://github.com/micahvandeusen/gMSADumper
 - Bloodhound for the opsec comments
