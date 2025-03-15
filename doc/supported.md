@@ -69,7 +69,6 @@ TODO/Unsupported
 - IsACLProtected
 - RODC (msDS-RevealOnDemandGroup, keylistattack, golden ticket)
 - AdminTo
-- HasSession
 - ManagedBy
 - OU delegation
 - Sysvol parser

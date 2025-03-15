@@ -131,6 +131,7 @@ if __name__ == '__main__':
         db.reverse_relations()
         db.propagate_can_admin(ml)
         # db.reduce_aces()
+        db.set_has_sessions()
         db.prune_users()
         db.load_owned(args)
 

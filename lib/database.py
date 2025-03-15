@@ -105,8 +105,8 @@ class FakeLDAPObject(LDAPObject):
         self.protected = False
         self.sensitive = False
         self.lastlogon = 0
-        self.name = 'name'
-        self.dn = 'PARENT_DN'
+        self.name = ''
+        self.dn = ''
         self.np = False
         self.passwordnotreqd = False
         self.pwdneverexpires = False
@@ -122,6 +122,8 @@ class FakeLDAPObject(LDAPObject):
         self.is_owned_domain = False
         self.is_owned_dc = False
         self.description = ''
+        self.enabled = True
+        self.from_domain = ''
 
     def __str__(self):
         return self.name
@@ -140,6 +142,7 @@ class Database():
         self.domain = None # LDAPObject
         self.owned_db = {} # name -> Owned
         self.objects_by_name = {} # upper_name -> LDAPObject
+        self.sessions = {} # user_sid -> set(computer_sid, ...)
 
         # All user sids (users + computers)
         # The set is simplified by prune_users to keep only interesting users.
@@ -206,14 +209,67 @@ class Database():
             elif type == c.T_USER or type == c.T_COMPUTER:
                 self.users.add(sid)
 
+            if type == c.T_COMPUTER:
+                self.save_sessions(o_json)
+
+
+    def save_sessions(self, o_json):
+        # Collector 'Session'
+        for sess in o_json['Sessions']['Results']:
+            user_sid = sess['UserSID']
+            user_sid = sess['ComputerSID']
+            if sess['UserSID'] not in self.sessions:
+                self.sessions[sess['UserSID']] = set()
+            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+
+        # Collector 'LoggedOn'
+        for sess in o_json['RegistrySessions']['Results']:
+            user_sid = sess['UserSID']
+            user_sid = sess['ComputerSID']
+            if sess['UserSID'] not in self.sessions:
+                self.sessions[sess['UserSID']] = set()
+            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+
+        # Collector 'PrivilegedSessions'
+        for sess in o_json['RegistrySessions']['Results']:
+            user_sid = sess['UserSID']
+            user_sid = sess['ComputerSID']
+            if sess['UserSID'] not in self.sessions:
+                self.sessions[sess['UserSID']] = set()
+            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+
 
     def load_objects(self, args):
         t = time.time()
+
         for fn in args.filename:
             self.__load_json(fn)
+
         diff = time.time() - t
         if diff > .4:
             print(f'[+] json loaded in {diff} seconds')
+
+        if self.domain is None:
+            self.domain = FakeLDAPObject()
+            self.domain.name = 'UNKNOWN_DOMAIN'
+            self.domain.dn = 'UNKNOWN_DOMAIN_DN'
+            self.type = c.T_DOMAIN
+
+
+    def set_has_sessions(self):
+        for user_sid, targets_sid in self.sessions.items():
+            if user_sid not in self.objects_by_sid:
+                o = FakeLDAPObject()
+                o.sid = user_sid
+                o.name = user_sid
+                o.type = c.T_USER
+                self.users.add(o.sid)
+                self.objects_by_sid[user_sid] = o
+                self.objects_by_name[user_sid] = o
+            else:
+                o = self.objects_by_sid[user_sid]
+            for sid in targets_sid:
+                o.rights_by_sid[sid] = {'HasSession': None}
 
 
     def populate_groups(self):
@@ -328,42 +384,49 @@ class Database():
         # Manage/simplify special groups
 
         # Account operators
-        self.objects_by_sid[exclude[0]].\
-            rights_by_sid = {'many': {'GenericAll': None}}
+        if exclude[0] in self.objects_by_sid:
+            self.objects_by_sid[exclude[0]].\
+                rights_by_sid = {'many': {'GenericAll': None}}
 
         # Enterprise key admins
-        self.objects_by_sid[exclude[1]].\
-            rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
+        if exclude[1] in self.objects_by_sid:
+            self.objects_by_sid[exclude[1]].\
+                rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
 
         # Key admins
-        self.objects_by_sid[exclude[2]].\
-            rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
+        if exclude[2] in self.objects_by_sid:
+            self.objects_by_sid[exclude[2]].\
+                rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
 
         # Distributed COM Users
-        self.objects_by_sid[exclude[3]].\
-            rights_by_sid = {'many': {'GenericAll': None}}
+        if exclude[3] in self.objects_by_sid:
+            self.objects_by_sid[exclude[3]].\
+                rights_by_sid = {'many': {'GenericAll': None}}
 
         # Cryptographic Operators
-        self.objects_by_sid[exclude[4]].\
-            rights_by_sid = {'many': {'GenericAll': None}}
+        if exclude[4] in self.objects_by_sid:
+            self.objects_by_sid[exclude[4]].\
+                rights_by_sid = {'many': {'GenericAll': None}}
 
         # Storage Replica Administrators
-        self.objects_by_sid[exclude[5]].\
-            rights_by_sid = {'many': {'GenericAll': None}}
+        if exclude[5] in self.objects_by_sid:
+            self.objects_by_sid[exclude[5]].\
+                rights_by_sid = {'many': {'GenericAll': None}}
 
         # Backup operators
         # Just add the SeBackup to simplify
         backup_operators = f'{self.domain.name}-S-1-5-32-551'
-        self.objects_by_sid[backup_operators].\
-            rights_by_sid['many'] = {
-                'SeBackup': None,
-                # 'SeRestore': None,
-            }
-        # Groups are already propagated, so don't need to recurse on members
-        for member_sid in self.groups_by_sid[backup_operators]:
-            o = self.objects_by_sid[member_sid]
-            __add(o, 'many', 'SeBackup')
-            # __add(o, 'many', 'SeRestore')
+        if backup_operators in self.objects_by_sid:
+            self.objects_by_sid[backup_operators].\
+                rights_by_sid['many'] = {
+                    'SeBackup': None,
+                    # 'SeRestore': None,
+                }
+            # Groups are already propagated, so don't need to recurse on members
+            for member_sid in self.groups_by_sid[backup_operators]:
+                o = self.objects_by_sid[member_sid]
+                __add(o, 'many', 'SeBackup')
+                # __add(o, 'many', 'SeRestore')
 
         # ACEs are stored in the reversed direction in AD
         # If A has the right GenericAll on B, so B has an ACE GenericAll from A
@@ -372,6 +435,10 @@ class Database():
         # None means there is no argument for this right (useful with constrained
         # delegation where the argument is the spn)
         for target in self.objects_by_sid.values():
+
+            if isinstance(target, FakeLDAPObject):
+                continue
+
             for ace in target.bloodhound_json['Aces']:
                 parent_sid = ace['PrincipalSID']
 
@@ -401,6 +468,9 @@ class Database():
         # iter_users sorts by names before
         for sid in self.users:
             o = self.objects_by_sid[sid]
+
+            if isinstance(o, FakeLDAPObject):
+                continue
 
             # RBCD
             # AllowedToAct is the attribute msDS-AllowedToActOnBehalfOfOtherIdentity
@@ -527,11 +597,14 @@ class Database():
                 if not rights.keys().isdisjoint(ml.get_rights_to_apply(o.type)):
                     __propagate_to_parent(parent)
 
+        # Propagate backup operators
         backup_operators = f'{self.domain.name}-S-1-5-32-551'
-        self.objects_by_sid[backup_operators].can_admin = True
-        for member_sid in self.groups_by_sid[backup_operators]:
-            __propagate_to_parent(self.objects_by_sid[member_sid])
+        if backup_operators in self.objects_by_sid:
+            self.objects_by_sid[backup_operators].can_admin = True
+            for member_sid in self.groups_by_sid[backup_operators]:
+                __propagate_to_parent(self.objects_by_sid[member_sid])
 
+        # Propagate admins + unconstrained delegation
         for o in self.objects_by_sid.values():
             if o.is_admin or o.can_admin or o.unconstraineddelegation:
                 __propagate_to_parent(o)
