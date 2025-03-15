@@ -40,7 +40,7 @@ Embedded tools
 - `./tools/logonscript.py`: modify the attribute msTSInitialProgram
 - `./tools/addmember.py`: modify the attribute member
 - `./tools/toggleNP.py`: enable or disable the donotpreauth flag
-- `./tools/getname.py`: get all attributes of one object
+- `./tools/getbyname.py`: get all attributes of one object
 - `./tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
 - `./tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
 - `./tools/scriptsini.py`: re-format a scripts.ini with correct encoding
