@@ -538,7 +538,6 @@ class Database():
             f'{self.domain.sid}-512',      # Domain Admins
             f'{self.domain.sid}-502',      # krbtgt
             f'{self.domain.sid}-519',      # Enterprise Admins
-            f'{self.domain.name}-S-1-5-9', # Enterprise Domain Controllers
             f'{self.domain.name}-S-1-5-32-544', # Administrators
         ]
 

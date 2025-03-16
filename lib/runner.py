@@ -7,6 +7,8 @@ from lib.expression import rpn_eval
 
 stack = []
 
+{% set DEBUG = False %}
+
 def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
     vars = {}
     if target is not None:
@@ -156,7 +158,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     if target is not None and target.name.upper() in db.owned_db:
         return False
 
-    {#print(f'{parent.obj.name} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')#}
+    {% if DEBUG %}
+    print(f'{parent.obj} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')
+    {% endif %}
 
     if not args.no_follow and '{{sym}}' in executed_symbols:
         return False 
@@ -272,6 +276,20 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
                     {% else %}
                     found_one = True
                     {% endif %}
+            elif t.type == {{c.T_GROUP}}:
+                if group_{{xxsymres}}(args, set(), p, t):
+                    {% if pred.do_fork %}
+                    pass
+                    {% else %}
+                    found_one = True
+                    {% endif %}
+            elif t.type == {{c.T_OU}}:
+                if ou_{{xxsymres}}(args, set(), p, t):
+                    {% if pred.do_fork %}
+                    pass
+                    {% else %}
+                    found_one = True
+                    {% endif %}
 
             {% endif %}
 
@@ -350,7 +368,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     lib.actions.x_{{sym|replace('::', '')}}.rollback(target)
     {% endif %}
 
-    {#print(f'##end {parent.obj.name} -> {{xxsym}}({target.name})', found_one)#}
+    {% if DEBUG %}
+    print(f'##end {parent.obj} -> {{xxsym}}({target})', found_one)
+    {% endif %}
 
     stack.pop()
     return found_one

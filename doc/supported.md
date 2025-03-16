@@ -62,7 +62,6 @@ admin users + computers in the same OU as the gpo link):
 TODO/Unsupported
 ================
 
-- FIXME: Account Operators: also apply GenericAll on groups
 - More scenarios with GPO: https://wald0.com/?p=179
 - GPO enforcement, OU inheritance
 - Delegation unsupported on users

@@ -21,7 +21,7 @@ AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
 
 # 'Account Operators'
 GenericAll(many) -> GenericAll \
-        require_targets ta_users_without_admincount \
+        require_targets ta_users_and_groups_without_admincount \
         if 548 in parent.groups
 
 # TODO (already managed in lib/database.py)

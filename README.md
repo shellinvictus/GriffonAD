@@ -94,10 +94,9 @@ Other options:
 > About the `many` target: it means that you can have multiple targets.
 > It depends of the right you have:
 > 
-> - `GenericAll`: on all users with admincount=0 (FIXME: also on groups) if in
-> the Account Operators group
-> - `AddKeyCredentialLink`: on all users with admincount=0 (FIXME: also on
-> groups) if in Key Admins group
+> - `GenericAll`: on all users and groups with admincount=0 if in the Account
+> Operators group
+> - `AddKeyCredentialLink`: on all users with admincount=0 if in Key Admins group
 > - `AllowedToDelegate`: means an unconstrained delegation
 > - `SeBackup`/`SeRestore`: can access to C$ on all computers (DC included)
 
@@ -170,7 +169,7 @@ Available options:
 - `--opt noaddcomputer`: don't use the scenario 'add a computer' with RBCD
 - `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
 - `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
-- `--opt allkeys`: for Key Admins group, iterate on all users (and computers)
+- `--opt allkeys`: for the Key Admins group (+Enterprise), iterate on all users and computers
 
 
 Credits
