@@ -139,7 +139,7 @@ def generate_fake_db():
     gpo1.dn = 'CN={C4060C9D-C608-4FF7-BF84-4088DDDB58E6},CN=POLICIES,CN=SYSTEM,DC=CORP,DC=LOCAL'
     gpo1.name = '{C4060C9D-C608-4FF7-BF84-4088DDDB58E6}[GPO@CORP.LOCAL]'
     gpo1.original_name = 'GPO@CORP.LOCAL'
-    gpo1.gpo_id = '{C4060C9D-C608-4FF7-BF84-4088DDDB58E6}'
+    gpo1.gpo_dirname_id = '{C4060C9D-C608-4FF7-BF84-4088DDDB58E6}'
 
     gpo1.gpo_links_to_ou = [
         ou1.dn,

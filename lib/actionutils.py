@@ -198,11 +198,11 @@ def pre_update_gpo(glob:dict, parent:Owned, target:LDAPObject, gpo:LDAPObject):
 
     print_comment('Get values', end=False)
 
-    Attr(glob, parent, gpo.gpo_id,
+    Attr(glob, parent, gpo.gpo_dirname_id,
         key=attr_extname,
         save_in_var='en')
 
-    Attr(glob, parent, gpo.gpo_id,
+    Attr(glob, parent, gpo.gpo_dirname_id,
         key='versionNumber',
         save_in_var='vn')
 
@@ -228,7 +228,7 @@ def pre_update_gpo(glob:dict, parent:Owned, target:LDAPObject, gpo:LDAPObject):
 
     print_cmd([
         'use SYSVOL',
-        'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/',
+        'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/',
         'get GPT.INI',
         'CTRL-Z # pause the smbclient',
         'sed -i "s/^Version=[0-9]*/Version=$vn/g" GPT.INI',
@@ -246,11 +246,11 @@ def post_update_gpo(glob:dict, parent:Owned, target:LDAPObject, gpo:LDAPObject, 
 
     print_comment('Update values', end=False)
 
-    Attr(glob, parent, gpo.gpo_id,
+    Attr(glob, parent, gpo.gpo_dirname_id,
         key=attr_extname,
         write_value=f"`./tools/mergeGUID.py \"$en\" '{extnames}'`")
 
-    Attr(glob, parent, gpo.gpo_id,
+    Attr(glob, parent, gpo.gpo_dirname_id,
         key='versionNumber',
         write_value=f"$vn")
 

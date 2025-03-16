@@ -780,9 +780,9 @@ class x_GPOImmediateTask(Action):
 
         comment = 'Create the subpath if not present and push ScheduledTasks.xml'
         if target.type == c.T_COMPUTER:
-            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/Machine/Preferences/ScheduledTasks'
+            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/Machine/Preferences/ScheduledTasks'
         else:
-            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/User/Preferences/ScheduledTasks'
+            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/User/Preferences/ScheduledTasks'
         print_line(comment, cmd, v, end=False)
 
         print_cmd([
@@ -823,9 +823,9 @@ class x_GPOLogonScript(Action):
 
         comment = 'Create the subpath if not present and push files'
         if target.type == c.T_COMPUTER:
-            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/Machine/Scripts'
+            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/Machine/Scripts'
         else:
-            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/User/Scripts'
+            cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/User/Scripts'
         print_line(comment, cmd, v, end=False)
 
         print_cmd([
@@ -875,7 +875,7 @@ class x_GPOAddLocalAdmin(Action):
         pre_update_gpo(v, parent, target, gpo)
 
         comment = 'Create the subpath if not present and push GptTmpl.inf'
-        cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/Machine/Microsoft/Windows NT/SecEdit'
+        cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/Machine/Microsoft/Windows NT/SecEdit'
         print_line(comment, cmd, v, end=False)
 
         print_cmd([
@@ -1032,7 +1032,7 @@ class x_GPODisableDefender(Action):
         pre_update_gpo(v, parent, target, gpo)
 
         comment = 'Push files (replace or update them)'
-        cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_id}/Machine/'
+        cmd = 'cd /{fqdn_lower}/Policies/{gpo.gpo_dirname_id}/Machine/'
         print_line(comment, cmd, v, end=False)
 
         print_cmd([

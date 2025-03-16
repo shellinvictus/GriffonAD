@@ -72,10 +72,8 @@ class LDAPObject():
             self.name = o['Properties']['name']
             self.rid = 0
         elif self.type == c.T_GPO:
-            # gpo_id is not the ObjectIdentifier (sid), this is a guid
-            # This id is the name of the directory in SYSVOL
-            self.gpo_id = '{' + self.dn.split('{')[1].split('}')[0] + '}'
-            self.name = self.gpo_id + '[' + o['Properties']['name'] + ']'
+            self.gpo_dirname_id = '{' + self.dn.split('{')[1].split('}')[0] + '}'
+            self.name = self.gpo_dirname_id + '[' + o['Properties']['name'] + ']'
             self.rid = 0
         elif self.type == c.T_CONTAINER or self.type == c.T_OU:
             self.rid = 0
