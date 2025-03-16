@@ -22,6 +22,7 @@ will not be able to run some scenarios:
 Then run on the DC the script below (powershell -> run as administrator).
 Don't look too much in create.ps1 if you don't want to be spoiled 🙂 !
 
+    Set-ExecutionPolicy unrestricted
     .\create.ps1
 
 > [!NOTE]
@@ -36,4 +37,4 @@ You have succeeded to get `Tracy`'s password! Next step is to retrieve ACLs...
     cat owned
     Tracy:password:Spring2025
 
-There are 2 paths to domain admins (without `Alyx`), good luck!
+There are 3 main paths to domain admins (without `Alyx`), good luck!

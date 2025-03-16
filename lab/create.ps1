@@ -116,3 +116,5 @@ Set-ADAccountPassword -Identity PREPROD_USER -Reset `
     -NewPassword (New-Object System.Security.SecureString)
 Set-ADComputer -Identity DATABASE -TrustedForDelegation $true
 Set-ADACCountControl -Identity PREPROD$ -TrustedToAuthForDelegation $true
+$gpo = New-GPO -name INSTALLER | new-gplink -target $OU_SERVERS |
+    Set-GPPermissions -PermissionLevel gpoedit -TargetName "Sys" -TargetType Group
