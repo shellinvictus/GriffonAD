@@ -103,6 +103,18 @@ class Graph():
                 })
             self.object_generate_elements(target_sid, seen)
 
+        if o.type == c.T_GPO:
+            for ou_dn in o.gpo_links_to_ou:
+                ou_sid = self.db.ous_dn_to_sid[ou_dn]
+                self.elements.append({
+                    'data': {
+                        'source': o.sid,
+                        'target': ou_sid,
+                        'label': 'GPLink',
+                    }
+                })
+                self.object_generate_elements(ou_sid, seen)
+
 
     def run(self):
         app = Dash(title='Griffon')
