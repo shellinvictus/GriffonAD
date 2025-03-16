@@ -372,16 +372,13 @@ class Database():
                 if target_sid != 'many' and 'GenericAll' in parent.rights_by_sid[target_sid]:
                     parent.rights_by_sid[target_sid] = {'GenericAll': None}
 
-        # Manage/simplify special groups
+        # Simplify special groups with many ACLs
         # These groups will have a target sid set to 'many'
         # If the target is the DC, the right is kept
         exclude = [
             f'{self.domain.name}-S-1-5-32-548', # Account operators
             f'{self.domain.sid}-527', # Enterprise key admins
             f'{self.domain.sid}-526', # Key admins
-            f'{self.domain.name}-S-1-5-32-562', # Distributed COM Users
-            f'{self.domain.name}-S-1-5-32-569', # Cryptographic Operators
-            f'{self.domain.name}-S-1-5-32-582', # Storage Replica Administrators
         ]
 
         # Backup operators

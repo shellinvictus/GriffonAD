@@ -24,11 +24,6 @@ GenericAll(many) -> GenericAll \
         require_targets ta_users_and_groups_without_admincount \
         if 548 in parent.groups
 
-# TODO (already managed in lib/database.py)
-# Distributed COM Users
-# Cryptographic Operators
-# Storage Replica Administrators
-
 # 'Backup Operators'
 SeBackup(many) -> ::SeBackup \
         require_targets ta_dc \

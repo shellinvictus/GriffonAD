@@ -65,7 +65,7 @@ TODO/Unsupported
 - More scenarios with GPO: https://wald0.com/?p=179
 - GPO enforcement, OU inheritance
 - Delegation unsupported on users
-- More security groups: Power Users, Remote Management, Remote Desktop Users, Server Operators, Create Owners, DnsAdmin, AdminSDHolder, Print Operators, Organization Management, Hyper-V Administrators, Exchange Windows Permissions, AD Recycle Bin
+- More security groups: Power Users, Remote Management, Server Operators, Create Owners, DnsAdmin, AdminSDHolder, Print Operators, Organization Management, Hyper-V Administrators, Exchange Windows Permissions, AD Recycle Bin
 - WriteGPLink on OU: actually the right is managed in config.ml but any commands are printed. https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
 - IsACLProtected
 - RODC (msDS-RevealOnDemandGroup, keylistattack, golden ticket)
