@@ -30,8 +30,9 @@ SeBackup(many) -> ::SeBackup \
         if 551 in parent.groups
 ::SeBackup(dc) -> stop
 
-PasswordNotReqd(user) -> apply_with_blank_passwd
-PasswordNotReqd(computer) -> apply_with_blank_passwd
+PasswordNotReqd(user) -> ::BlankPassword
+PasswordNotReqd(computer) -> ::BlankPassword
+::BlankPassword(any) -> apply_with_blank_passwd
 
 # User
 

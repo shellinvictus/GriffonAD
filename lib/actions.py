@@ -1080,3 +1080,9 @@ class x_SeBackup(Action):
         print_line(comment, cmd, v)
 
         print_comment("Read/write all files you want (NTDS.dit for example if you are on a DC...)")
+
+
+class x_BlankPassword(Action):
+    def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
+        v = vars(glob, parent, target)
+        print_comment("The password of {target.name} may be blank... or not", v)
