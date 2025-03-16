@@ -59,6 +59,8 @@ class Graph():
             classes = 'group'
         elif o.type == c.T_DOMAIN:
             classes = 'domain'
+        elif o.type == c.T_CONTAINER:
+            classes = 'container'
         else:
             classes = ''
 
@@ -185,6 +187,14 @@ class Graph():
                             'background-color': '#908EDF',
                             'border-color': '#46448E',
                             'background-image': dash.get_asset_url('gpo.svg'),
+                        },
+                    },
+                    {
+                        'selector': '.container',
+                        'style': {
+                            'background-color': '#7787F7',
+                            'border-color': '#001acf',
+                            'background-image': dash.get_asset_url('container.svg'),
                         },
                     },
                     {

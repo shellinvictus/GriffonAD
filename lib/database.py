@@ -592,7 +592,7 @@ class Database():
 
         # Propagate admins + unconstrained delegation
         for o in self.objects_by_sid.values():
-            if o.is_admin or o.can_admin or o.unconstraineddelegation:
+            if o.is_admin or o.unconstraineddelegation:
                 __propagate_to_parent(o)
 
 

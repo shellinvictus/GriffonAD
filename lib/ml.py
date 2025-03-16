@@ -67,6 +67,7 @@ class MiniLanguage():
             c.T_GPO: [],
             c.T_DC: [],
             c.T_OU: [],
+            c.T_CONTAINER: [],
             -1: [], # 'many'
         }
         # For an index i in symbols_by_type we have the Predicate object
@@ -80,6 +81,7 @@ class MiniLanguage():
             c.T_GPO: [],
             c.T_DC: [],
             c.T_OU: [],
+            c.T_CONTAINER: [],
             -1: [], # 'many'
         }
         # For each dict: get the list of 'left' symbols for a symbol result
@@ -98,6 +100,7 @@ class MiniLanguage():
             c.T_GPO: {},
             c.T_DC: {},
             c.T_OU: {},
+            c.T_CONTAINER: {},
             -1: {}, # 'many'
         }
         # Set of symbols on which a path exists to any apply_*
@@ -110,6 +113,7 @@ class MiniLanguage():
             c.T_GPO: set(),
             c.T_DC: set(),
             c.T_OU: set(),
+            c.T_CONTAINER: set(),
         }
         self.args = args
 

@@ -32,6 +32,7 @@ ML_TYPES_FROM_STR = {
     'gpo': T_GPO,
     'dc': T_DC,
     'ou': T_OU,
+    'container': T_CONTAINER,
     'many': T_MANY,
 }
 
@@ -43,6 +44,7 @@ ML_TYPES_TO_STR = {
     T_GPO: 'gpo',
     T_DC: 'dc',
     T_OU: 'ou',
+    T_CONTAINER: 'container',
     T_MANY: 'many',
 }
 
