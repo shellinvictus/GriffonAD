@@ -21,12 +21,7 @@ class x_ta_dc(Require):
 
 
 class x_ta_users_without_admincount(Require):
-    CACHE = None
-
     def get(db:Database, parent:Owned, target:LDAPObject):
-        if x_ta_users_without_admincount.CACHE is not None:
-            return x_ta_users_without_admincount.CACHE
-
         ret = []
         # iter_users contains only interesting users so it's relatively fast
         for o in db.iter_users():
@@ -36,17 +31,12 @@ class x_ta_users_without_admincount(Require):
         if not ret:
             return None
 
-        x_ta_users_without_admincount.CACHE = ret
         return ret
 
 
 class x_ta_users_and_groups_without_admincount(Require):
-    CACHE = None
 
     def get(db:Database, parent:Owned, target:LDAPObject):
-        if x_ta_users_and_groups_without_admincount.CACHE is not None:
-            return x_ta_users_and_groups_without_admincount.CACHE
-
         ret = x_ta_users_without_admincount.get(db, parent, target)
 
         for group_sid in db.groups_by_sid.keys():
@@ -59,7 +49,6 @@ class x_ta_users_and_groups_without_admincount(Require):
         if not ret:
             return None
 
-        x_ta_users_and_groups_without_admincount.CACHE = ret
         return ret
 
 
@@ -80,7 +69,8 @@ class x_ta_all_computers_in_ou(Require):
         for ou_dn in target.gpo_links_to_ou:
             for sid in db.ous_by_dn[ou_dn]['members']:
                 o = db.objects_by_sid[sid]
-                if o.type == c.T_COMPUTER and o.name.upper() not in db.owned_db:
+                # take all computers even if they don't have rights on other objects
+                if o.type == c.T_COMPUTER:
                     ret.append(o)
 
         x_ta_all_computers_in_ou.CACHE[target.sid] = ret
@@ -106,7 +96,6 @@ class x_ta_all_users_in_ou(Require):
                 o = db.objects_by_sid[sid]
                 # db.users contains only interesting users
                 if o.type == c.T_USER and sid in db.users and \
-                       o.name.upper() not in db.owned_db and \
                        o.sid != parent.obj.sid:
                     ret.append(o)
 
