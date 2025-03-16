@@ -1,6 +1,7 @@
 # Mathematical expression parser to avoid code injection in the compiled program
 
 from colorama import Style
+Style.UNDERLINE = '\033[4m'
 
 NUMBERS = set('0123456789')
 CHARS = set('0123456789_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')

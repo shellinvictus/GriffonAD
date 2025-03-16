@@ -372,6 +372,9 @@ class Database():
                 if target_sid != 'many' and 'GenericAll' in parent.rights_by_sid[target_sid]:
                     parent.rights_by_sid[target_sid] = {'GenericAll': None}
 
+        # Manage/simplify special groups
+        # These groups will have a target sid set to 'many'
+        # If the target is the DC, the right is kept
         exclude = [
             f'{self.domain.name}-S-1-5-32-548', # Account operators
             f'{self.domain.sid}-527', # Enterprise key admins
@@ -380,38 +383,6 @@ class Database():
             f'{self.domain.name}-S-1-5-32-569', # Cryptographic Operators
             f'{self.domain.name}-S-1-5-32-582', # Storage Replica Administrators
         ]
-
-        # Manage/simplify special groups
-
-        # Account operators
-        if exclude[0] in self.objects_by_sid:
-            self.objects_by_sid[exclude[0]].\
-                rights_by_sid = {'many': {'GenericAll': None}}
-
-        # Enterprise key admins
-        if exclude[1] in self.objects_by_sid:
-            self.objects_by_sid[exclude[1]].\
-                rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
-
-        # Key admins
-        if exclude[2] in self.objects_by_sid:
-            self.objects_by_sid[exclude[2]].\
-                rights_by_sid = {'many': {'AddKeyCredentialLink': None}}
-
-        # Distributed COM Users
-        if exclude[3] in self.objects_by_sid:
-            self.objects_by_sid[exclude[3]].\
-                rights_by_sid = {'many': {'GenericAll': None}}
-
-        # Cryptographic Operators
-        if exclude[4] in self.objects_by_sid:
-            self.objects_by_sid[exclude[4]].\
-                rights_by_sid = {'many': {'GenericAll': None}}
-
-        # Storage Replica Administrators
-        if exclude[5] in self.objects_by_sid:
-            self.objects_by_sid[exclude[5]].\
-                rights_by_sid = {'many': {'GenericAll': None}}
 
         # Backup operators
         # Just add the SeBackup to simplify
@@ -458,7 +429,11 @@ class Database():
                     logger(f'warning: unknown sid {parent_sid}')
                     continue
 
-                if parent_sid in exclude:
+                # Check if the target is the DC -> keep the rights, otherwise
+                # replace the target by 'many'
+                # FIXME: not sure about this: for the Key Admins group,
+                # does it have always a AddKeyCredentialLink on the DC?
+                if parent_sid in exclude and target.type != c.T_DC:
                     target_sid = 'many'
                 else:
                     target_sid = target.sid

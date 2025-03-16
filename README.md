@@ -170,6 +170,7 @@ Available options:
 - `--opt noaddcomputer`: don't use the scenario 'add a computer' with RBCD
 - `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
 - `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
+- `--opt allkeys`: for Key Admins group, iterate on all users (and computers)
 
 
 Credits

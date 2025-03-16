@@ -16,7 +16,8 @@ AllowedToDelegate(many) -> ::AllowedToDelegateToAny \
 # 'Key Admins' or 'Enterprise Key Admins'
 AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
         require_targets ta_users_without_admincount \
-        if 526 in parent.groups or 527 in parent.groups
+        if opt.allkeys and (526 in parent.groups or 527 in parent.groups) \
+        elsewarn "Set the option --opt allkeys to execute the scenario AddKeyCredentialLink(many)"
 
 # 'Account Operators'
 GenericAll(many) -> GenericAll \
@@ -146,8 +147,14 @@ GetChanges_GetChangesAll(domain) -> ::DCSync
 GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
 ::DCSync(domain) -> stop
 
+# DC
+GenericWrite(dc) -> AddKeyCredentialLink
+AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
+::AddKeyCredentialLink(dc) -> apply_with_ticket
+
 # GPO
-GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo
+GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo \
+    elsewarn "Set the option --opt allgpo to execute all GPO scenarios"
 GenericWrite(gpo) -> ::GPOLogonScript          if opt.allgpo
 GenericWrite(gpo) -> ::GPODisableDefender      if opt.allgpo
 GenericWrite(gpo) -> ::GPOAddLocalAdmin
