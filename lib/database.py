@@ -398,13 +398,21 @@ class Database():
         sid = f'{self.domain.name}-S-1-5-32-555'
         if sid in self.objects_by_sid:
             self.objects_by_sid[sid].\
-                rights_by_sid['many'] = {
-                    'CanRDP': None,
-                }
+                rights_by_sid['many'] = {'CanRDP': None}
             # Groups are already propagated, so don't need to recurse on members
             for member_sid in self.groups_by_sid[sid]:
                 o = self.objects_by_sid[member_sid]
                 __add(o, 'many', 'CanRDP')
+
+        # Remote Management Users
+        sid = f'{self.domain.name}-S-1-5-32-580'
+        if sid in self.objects_by_sid:
+            self.objects_by_sid[sid].\
+                rights_by_sid['many'] = {'CanPSRemote': None}
+            # Groups are already propagated, so don't need to recurse on members
+            for member_sid in self.groups_by_sid[sid]:
+                o = self.objects_by_sid[member_sid]
+                __add(o, 'many', 'CanPSRemote')
 
         # ACEs are stored in the reversed direction in AD
         # If A has the right GenericAll on B, so B has an ACE GenericAll from A
