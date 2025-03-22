@@ -313,7 +313,8 @@ class Database():
 
         # Populate all links on each OU
         for sid, o in self.objects_by_sid.items():
-            if o.type == c.T_OU:
+            # also check for domains, some gpos may be linked
+            if o.type == c.T_OU or o.type == c.T_DOMAIN:
                 self.ous_dn_to_sid[o.dn] = sid
                 self.ous_by_dn[o.dn] = {'members': [], 'gpo_links': []}
                 for lk in o.bloodhound_json['Links']:
