@@ -78,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--fakedb', action='store_true',
             help='Generate a fake database, positional arguments are then ignored')
     parser.add_argument('--save-compiled', type=str, metavar='FILE')
+    parser.add_argument('--select', type=str, metavar='NAME', help='With --groups and --ous, select only one target')
     parser.add_argument('--debug', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     arg_paths.add_argument('--fromv', action='store_true', help='Paths from vulnerable users (NP users (only unprotected users), password not required,  and kerberoastable users)')
     arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromv, display rights instead of actions')
     arg_paths.add_argument('--onlyadmin', action='store_true')
-    arg_paths.add_argument('--test', type=str, metavar='USER', help='Get paths from this user')
+    arg_paths.add_argument('--from', type=str, metavar='USER', help='Get paths from this user')
     arg_paths.add_argument('--opt', type=str, default='', metavar='OPT1,OPT2,...', help='Custom flags')
     parser.add_argument('-f', '--no-follow', action='store_true',
             help='Don\'t try to continue on owned targets but display all available scenarios for one target')
@@ -158,7 +159,7 @@ if __name__ == '__main__':
         trace_stop(args)
         exit(0)
 
-    if not args.fromv and not args.fromo and not args.test:
+    if not args.fromv and not args.fromo and not args.__getattribute__('from'):
         print_hvt(db)
         trace_stop(args)
         exit(0)
@@ -171,10 +172,10 @@ if __name__ == '__main__':
         final_paths = ml.execute_np(db)
         final_paths += ml.execute_user_spn(db)
         final_paths += ml.execute_password_not_required(db)
-    elif args.test:
-        obj = db.search_by_name(args.test)
+    elif args.__getattribute__('from'):
+        obj = db.search_by_name(args.__getattribute__('from'))
         if obj is None:
-            print(f"[-] error: can't find the object '{args.test}'")
+            print(f"[-] error: can't find the object '{args.__getattribute__('from')}'")
             exit(1)
         o = Owned(obj, secret='PASSWORD', secret_type=c.SECRET_PASSWORD)
         final_paths = ml.execute_user_rights(db, o)

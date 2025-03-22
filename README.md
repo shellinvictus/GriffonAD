@@ -131,7 +131,7 @@ Other options:
 
 - `--fromv`: from vulnerable users (NP users (only unprotected users), password
 not required,  and kerberoastable users)
-- `--test`: test paths from a user
+- `--from USER`: test paths from a user
 - `--rights`: this is a flag to add with previous options. It allows you to view
 rights instead of actions in paths (an action is prefixed by `::`)
 - `--onlyadmin`: display only paths to domain admin (paths prefixed by the
@@ -139,8 +139,8 @@ rights instead of actions in paths (an action is prefixed by `::`)
 scenarios for one target.
 
 > [!NOTE]
-> With `--fakedb` try: `--fromo`, `--test 'desktop-1$'`, `--test 'server-1$'`,
-> `--test 'server-2$'`, `--fromnk`.
+> With `--fakedb` try: `--fromo`, `--from 'desktop-1$'`, `--from 'server-1$'`,
+> `--from 'server-2$'`, `--fromnk`.
 
 
 Step 4: Generate the script
