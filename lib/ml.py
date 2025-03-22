@@ -271,5 +271,5 @@ class MiniLanguage():
         paths = []
         for o in db.iter_users():
             if o.passwordnotreqd:
-                paths += self.execute_function(db, o, 'PasswordNotReqd')
+                paths += self.execute_function(db, o, '::BlankPassword')
         return paths
