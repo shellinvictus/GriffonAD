@@ -89,10 +89,9 @@ Other options:
 - `--graph`: open a js graph to view relations between objects
 - `--sysvol`: search for local members
 
-> [!NOTE] Sysvol
->
-> It supports only for the moment the attribute `members` in GptTmpl.inf (not
-> the `memberOf`). Example on how Griffon displays the information:
+> [!NOTE]
+> `--sysvol`: it supports only for the moment the attribute `members` in GptTmpl.inf
+> (not the `memberOf`). Example on how Griffon displays the information:
 >
 > There is GPO where Alice is defined as a member of Administrators (Policies /
 > Windows Settings / Restricted Groups). The GPO is applied in the OU `MY_OU`.
