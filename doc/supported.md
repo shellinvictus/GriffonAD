@@ -58,6 +58,7 @@ admin users + computers in the same OU as the gpo link):
 - Startup/logon script
 - Add a user in the local Administrators group
 - Firewall open port
+- Partial sysvol parsing
 
 
 TODO/Unsupported

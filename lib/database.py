@@ -42,7 +42,7 @@ class LDAPObject():
         self.is_admin = False
         self.can_admin = False
         self.type = type
-        self.sid = o['ObjectIdentifier']
+        self.sid = o['ObjectIdentifier'] # it's the guid for gpo
         self.protected = False # in protected users group
         self.groups_rid = set() # list of groups this object belongs
         self.groups_sid = set() # list of groups this object belongs
@@ -192,7 +192,15 @@ class Database():
             sid = o_json['ObjectIdentifier']
             o = LDAPObject(o_json, type)
             self.objects_by_sid[sid] = o
-            self.objects_by_name[o.name.upper()] = o
+            # Bloodhound adds the domain as a prefix for builtin sid
+            # Add also the sid without the domain for compatibilities
+            # with the sysvol parser.
+            if sid.startswith(o.from_domain):
+                self.objects_by_sid[sid.replace(o.from_domain + '-', '')] = o
+            if type == c.T_GPO:
+                self.objects_by_name[o.gpo_dirname_id] = o
+            else:
+                self.objects_by_name[o.name.upper()] = o
             if type == c.T_COMPUTER and 'OU=DOMAIN CONTROLLERS' in \
                      o_json['Properties']['distinguishedname']:
                 o.type = c.T_DC
@@ -206,7 +214,6 @@ class Database():
                 self.domain = self.objects_by_sid[sid]
             elif type == c.T_USER or type == c.T_COMPUTER:
                 self.users.add(sid)
-
             if type == c.T_COMPUTER:
                 self.save_sessions(o_json)
 

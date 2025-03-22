@@ -18,6 +18,7 @@ from lib.print import (print_path, print_paths, print_script, print_groups, prin
 from lib.database import Database, FakeLDAPObject, Owned
 from lib.ml import MiniLanguage
 from lib.graph import Graph
+from lib.sysvol import Sysvol
 
 
 def trace_start(args):
@@ -79,6 +80,7 @@ if __name__ == '__main__':
             help='Generate a fake database, positional arguments are then ignored')
     parser.add_argument('--save-compiled', type=str, metavar='FILE')
     parser.add_argument('--select', type=str, metavar='STARTSWITH', help='Filter targets/ous/groups')
+    parser.add_argument('--sysvol', type=str, help='Search for local members of groups')
     parser.add_argument('--debug', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
@@ -125,6 +127,11 @@ if __name__ == '__main__':
         db.load_objects(args)
         db.populate_ous()
         db.populate_groups()
+
+        if args.sysvol:
+            sysv = Sysvol(db, args.sysvol)
+            sysv.updatedb()
+
         db.propagate_admin_groups()
         db.propagate_aces()
         db.merge_getchanges_rights()

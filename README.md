@@ -87,6 +87,21 @@ Other options:
 - `--groups`: display all groups with their rights and members (+ `--members`)
 - `--ous`: display all ous with their rights and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
+- `--sysvol`: search for local members
+
+> [!NOTE] Sysvol
+>
+> It supports only for the moment the attribute `members` in GptTmpl.inf (not
+> the `memberOf`). Example on how Griffon displays the information:
+>
+> There is GPO where Alice is defined as a member of Administrators (Policies /
+> Windows Settings / Restricted Groups). The GPO is applied in the OU `MY_OU`.
+> Then a new right will be available:
+>
+>     Alice
+>         (RestrictedGroup, [Administrators] -> MY_OU@CORP.LOCAL)
+>
+> TODO: manage this right and compute paths
 
 ![graph](/assets/graph.png?raw=true)
 
