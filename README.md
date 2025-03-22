@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.4.svg?raw=true)
+![griffon version](/assets/version-0.4.1.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
