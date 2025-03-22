@@ -49,7 +49,7 @@ def color2_object(o:LDAPObject, underline=False) -> str:
 
 
 # High value targets
-def print_hvt(db:Database):
+def print_hvt(args, db:Database):
     print()
     print(f'{Fore.RED}♦USER{Style.RESET_ALL} the user is an admin')
     print(f'{Fore.YELLOW}★USER{Style.RESET_ALL} there is a path to gain admin privileges')
@@ -65,6 +65,9 @@ def print_hvt(db:Database):
     print()
 
     for o in db.iter_users():
+        if args.select and not o.name.upper().startswith(args.select.upper()):
+            continue
+
         if o.name.upper() in db.owned_db:
             print(color1_object(o, underline=True), end='')
         else:
@@ -113,13 +116,21 @@ def print_hvt(db:Database):
 
 
 def print_ous(args, db:Database):
-    for dn, data in db.ous_by_dn.items():
+    names = []
+    for dn in db.ous_by_dn.keys():
         ou = db.objects_by_sid[db.ous_dn_to_sid[dn]]
+        if not args.select or ou.name.upper().startswith(args.select.upper()):
+            names.append(ou.name.upper())
+    names.sort()
+
+    for name in names:
+        ou = db.objects_by_name[name]
+        data = db.ous_by_dn[ou.dn]
 
         if not data['members'] and not data['gpo_links']:
             continue
 
-        print(dn)
+        print(ou.dn)
 
         if data['gpo_links']:
             for sid in data['gpo_links']:
@@ -142,8 +153,16 @@ def print_groups(args, db:Database):
     protected_group = f'{db.domain.sid}-525'
     print()
 
-    for sid, members in db.groups_by_sid.items():
+    names = []
+    for sid in db.groups_by_sid.keys():
         g = db.objects_by_sid[sid]
+        if not args.select or g.name.upper().startswith(args.select.upper()):
+            names.append(g.name.upper())
+    names.sort()
+
+    for name in names:
+        g = db.objects_by_name[name]
+        members = db.groups_by_sid[g.sid]
 
         # always print the protected group
         if g.sid != protected_group and not g.rights_by_sid:

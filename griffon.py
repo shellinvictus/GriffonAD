@@ -78,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--fakedb', action='store_true',
             help='Generate a fake database, positional arguments are then ignored')
     parser.add_argument('--save-compiled', type=str, metavar='FILE')
-    parser.add_argument('--select', type=str, metavar='NAME', help='With --groups and --ous, select only one target')
+    parser.add_argument('--select', type=str, metavar='STARTSWITH', help='Filter targets/ous/groups')
     parser.add_argument('--debug', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         exit(0)
 
     if not args.fromv and not args.fromo and not args.__getattribute__('from'):
-        print_hvt(db)
+        print_hvt(args, db)
         trace_stop(args)
         exit(0)
 
