@@ -28,7 +28,7 @@ GenericAll(many) -> GenericAll \
 SeBackup(many) -> ::SeBackup \
         require_targets ta_dc \
         if 551 in parent.groups
-::SeBackup(dc) -> stop
+::SeBackup(dc) -> apply_with_aes
 
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd

