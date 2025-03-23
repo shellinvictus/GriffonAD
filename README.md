@@ -84,10 +84,11 @@ sounds good!
 
 Other options:
 
+- `--select FILTER`: display only targets where the name starts with FILTER
 - `--groups`: display all groups with their rights and members (+ `--members`)
 - `--ous`: display all ous with their rights and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
-- `--sysvol`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
+- `--sysvol PATH`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
 
 > [!NOTE]
 > Example on how Griffon displays the information for a local member with `--sysvol`:
