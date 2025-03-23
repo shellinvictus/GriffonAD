@@ -90,8 +90,7 @@ Other options:
 - `--sysvol`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
 
 > [!NOTE]
-> `--sysvol`: it supports only for the moment the attribute `members` in GptTmpl.inf
-> (not the `memberOf`). Example on how Griffon displays the information:
+> Example on how Griffon displays the information for a local member with `--sysvol`:
 >
 > If there is a GPO where Alice is defined as a member of Administrators (Policies /
 > Windows Settings / Restricted Groups) and the GPO is applied in the OU `MY_OU`,
