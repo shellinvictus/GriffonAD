@@ -130,6 +130,43 @@ class Graph():
                 # ]
             # ),
 
+            html.Table([
+                    html.Tr([
+                        html.Td([html.Img(className='domain', src='assets/domain.svg')]),
+                        html.Td(['domain']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='user', src='assets/user.svg')]),
+                        html.Td(['user']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='computer', src='assets/computer.svg')]),
+                        html.Td(['computer']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='group', src='assets/group.svg')]),
+                        html.Td(['group']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='gpo', src='assets/gpo.svg')]),
+                        html.Td(['gpo']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='container', src='assets/container.svg')]),
+                        html.Td(['container']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='ou', src='assets/ou.svg')]),
+                        html.Td(['ou']),
+                    ]),
+                    html.Tr([
+                        html.Td([html.Img(className='owned', src='assets/owned.svg')]),
+                        html.Td(['owned']),
+                    ]),
+                ],
+                id='legend',
+            ),
+
             cyto.Cytoscape(
                 id='canvas',
                 boxSelectionEnabled=True,

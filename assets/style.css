@@ -2,3 +2,64 @@ body {
     font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
     font-size: 14px;
 }
+
+#legend {
+    font-size: 10px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    border: 1px solid #0067ff;
+    background: #fbfbfb;
+    padding: 8px;
+    padding-right: 30px;
+}
+
+#legend tr > td {
+    width: 30px;
+}
+
+#legend img {
+    width: 14px;
+    border-radius: 14px;
+}
+
+.domain {
+    background-color: #F83151;
+    border: 3px solid  #7E0014;
+}
+
+.user {
+    background-color: #97fa9a;
+    border: 3px solid  #48BA4B;
+}
+
+.computer {
+    background-color: #F0BBA0;
+    border: 3px solid  #A66546;
+}
+
+.gpo {
+    background-color: #908EDF;
+    border: 3px solid  #46448E;
+}
+
+.container {
+    background-color: #7787F7;
+    border: 3px solid  #001acf;
+}
+
+.group {
+    background-color: #f1f5d8;
+    border: 3px solid  #848D49;
+}
+
+.ou {
+    background-color: #F395D7;
+    border: 3px solid  #F220B3;
+}
+
+.owned {
+    background-color: white;
+    border: 3px solid black;
+}
+
