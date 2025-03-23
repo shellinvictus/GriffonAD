@@ -44,8 +44,8 @@ class LDAPObject():
         self.type = type
         self.sid = o['ObjectIdentifier'] # it's the guid for gpo
         self.protected = False # in protected users group
-        self.groups_rid = set() # list of groups this object belongs
-        self.groups_sid = set() # list of groups this object belongs
+        self.group_rids = set() # list of groups this object belongs
+        self.group_sids = set() # list of groups this object belongs
         self.gpo_links_to_ou = [] # only for GPO, it contains the ou dn 
         self.from_domain = o['Properties']['domain']
 
@@ -112,8 +112,8 @@ class FakeLDAPObject(LDAPObject):
         self.admincount = False
         self.trustedtoauth = False
         self.unconstraineddelegation = False
-        self.groups_sid = set()
-        self.groups_rid = set()
+        self.group_sids = set()
+        self.group_rids = set()
         self.is_local_admin = False
         self.rights_by_sid = {}
         self.bloodhound_json = None
@@ -139,8 +139,9 @@ class Database():
         self.main_dc = None # LDAPObject
         self.domain = None # LDAPObject
         self.owned_db = {} # name -> Owned
-        self.objects_by_name = {} # upper_name -> LDAPObject
-        self.sessions = {} # user_sid -> set(computer_sid, ...)
+        self.objects_by_name = {} # upper_name (or gpo_dirname_id) -> LDAPObject
+        self.sessions_by_sid = {} # user_sid -> set(computer_sid, ...)
+        self.prefixed_sids = {} # sid_without_prefix -> sid_with_prefix
 
         # All user sids (users + computers)
         # The set is simplified by prune_users to keep only interesting users.
@@ -193,10 +194,10 @@ class Database():
             o = LDAPObject(o_json, type)
             self.objects_by_sid[sid] = o
             # Bloodhound adds the domain as a prefix for builtin sid
-            # Add also the sid without the domain for compatibilities
-            # with the sysvol parser.
+            # Example: CORP-LOCAL-S-1-5-32-555
+            # save the sid translation, used with sysvol
             if sid.startswith(o.from_domain):
-                self.objects_by_sid[sid.replace(o.from_domain + '-', '')] = o
+                self.prefixed_sids[sid.replace(o.from_domain + '-', '')] = sid
             if type == c.T_GPO:
                 self.objects_by_name[o.gpo_dirname_id] = o
             else:
@@ -223,25 +224,25 @@ class Database():
         for sess in o_json['Sessions']['Results']:
             user_sid = sess['UserSID']
             user_sid = sess['ComputerSID']
-            if sess['UserSID'] not in self.sessions:
-                self.sessions[sess['UserSID']] = set()
-            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+            if sess['UserSID'] not in self.sessions_by_sid:
+                self.sessions_by_sid[sess['UserSID']] = set()
+            self.sessions_by_sid[sess['UserSID']].add(sess['ComputerSID'])
 
         # Collector 'LoggedOn'
         for sess in o_json['RegistrySessions']['Results']:
             user_sid = sess['UserSID']
             user_sid = sess['ComputerSID']
-            if sess['UserSID'] not in self.sessions:
-                self.sessions[sess['UserSID']] = set()
-            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+            if sess['UserSID'] not in self.sessions_by_sid:
+                self.sessions_by_sid[sess['UserSID']] = set()
+            self.sessions_by_sid[sess['UserSID']].add(sess['ComputerSID'])
 
         # Collector 'PrivilegedSessions'
         for sess in o_json['RegistrySessions']['Results']:
             user_sid = sess['UserSID']
             user_sid = sess['ComputerSID']
-            if sess['UserSID'] not in self.sessions:
-                self.sessions[sess['UserSID']] = set()
-            self.sessions[sess['UserSID']].add(sess['ComputerSID'])
+            if sess['UserSID'] not in self.sessions_by_sid:
+                self.sessions_by_sid[sess['UserSID']] = set()
+            self.sessions_by_sid[sess['UserSID']].add(sess['ComputerSID'])
 
 
     def load_objects(self, args):
@@ -262,7 +263,7 @@ class Database():
 
 
     def set_has_sessions(self):
-        for user_sid, targets_sid in self.sessions.items():
+        for user_sid, targets_sid in self.sessions_by_sid.items():
             if user_sid not in self.objects_by_sid:
                 o = FakeLDAPObject()
                 o.sid = user_sid
@@ -280,8 +281,8 @@ class Database():
     def populate_groups(self):
         def __add(group_sid:str, members:set, o:LDAPObject):
             if o.type in [c.T_USER, c.T_COMPUTER, c.T_DC]:
-                o.groups_rid.add(int(group_sid.split('-')[-1]))
-                o.groups_sid.add(group_sid)
+                o.group_rids.add(int(group_sid.split('-')[-1]))
+                o.group_sids.add(group_sid)
             elif o.type == c.T_GROUP:
                 for member in o.bloodhound_json['Members']:
                     sid = member['ObjectIdentifier']
@@ -396,31 +397,28 @@ class Database():
                     'SeBackup': None,
                     # 'SeRestore': None,
                 }
-            # Groups are already propagated, so don't need to recurse on members
-            for member_sid in self.groups_by_sid[sid]:
-                o = self.objects_by_sid[member_sid]
-                __add(o, 'many', 'SeBackup')
-                # __add(o, 'many', 'SeRestore')
 
         # Remote desktop users
         sid = f'{self.domain.name}-S-1-5-32-555'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].\
-                rights_by_sid['many'] = {'CanRDP': None}
-            # Groups are already propagated, so don't need to recurse on members
-            for member_sid in self.groups_by_sid[sid]:
-                o = self.objects_by_sid[member_sid]
-                __add(o, 'many', 'CanRDP')
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanRDP': None}
 
         # Remote Management Users
         sid = f'{self.domain.name}-S-1-5-32-580'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].\
-                rights_by_sid['many'] = {'CanPSRemote': None}
-            # Groups are already propagated, so don't need to recurse on members
-            for member_sid in self.groups_by_sid[sid]:
-                o = self.objects_by_sid[member_sid]
-                __add(o, 'many', 'CanPSRemote')
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanPSRemote': None}
+
+        # Propagate previous rights and some added with gpo (sysvol parsing)
+        for group_sid, members in self.groups_by_sid.items():
+            group = self.objects_by_sid[group_sid]
+            for target_sid, rights in group.rights_by_sid.items():
+                for right_name, args in rights.items():
+                    # Groups are already propagated, so don't need to recurse on members
+                    for member_sid in members:
+                        o = self.objects_by_sid[member_sid]
+                        if target_sid not in o.rights_by_sid:
+                            o.rights_by_sid[target_sid] = {}
+                        o.rights_by_sid[target_sid][right_name] = args
 
         # ACEs are stored in the reversed direction in AD
         # If A has the right GenericAll on B, so B has an ACE GenericAll from A
@@ -433,6 +431,7 @@ class Database():
             if isinstance(target, FakeLDAPObject):
                 continue
 
+            # Propagate bloodhound ACEs
             for ace in target.bloodhound_json['Aces']:
                 parent_sid = ace['PrincipalSID']
 

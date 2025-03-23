@@ -4,6 +4,7 @@ import time
 import re
 import tracemalloc
 import linecache
+import json
 from colorama import init as colorama_init
 from colorama import Style
 Style.UNDERLINE = '\033[4m'
@@ -14,7 +15,7 @@ import argparse
 from lib.fakedb import generate_fake_db
 import lib.consts as c
 from lib.print import (print_path, print_paths, print_script, print_groups, print_hvt,
-        print_ous, print_desc)
+        print_ous, print_desc, print_comment)
 from lib.database import Database, FakeLDAPObject, Owned
 from lib.ml import MiniLanguage
 from lib.graph import Graph
@@ -80,7 +81,7 @@ if __name__ == '__main__':
             help='Generate a fake database, positional arguments are then ignored')
     parser.add_argument('--save-compiled', type=str, metavar='FILE')
     parser.add_argument('--select', type=str, metavar='STARTSWITH', help='Filter targets/ous/groups')
-    parser.add_argument('--sysvol', type=str, help='Search for local members of groups')
+    parser.add_argument('--sysvol', metavar='PATH', type=str, help='Analyze GPOs')
     parser.add_argument('--debug', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
@@ -117,6 +118,16 @@ if __name__ == '__main__':
 
     if args.fakedb:
         db = generate_fake_db()
+    elif not args.filename and args.sysvol:
+        if args.sysvol:
+            sysv = Sysvol(args.sysvol)
+            sysv.search_all_gpt()
+            print_comment('Local members', end=False)
+            print(json.dumps(sysv.gpo_groups, indent=4))
+            print()
+            print_comment('Privileges', end=False)
+            print(json.dumps(sysv.gpo_privileges, indent=4))
+        exit(0)
     elif not args.filename:
         print('error: positional argument is missing')
         exit(0)
@@ -129,8 +140,9 @@ if __name__ == '__main__':
         db.populate_groups()
 
         if args.sysvol:
-            sysv = Sysvol(db, args.sysvol)
-            sysv.updatedb()
+            sysv = Sysvol(args.sysvol)
+            sysv.search_all_gpt()
+            sysv.updatedb(db)
 
         db.propagate_admin_groups()
         db.propagate_aces()

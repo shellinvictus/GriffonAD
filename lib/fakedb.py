@@ -239,20 +239,20 @@ def generate_fake_db():
         gr3.sid: [eve.sid],
     }
 
-    charlie.groups_rid = [
+    charlie.group_rids = [
         int(gr1.sid.split('-')[-1]),
     ]
 
-    eve.groups_rid = [
+    eve.group_rids = [
         int(gr2.sid.split('-')[-1]),
         int(gr3.sid.split('-')[-1]),
     ]
 
-    charlie.groups_sid = [
+    charlie.group_sids = [
         gr1.sid,
     ]
 
-    eve.groups_sid = [
+    eve.group_sids = [
         gr2.sid,
         gr3.sid,
     ]

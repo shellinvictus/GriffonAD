@@ -45,6 +45,7 @@ Computers:
 DC:
 
 - DCSync
+- AddKeyCredentialLink
 
 Groups:
 
@@ -58,7 +59,7 @@ admin users + computers in the same OU as the gpo link):
 - Startup/logon script
 - Add a user in the local Administrators group
 - Firewall open port
-- Partial sysvol parsing
+- Partial sysvol parsing (local groups, SeBackup (TODO: exploit))
 
 
 TODO/Unsupported
@@ -73,7 +74,6 @@ TODO/Unsupported
 - RODC (msDS-RevealOnDemandGroup, keylistattack, golden ticket)
 - AdminTo
 - OU delegation
-- Sysvol parser
 - Multi-domains
 - SACL
 - Other alternative for Self RBCD (Windows > 2022)

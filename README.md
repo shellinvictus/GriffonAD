@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.5.svg?raw=true)
+![griffon version](/assets/version-0.5.1.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -87,20 +87,22 @@ Other options:
 - `--groups`: display all groups with their rights and members (+ `--members`)
 - `--ous`: display all ous with their rights and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
-- `--sysvol`: search for local members
+- `--sysvol`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
 
 > [!NOTE]
 > `--sysvol`: it supports only for the moment the attribute `members` in GptTmpl.inf
 > (not the `memberOf`). Example on how Griffon displays the information:
 >
-> There is GPO where Alice is defined as a member of Administrators (Policies /
-> Windows Settings / Restricted Groups). The GPO is applied in the OU `MY_OU`.
-> Then a new right will be available:
+> If there is a GPO where Alice is defined as a member of Administrators (Policies /
+> Windows Settings / Restricted Groups) and the GPO is applied in the OU `MY_OU`,
+> then a new right will be available:
 >
 >     Alice
 >         (RestrictedGroup, [Administrators] -> MY_OU@CORP.LOCAL)
 >
-> TODO: manage this right and compute paths
+> To retrieve SYSVOL, you can use this command:
+>
+>     echo -e "recurse\nprompt\nmget *" | smbclient -U 'DOMAIN/USER%PASSWORD' '\\IP\SYSVOL'
 
 ![graph](/assets/graph.png?raw=true)
 
@@ -154,7 +156,7 @@ scenarios for one target.
 
 > [!NOTE]
 > With `--fakedb` try: `--fromo`, `--from 'desktop-1$'`, `--from 'server-1$'`,
-> `--from 'server-2$'`, `--fromnk`.
+> `--from 'server-2$'`, `--fromv`.
 
 
 Step 4: Generate the script
