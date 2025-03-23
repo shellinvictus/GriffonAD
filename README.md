@@ -86,7 +86,7 @@ Other options:
 
 - `--select FILTER`: display only targets where the name starts with FILTER
 - `--groups`: display all groups with their rights and members (+ `--members`)
-- `--ous`: display all ous with their rights and their members (+ `--members`)
+- `--ous`: display all ous with their gplink and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
 - `--sysvol PATH`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
 
