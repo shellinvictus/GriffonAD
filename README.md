@@ -94,11 +94,12 @@ Other options:
 > Example on how Griffon displays the information for a local member with `--sysvol`:
 >
 > If there is a GPO where Alice is defined as a member of Administrators (Policies /
-> Windows Settings / Restricted Groups) and the GPO is applied in the OU `MY_OU`,
-> then a new right will be available:
+> Windows Settings / Restricted Groups) and Alice has the privilege SeDebug. If the
+> GPO is applied in the OU `MY_OU`, then new rights will be available:
 >
 >     Alice
 >         (RestrictedGroup, [Administrators] -> MY_OU@CORP.LOCAL)
+>         (SeDebugPrivilege, MY_OU@CORP.LOCAL)
 >
 > To retrieve SYSVOL, you can use this command:
 >
