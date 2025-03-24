@@ -27,10 +27,10 @@ class Sysvol():
 
         result = re.search(r'({[-A-F0-9]+})', path)
         gpo_dirname_id = result.group(1)
-        groups = {} # sid -> [sid1, sid2, ...]
-        privileges = {} # priv -> [sid1, sid2, ...]
 
-        # attributes are not case sensitive
+        groups = {} # sid -> [sid1, sid2, ...]
+
+        # attributes are not case sensitives
 
         for key, val in config['Group Membership'].items():
 
@@ -53,12 +53,24 @@ class Sysvol():
                             groups[group_sid] = []
                         groups[group_sid].append(member)
 
+        privileges = {
+            'SeImpersonatePrivilege': [],
+            'SeAssignPrimaryPrivilege': [],
+            'SeTcbPrivilege': [],
+            'SeBackupPrivilege': [],
+            'SeRestorePrivilege': [],
+            'SeCreateTokenPrivilege': [],
+            'SeLoadDriverPrivilege': [],
+            'SeTakeOwnershipPrivilege': [],
+            'SeDebugPrivilege': [],
+        }
+        lower_case_privs = {p.lower():p for p in privileges}
+
         for key, val in config['Privilege Rights'].items():
-            if key == 'sebackupprivilege':
-                privileges['SeBackup'] = []
+            if key in lower_case_privs:
                 for sid in val.split(','):
                     if sid.startswith('*'):
-                        privileges['SeBackup'].append(sid[1:])
+                        privileges[lower_case_privs[key]].append(sid[1:])
 
         return {gpo_dirname_id: groups}, {gpo_dirname_id: privileges}
 
@@ -107,10 +119,9 @@ class Sysvol():
             for ou_dn in gpo.gpo_links_to_ou:
                 ou_sid = db.ous_dn_to_sid[ou_dn]
 
-                for sid in privileges['SeBackup']:
-                    o = get_object(sid)
-                    if ou_sid not in o.rights_by_sid:
-                        o.rights_by_sid[ou_sid] = {}
-                    if 'SeBackup' not in o.rights_by_sid[ou_sid]:
-                        o.rights_by_sid[ou_sid] = {'SeBackup': None}
-                    o.rights_by_sid[ou_sid]['SeBackup'] = None
+                for priv_name, sids in privileges.items():
+                    for sid in sids:
+                        o = get_object(sid)
+                        if ou_sid not in o.rights_by_sid:
+                            o.rights_by_sid[ou_sid] = {}
+                        o.rights_by_sid[ou_sid][priv_name] = None

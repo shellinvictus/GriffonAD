@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.5.2.svg?raw=true)
+![griffon version](/assets/version-0.5.3.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -54,7 +54,7 @@ Installation
 ============
 
     pip install -r requirements.txt
-    mv tools/dacledit.py path_tp_impacket/examples/
+    cp tools/dacledit.py path_to_impacket/examples/
 
 
 4 steps to domain admin
@@ -88,7 +88,7 @@ Other options:
 - `--groups`: display all groups with their rights and members (+ `--members`)
 - `--ous`: display all ous with their gplink and their members (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
-- `--sysvol PATH`: search for local members, SeBackup. Actually, rights are just displayed, any paths are computed from them.
+- `--sysvol PATH`: search for local members and local privileges. Actually, rights are just displayed, any paths are computed from them.
 
 > [!NOTE]
 > Example on how Griffon displays the information for a local member with `--sysvol`:
@@ -114,7 +114,7 @@ Other options:
 > Operators group
 > - `AddKeyCredentialLink`: on all users with admincount=0 if in Key Admins group
 > - `AllowedToDelegate`: means an unconstrained delegation
-> - `SeBackup`/`SeRestore`: can access to C$ on all computers (DC included)
+> - `SeBackupPrivilege`: can access to DC/C$ on all computers (requires RDP?)
 
 > [!NOTE]
 > Supported ACEs here: [supported](/doc/supported.md)

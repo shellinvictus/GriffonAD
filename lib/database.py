@@ -389,13 +389,13 @@ class Database():
         ]
 
         # Backup operators
-        # Just add the SeBackup to simplify
+        # Just add the SeBackupPrivilege to simplify
         sid = f'{self.domain.name}-S-1-5-32-551'
         if sid in self.objects_by_sid:
             self.objects_by_sid[sid].\
                 rights_by_sid['many'] = {
-                    'SeBackup': None,
-                    # 'SeRestore': None,
+                    'SeBackupPrivilege': None,
+                    # 'SeRestorePrivilege': None,
                 }
 
         # Remote desktop users

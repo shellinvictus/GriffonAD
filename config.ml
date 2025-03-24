@@ -25,10 +25,10 @@ GenericAll(many) -> GenericAll \
         if 548 in parent.groups
 
 # 'Backup Operators'
-SeBackup(many) -> ::SeBackup \
+SeBackupPrivilege(many) -> ::SeBackupPrivilege \
         require_targets ta_dc \
         if 551 in parent.groups
-::SeBackup(dc) -> apply_with_aes
+::SeBackupPrivilege(dc) -> apply_with_aes
 
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd
