@@ -91,7 +91,7 @@ Other options:
 - `--sysvol PATH`: search for local members and local privileges. Actually, rights are just displayed, any paths are computed from them.
 
 > [!NOTE]
-> Example on how Griffon displays the information for a local member with `--sysvol`:
+> Example on how Griffon displays the information with `--sysvol`:
 >
 > If there is a GPO applied on the OU `MY_OU` where Alice is defined as a member
 > of Administrators (Policies / Windows Settings / Restricted Groups) and Alice
