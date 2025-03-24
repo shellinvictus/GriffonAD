@@ -130,7 +130,7 @@ From owned users, it reads the text file `owned`.
 >
 > `SAMACCOUNTNAME:TYPE:SECRET`
 >
-> - `SAMACCOUNTNAME` is insensitive case
+> - `SAMACCOUNTNAME` is case insensitive
 > - `TYPE` = `password` | `aes` | `nt` (passwords are in hex for computers)
 >
 > The separator can be changed with the option --sep (you can put a string with
