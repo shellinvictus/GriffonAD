@@ -93,9 +93,9 @@ Other options:
 > [!NOTE]
 > Example on how Griffon displays the information for a local member with `--sysvol`:
 >
-> If there is a GPO where Alice is defined as a member of Administrators (Policies /
-> Windows Settings / Restricted Groups) and Alice has the privilege SeDebug. If the
-> GPO is applied in the OU `MY_OU`, then new rights will be available:
+> If there is a GPO applied on the OU `MY_OU` where Alice is defined as a member
+> of Administrators (Policies / Windows Settings / Restricted Groups) and Alice
+> has the privilege SeDebug, then new rights will be available:
 >
 >     Alice
 >         (RestrictedGroup, [Administrators] -> MY_OU@CORP.LOCAL)
