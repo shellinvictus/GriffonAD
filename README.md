@@ -16,38 +16,10 @@ commented and parameters to change are highlighted in red.
 
 Griffon supports many scenarios, take a look into [config.ml](config.ml) !
 
-
-Tests
------
-
-- badblood: 10000 users, 3000 computers, 100 groups
-    - Json parsing + analysis = 2 seconds (4 cores, 8 threads, 1.6GHz)
-    - Memory consumption peak = 150 MiB
-    - the js graph is very slow when permissions are too random
-- bloodhound-python
-
 Challenge
 ---------
 
 You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
-
-
-Embedded tools
-==============
-
-- `./tools/attr.py`: generic script to modify one ldap attribute
-- `./tools/addspn.py`: modify the attribute servicePrincipalName
-- `./tools/logonscript.py`: modify the attribute msTSInitialProgram
-- `./tools/addmember.py`: modify the attribute member
-- `./tools/toggleNP.py`: enable or disable the donotpreauth flag
-- `./tools/getbyname.py`: get all attributes of one object
-- `./tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
-- `./tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
-- `./tools/scriptsini.py`: re-format a scripts.ini with correct encoding
-- `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
-- `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
-- `./tools/aesKrbKeyGen.py`: login parameters uniformization
-- `./tools/dacledit.py`: -mask + bugfix (pull request done)
 
 
 Installation
@@ -57,7 +29,7 @@ Installation
     cp tools/dacledit.py path_to_impacket/examples/
 
 
-4 steps to domain admin
+4 steps to Domain Admin
 =======================
 
 ![steps](/assets/steps.svg?raw=true)
@@ -65,7 +37,7 @@ Installation
 Step 1
 ------
 
-Retrieve Bloodhound json files.
+Retrieve Bloodhound json files:
 
     ./bloodhound.py -u USER -d DOMAIN -p PASSWORD -ns DNS_IP -c DCOnly
 
@@ -78,15 +50,15 @@ Step 2: ACLs analysis
 Only interesting users are kept. If you have underlined yellowed users, that
 sounds good!
 
-    ./griffon.py bloodhound/*.json
+    ./griffon.py *.json
 
 ![rights](/assets/hvt.png?raw=true)
 
 Other options:
 
 - `--select FILTER`: display only targets where the name starts with FILTER
-- `--groups`: display all groups with their rights and members (+ `--members`)
-- `--ous`: display all ous with their gplink and their members (+ `--members`)
+- `--groups`: display all groups with their rights (+ `--members`)
+- `--ous`: display all ous with their gpo links (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
 - `--sysvol PATH`: search for local members and local privileges. Actually, rights are just displayed, any paths are computed from them.
 
@@ -115,7 +87,7 @@ Other options:
 > Operators group
 > - `AddKeyCredentialLink`: on all users with admincount=0 if in Key Admins group
 > - `AllowedToDelegate`: means an unconstrained delegation
-> - `SeBackupPrivilege`: can access to DC/C$ on all computers (requires RDP?)
+> - `SeBackupPrivilege`: can access to DC/C$ and on all computers (requires RDP?)
 
 > [!NOTE]
 > Supported ACEs here: [supported](/doc/supported.md)
@@ -130,7 +102,7 @@ From owned users, it reads the text file `owned`.
 >
 > `SAMACCOUNTNAME:TYPE:SECRET`
 >
-> - `SAMACCOUNTNAME` is case insensitive
+> - `SAMACCOUNTNAME` (insensitive)
 > - `TYPE` = `password` | `aes` | `nt` (passwords are in hex for computers)
 >
 > The separator can be changed with the option --sep (you can put a string with
@@ -168,6 +140,24 @@ Step 4: Generate the script
 ![script](/assets/script.png?raw=true)
 
 
+Embedded tools
+==============
+
+- `./tools/attr.py`: generic script to modify one ldap attribute
+- `./tools/addspn.py`: modify the attribute servicePrincipalName
+- `./tools/logonscript.py`: modify the attribute msTSInitialProgram
+- `./tools/addmember.py`: modify the attribute member
+- `./tools/toggleNP.py`: enable or disable the donotpreauth flag
+- `./tools/getbyname.py`: get all attributes of one object
+- `./tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
+- `./tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
+- `./tools/scriptsini.py`: re-format a scripts.ini with correct encoding
+- `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
+- `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
+- `./tools/aesKrbKeyGen.py`: login parameters uniformization
+- `./tools/dacledit.py`: -mask + bugfix (pull request to impacket in review)
+
+
 Customization
 =============
 
@@ -187,6 +177,16 @@ Available options:
 - `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
 - `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
 - `--opt allkeys`: for the Key Admins group (+Enterprise), iterate on all users and computers
+
+
+Tests
+=====
+
+- badblood: 10000 users, 3000 computers, 100 groups
+    - Json parsing + analysis = 2 seconds (4 cores, 8 threads, 1.6GHz)
+    - Memory consumption peak = 150 MiB
+    - the js graph is very slow when permissions are too random
+- tested only with bloodhound-python
 
 
 Credits
