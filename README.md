@@ -60,7 +60,7 @@ Other options:
 - `--groups`: display all groups with their rights (+ `--members`)
 - `--ous`: display all ous with their gpo links (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
-- `--sysvol PATH`: search for local members and local privileges. Actually, rights are just displayed, any paths are computed from them.
+- `--sysvol PATH`: search for local members and local privileges (no path computation for the moment)
 
 > [!NOTE]
 > Example on how Griffon displays the information with `--sysvol`:
@@ -87,7 +87,7 @@ Other options:
 > Operators group
 > - `AddKeyCredentialLink`: on all users with admincount=0 if in Key Admins group
 > - `AllowedToDelegate`: means an unconstrained delegation
-> - `SeBackupPrivilege`: can access to DC/C$ and on all computers (requires RDP?)
+> - `SeBackupPrivilege`: can access to DC/C$ (theorically also on all computers, does it requires RDP?)
 
 > [!NOTE]
 > Supported ACEs here: [supported](/doc/supported.md)
@@ -105,7 +105,7 @@ From owned users, it reads the text file `owned`.
 > - `SAMACCOUNTNAME` (insensitive)
 > - `TYPE` = `password` | `aes` | `nt` (passwords are in hex for computers)
 >
-> The separator can be changed with the option --sep (you can put a string with
+> The separator can be changed with the option `--sep` (you can put a string with
 > more than one character).
 
     cat owned

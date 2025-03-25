@@ -210,7 +210,7 @@ def print_paths(args, db:Database, paths:list):
                 print_path(args, p)
                 print()
     else:
-        print('[+] Any interesting path found :(')
+        print('[+] No paths found :(')
 
 
 def print_path(args, path:list):
