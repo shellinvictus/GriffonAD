@@ -1062,6 +1062,8 @@ class x_SeBackupPrivilege(Action):
         comment = [
             "Backup SAM, SECURITY and SYSTEM",
             "Warning: if you put '-o .', it will write files into {target_no_dollar}/C$/Windows/System32!",
+            "Access to registry hives can be monitored and alerted via event ID 4656 (A handle",
+            "to an object was requested).",
         ]
 
         if parent.krb_auth:
