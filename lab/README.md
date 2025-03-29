@@ -4,8 +4,8 @@ Lab
 Installation
 ------------
 
-You need to install 4 Windows Servers (no needs to install specific services) :
-- your domain controller
+You need to install 4 Windows Servers (no needs to install specific services),
+and join them to your domain:
 - `DATABASE`
 - `PREPROD`
 - `PROD`
