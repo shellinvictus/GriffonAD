@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.5.3.svg?raw=true)
+![griffon version](/assets/version-0.6.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -60,7 +60,7 @@ Other options:
 - `--groups`: display all groups with their rights (+ `--members`)
 - `--ous`: display all ous with their gpo links (+ `--members`)
 - `--graph`: open a js graph to view relations between objects
-- `--sysvol PATH`: search for local members and local privileges (no path computation for the moment)
+- `--sysvol PATH`: search for local members (Backup Operators and Administrators) and local privileges
 
 > [!NOTE]
 > Example on how Griffon displays the information with `--sysvol`:
@@ -70,7 +70,8 @@ Other options:
 > has the privilege SeDebug, then new rights will be available:
 >
 >     Alice
->         (RestrictedGroup, [Administrators] -> MY_OU@CORP.LOCAL)
+>         (RestrictedGroups, [Administrators] -> MY_OU@CORP.LOCAL)
+>         (AdminTo, MY_OU@CORP.LOCAL)
 >         (SeDebugPrivilege, MY_OU@CORP.LOCAL)
 >
 > To retrieve SYSVOL, you can use this command:

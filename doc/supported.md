@@ -41,6 +41,7 @@ Computers:
     - Add Self RBCD with owned user with SPN
 - WriteAccountRestrictions (allow to RBCD)
 - ReadLAPSPassword
+- AdminTo (TODO: untested but it should work)
 
 DC:
 
@@ -59,7 +60,7 @@ admin users + computers in the same OU as the gpo link):
 - Startup/logon script
 - Add a user in the local Administrators group
 - Firewall open port
-- Partial sysvol parsing (local groups, SeBackup (TODO: exploit))
+- Sysvol parsing (privileges, local groups: Backup Operators, Administrators). TODO: handle other local groups (RDP, ...)
 
 
 TODO/Unsupported
@@ -72,7 +73,6 @@ TODO/Unsupported
 - WriteGPLink on OU: actually the right is managed in config.ml but any commands are printed. https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
 - IsACLProtected
 - RODC (msDS-RevealOnDemandGroup, keylistattack, golden ticket)
-- AdminTo
 - OU delegation
 - Multi-domains
 - SACL

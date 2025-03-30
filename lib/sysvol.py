@@ -32,24 +32,22 @@ class Sysvol():
 
         if 'Group Membership' in config:
             for key, val in config['Group Membership'].items():
-                result = re.search(r'\*(s[-0-9]+)__members', key)
-                if result is not None:
-                    group_sid = result.group(1).upper()
-                    for member in val.split(','):
-                        if member.startswith('*'):
-                            if group_sid not in groups:
-                                groups[group_sid] = []
-                            groups[group_sid].append(member[1:].upper())
+                if key.endswith('__members'):
+                    group_ident = key[:-9].strip().replace('*', '').upper()
+                    for member_ident in val.split(','):
+                        if member_ident:
+                            if group_ident not in groups:
+                                groups[group_ident] = []
+                            groups[group_ident].append(member_ident.strip().replace('*', '').upper())
 
-                result = re.search(r'\*(s[-0-9]+)__memberof', key)
-                if result is not None:
-                    member = result.group(1).upper()
-                    for group_sid in val.split(','):
-                        if group_sid.startswith('*'):
-                            group_sid = group_sid[1:]
-                            if group_sid not in groups:
-                                groups[group_sid] = []
-                            groups[group_sid].append(member)
+                if key.endswith('__memberof'):
+                    member_ident = key[:-10].strip().replace('*', '').upper()
+                    for group_ident in val.split(','):
+                        group_ident = group_ident.strip().replace('*', '').upper()
+                        if group_ident:
+                            if group_ident not in groups:
+                                groups[group_ident] = []
+                            groups[group_ident].append(member_ident)
 
         privileges = {
             'SeImpersonatePrivilege': [],
@@ -67,9 +65,16 @@ class Sysvol():
         if 'Privilege Rights' in config:
             for key, val in config['Privilege Rights'].items():
                 if key in lower_case_privs:
-                    for sid in val.split(','):
-                        if sid.startswith('*'):
-                            privileges[lower_case_privs[key]].append(sid[1:])
+                    for ident in val.split(','):
+                        privileges[lower_case_privs[key]].append(
+                            ident.strip().replace('*', '').upper())
+
+        to_remove = []
+        for name, value in privileges.items():
+            if not value:
+                to_remove.append(name)
+        for name in to_remove:
+            del privileges[name]
 
         return {gpo_dirname_id: groups}, {gpo_dirname_id: privileges}
 
@@ -89,15 +94,18 @@ class Sysvol():
                 return db.objects_by_sid[sid]
             if sid in db.prefixed_sids:
                 return db.objects_by_sid[db.prefixed_sids[sid]]
+            if sid in db.objects_by_name:
+                return db.objects_by_name[sid]
             return None
 
-        # Create the right RestrictedGroup to all local members
+        # Create the right RestrictedGroups to all local members
 
         for gpo_dirname_id, groups in self.gpo_groups.items():
             gpo = db.objects_by_name[gpo_dirname_id]
 
             for g_sid, members in groups.items():
                 g = get_object(g_sid)
+
                 for o_sid in members:
                     o = get_object(o_sid)
 
@@ -106,9 +114,19 @@ class Sysvol():
 
                         if ou_sid not in o.rights_by_sid:
                             o.rights_by_sid[ou_sid] = {}
-                        if 'RestrictedGroup' not in o.rights_by_sid[ou_sid]:
-                            o.rights_by_sid[ou_sid] = {'RestrictedGroup': []}
-                        o.rights_by_sid[ou_sid]['RestrictedGroup'].append(g)
+
+                        if 'RestrictedGroups' not in o.rights_by_sid[ou_sid]:
+                            o.rights_by_sid[ou_sid] = {'RestrictedGroups': []}
+                        o.rights_by_sid[ou_sid]['RestrictedGroups'].append(g)
+
+                        # Backup operators
+                        if g_sid == 'S-1-5-32-551':
+                            o.rights_by_sid[ou_sid]['SeBackupPrivilege'] = None
+
+                        # Administrators
+                        if g_sid == 'S-1-5-32-544':
+                            o.rights_by_sid[ou_sid]['AdminTo'] = None
+
 
         # Apply privileges
 
@@ -123,4 +141,4 @@ class Sysvol():
                         o = get_object(sid)
                         if ou_sid not in o.rights_by_sid:
                             o.rights_by_sid[ou_sid] = {}
-                        o.rights_by_sid[ou_sid][priv_name] = None
+                        o.rights_by_sid[ou_sid][priv_name + '_LATFP_or_RDP_required'] = None

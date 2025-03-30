@@ -1059,7 +1059,7 @@ class x_GPODisableDefender(Action):
         Secretsdump(glob, parent, target)
 
 
-class x_SeBackupPrivilege(Action):
+class x_RegBackup(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target,
             ip=f'{Fore.RED}YOUR_IP{Style.RESET_ALL}',

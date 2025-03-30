@@ -77,9 +77,11 @@ ReadGMSAPassword(user) -> ::ReadGMSAPassword
 ::ReadGMSAPassword(user) -> apply_with_aes
 
 # Computer
+AdminTo(computer) -> ::_Secretsdump
 ReadLAPSPassword(computer) -> ::ReadLAPSPassword
 ::ReadLAPSPassword(computer) -> ::_TransformPasswordToAES
 SeBackupPrivilege(computer) -> ::RegBackup
+::RegBackup(computer) -> ::_TransformPasswordToAES
 
 # RBCD
 AllowedToAct(computer) -> ::AllowedToAct if parent.has_spn
@@ -147,6 +149,8 @@ AllExtendedRights(domain) -> GetChanges_GetChangesAll
 AllExtendedRights(domain) -> GetChanges_GetChangesInFilteredSet
 GetChanges_GetChangesAll(domain) -> ::DCSync
 GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
+SeBackupPrivilege(domain) -> ::RegBackup require_targets ta_dc  # from GPO on domain (Backup Operators)
+AdminTo(domain) -> ::DCSync # from GPO (local Administrator)
 ::DCSync(domain) -> stop
 
 # DC
@@ -174,10 +178,12 @@ WriteDacl(gpo) -> ::DaclFullControl
 # Set the parent in the local Administrators group (via the RestrictedGroups)
 ::GPOAddLocalAdmin(gpo) -> ::_Secretsdump     require_targets ta_all_computers_in_ou
 
-# OU: not implemented
+# OU
 GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
-::WriteGPLink(ou) -> stop
+::WriteGPLink(ou) -> stop  # Unimplemented
+SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou  # from GPO (Backup Operators)
+AdminTo(ou) -> ::_Secretsdump require_targets ta_all_computers_in_ou # from GPO (local Administrator)
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if not opt.nofull

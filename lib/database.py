@@ -479,10 +479,10 @@ class Database():
                         print(f'warning: {o} can AllowedToActOnBehalf {from_sid} but {from_sid} is unknown')
                         continue
                     from_obj = self.objects_by_sid[from_sid]
-                    if o.sid in from_obj.rights_by_sid:
-                        from_obj.rights_by_sid[o.sid]['AllowedToAct'] = None
+                    if o.sid not in from_obj.rights_by_sid:
+                        from_obj.rights_by_sid[o.sid] = {'AllowedToAct': None}
                     else:
-                        from_obj.rights_by_sid = {o.sid: {'AllowedToAct': None}}
+                        from_obj.rights_by_sid[o.sid]['AllowedToAct'] = None
 
             # Unconstrained delegation
             if o.unconstraineddelegation:

@@ -56,8 +56,8 @@ class x_ta_all_computers_in_ou(Require):
     CACHE = {}
 
     def get(db:Database, parent:Owned, target:LDAPObject) -> list:
-        if target.type != c.T_GPO:
-            print(f'error: the target of all_computers_in_ou must be a GPO (we have {target.name})')
+        if target.type != c.T_GPO and target.type != c.T_OU:
+            print(f'error: the target of all_computers_in_ou must be a GPO or OU (we have {target.name})')
             exit(0)
 
         if target.sid in x_ta_all_computers_in_ou.CACHE:
@@ -65,11 +65,17 @@ class x_ta_all_computers_in_ou(Require):
 
         ret = []
 
-        # for all links
-        for ou_dn in target.gpo_links_to_ou:
-            for sid in db.ous_by_dn[ou_dn]['members']:
+        if target.type == c.T_GPO:
+            # for all links
+            for ou_dn in target.gpo_links_to_ou:
+                for sid in db.ous_by_dn[ou_dn]['members']:
+                    o = db.objects_by_sid[sid]
+                    # take all computers even if they don't have rights on other objects
+                    if o.type == c.T_COMPUTER:
+                        ret.append(o)
+        elif target.type == c.T_OU:
+            for sid in db.ous_by_dn[target.dn]['members']:
                 o = db.objects_by_sid[sid]
-                # take all computers even if they don't have rights on other objects
                 if o.type == c.T_COMPUTER:
                     ret.append(o)
 
