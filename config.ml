@@ -1,3 +1,7 @@
+# Private actions
+::_Secretsdump(computer) -> ::_TransformPasswordToAES
+::_TransformPasswordToAES(any) -> apply_with_aes
+
 # FullControl, let Griffon choose the best scenario
 GenericAll(any) -> AllExtendedRights
 GenericAll(any) -> GenericWrite
@@ -25,10 +29,13 @@ GenericAll(many) -> GenericAll \
         if 548 in parent.groups
 
 # 'Backup Operators'
-SeBackupPrivilege(many) -> ::SeBackupPrivilege \
+# It could applies to any computers only if LATFP is enabled or if
+# the user CanRDP and elevates his privileges on the computer.
+# but it works for the DC
+SeBackupPrivilege(many) -> ::RegBackup \
         require_targets ta_dc \
         if 551 in parent.groups
-::SeBackupPrivilege(dc) -> apply_with_aes
+::RegBackup(dc) -> ::_TransformPasswordToAES
 
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd
@@ -66,10 +73,13 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::EnableNP(user) -> ::ASREPRoasting
 ::WriteSPN(user) -> ::Kerberoasting
 
-# Computer
+ReadGMSAPassword(user) -> ::ReadGMSAPassword
+::ReadGMSAPassword(user) -> apply_with_aes
 
+# Computer
 ReadLAPSPassword(computer) -> ::ReadLAPSPassword
-::ReadLAPSPassword(computer) -> apply_with_aes
+::ReadLAPSPassword(computer) -> ::_TransformPasswordToAES
+SeBackupPrivilege(computer) -> ::RegBackup
 
 # RBCD
 AllowedToAct(computer) -> ::AllowedToAct if parent.has_spn
@@ -80,10 +90,11 @@ AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::U2U             require owned_user_without_spn
 ::U2U(computer) -> ::AllowedToAct if parent.is_user
 # return aes instead of password because it's easier (otherwise the password is in hexa)
-::AllowedToAct(computer) -> apply_with_aes \
+::AllowedToAct(computer) -> ::_Secretsdump \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToAct(TARGET): PARENT is sensitive or protected"
 
+# Delegations
 AllowedToDelegate(computer) -> __AllowedToDelegate_ok \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToDelegate(TARGET): PARENT is sensitive or protected"
@@ -101,8 +112,7 @@ __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
 ::SelfRBCD(computer) -> ::AllowedToDelegate require_once unprotected_owned_with_spn_not_eq_parent
 ::SelfRBCD(computer) -> ::AllowedToDelegate require_once add_computer
 
-# return aes instead of password because it's easier (otherwise the password is in hexa)
-::AllowedToDelegate(computer) -> apply_with_aes
+::AllowedToDelegate(computer) -> ::_Secretsdump
 
 WriteAccountRestrictions(computer) -> AddAllowedToAct
 AddKeyCredentialLink(computer) -> ::AddKeyCredentialLink
@@ -119,9 +129,6 @@ WriteDacl(computer) -> ::DaclAllowedToAct
 ::DaclAccountRestrictions(computer) -> AddAllowedToAct
 ::DaclKeyCredentialLink(computer) -> AddKeyCredentialLink
 ::AddKeyCredentialLink(computer) -> apply_with_ticket
-
-::ReadGMSAPassword(user) -> apply_with_aes
-ReadGMSAPassword(user) -> ::ReadGMSAPassword
 
 # Group
 AddMember(group) -> ::AddMember
@@ -164,8 +171,8 @@ WriteDacl(gpo) -> ::DaclFullControl
 # Disable windows defender + disable firewall + enable RDP
 ::GPODisableDefender(gpo) => stop             require_targets ta_all_computers_in_ou
 # Stop forking for the last predicate
-# Set the parent in the local Administrators group
-::GPOAddLocalAdmin(gpo) -> apply_with_aes     require_targets ta_all_computers_in_ou
+# Set the parent in the local Administrators group (via the RestrictedGroups)
+::GPOAddLocalAdmin(gpo) -> ::_Secretsdump     require_targets ta_all_computers_in_ou
 
 # OU: not implemented
 GenericWrite(ou) -> WriteGPLink

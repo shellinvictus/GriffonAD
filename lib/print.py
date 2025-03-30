@@ -244,7 +244,7 @@ def print_path(args, path:list):
                 if sym[:2] not in ['__', '::']:
                     print(f'{sym},', end='')
             else:
-                if sym.startswith('::'):
+                if sym.startswith('::') and sym[2] != '_':
                     print(f'{sym}', end='')
 
                 if req is not None:

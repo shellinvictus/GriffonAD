@@ -16,16 +16,13 @@ def logger(s):
 
 
 class Owned():
-    def __init__(self, obj, secret=None, secret_type=None, krb_auth=False, relayed=False, ticket_with_fqdn=False):
+    def __init__(self, obj, secret=None, secret_type=None, krb_auth=False, ticket_with_fqdn=False):
         self.obj = obj
-        self.relayed = relayed
         self.krb_auth = krb_auth # means we have requested a TGT for this user (the KRB5CCNAME is set)
         self.ticket_with_fqdn = ticket_with_fqdn
         self.secret_type = secret_type
-        if relayed:
-            self.secret = 'dontcarepassword'
-        else:
-            self.secret = secret
+        self.secret = secret
+        self.krb_need_fqdn = False
 
     def __str__(self):
         return self.obj.name

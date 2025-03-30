@@ -59,5 +59,5 @@ if __name__ == '__main__':
     aes_256_key = do_aes_256(aes_256_pbkdf2)
     aes_128_key = do_aes_128(aes_128_pbkdf2)
     
-    print(f'aes-256:{aes_256_key}')
-    print(f'aes-128:{aes_128_key}')
+    print(f'aes-256: {aes_256_key}')
+    print(f'aes-128: {aes_128_key}')

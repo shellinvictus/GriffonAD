@@ -35,7 +35,8 @@ If a require is present, the predicate is applied only if an object is found by
 the function.
 
 If the name starts by `::` it means that the symbol is an action and it can
-generate code. If the name starts by `__` it means that the symbol is an
+generate command lines (if it starts with `::_`, the symbol will not be printed
+in the full path). If the name starts by `__` it means that the symbol is an
 intermediate symbol. Otherwise the symbol is a Bloodhound right.
 
 An intermediate symbol can be useful to implement conditional paths. Example:
