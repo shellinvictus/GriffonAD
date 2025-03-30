@@ -22,36 +22,34 @@ class Sysvol():
         if not buf.startswith(b'\xff\xfe'):
             return {}, {}
         config.read_string(buf[2:].decode("utf-16le"))
-        if 'Group Membership' not in config:
-            return {}, {}
 
-        result = re.search(r'({[-A-F0-9]+})', path)
-        gpo_dirname_id = result.group(1)
+        result = re.search(r'({[-a-fA-F0-9]+})', path)
+        gpo_dirname_id = result.group(1).upper()
 
         groups = {} # sid -> [sid1, sid2, ...]
 
         # attributes are not case sensitives
 
-        for key, val in config['Group Membership'].items():
+        if 'Group Membership' in config:
+            for key, val in config['Group Membership'].items():
+                result = re.search(r'\*(s[-0-9]+)__members', key)
+                if result is not None:
+                    group_sid = result.group(1).upper()
+                    for member in val.split(','):
+                        if member.startswith('*'):
+                            if group_sid not in groups:
+                                groups[group_sid] = []
+                            groups[group_sid].append(member[1:].upper())
 
-            result = re.search(r'\*(s[-0-9]+)__members', key)
-            if result is not None:
-                group_sid = result.group(1).upper()
-                for member in val.split(','):
-                    if member.startswith('*'):
-                        if group_sid not in groups:
-                            groups[group_sid] = []
-                        groups[group_sid].append(member[1:].upper())
-
-            result = re.search(r'\*(s[-0-9]+)__memberof', key)
-            if result is not None:
-                member = result.group(1).upper()
-                for group_sid in val.split(','):
-                    if group_sid.startswith('*'):
-                        group_sid = group_sid[1:]
-                        if group_sid not in groups:
-                            groups[group_sid] = []
-                        groups[group_sid].append(member)
+                result = re.search(r'\*(s[-0-9]+)__memberof', key)
+                if result is not None:
+                    member = result.group(1).upper()
+                    for group_sid in val.split(','):
+                        if group_sid.startswith('*'):
+                            group_sid = group_sid[1:]
+                            if group_sid not in groups:
+                                groups[group_sid] = []
+                            groups[group_sid].append(member)
 
         privileges = {
             'SeImpersonatePrivilege': [],
@@ -66,11 +64,12 @@ class Sysvol():
         }
         lower_case_privs = {p.lower():p for p in privileges}
 
-        for key, val in config['Privilege Rights'].items():
-            if key in lower_case_privs:
-                for sid in val.split(','):
-                    if sid.startswith('*'):
-                        privileges[lower_case_privs[key]].append(sid[1:])
+        if 'Privilege Rights' in config:
+            for key, val in config['Privilege Rights'].items():
+                if key in lower_case_privs:
+                    for sid in val.split(','):
+                        if sid.startswith('*'):
+                            privileges[lower_case_privs[key]].append(sid[1:])
 
         return {gpo_dirname_id: groups}, {gpo_dirname_id: privileges}
 
