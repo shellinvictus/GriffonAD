@@ -160,6 +160,8 @@ def print_groups(args, db:Database):
             names.append(g.name.upper())
     names.sort()
 
+    printed = False
+
     for name in names:
         g = db.objects_by_name[name]
         members = db.groups_by_sid[g.sid]
@@ -167,6 +169,8 @@ def print_groups(args, db:Database):
         # always print the protected group
         if g.sid != protected_group and not g.rights_by_sid:
             continue
+
+        printed = True
 
         sid = g.sid.replace(g.from_domain + '-', '')
 
@@ -191,7 +195,10 @@ def print_groups(args, db:Database):
                 else:
                     print(f'    ({r}, {name})')
 
-        print()
+    if args.select and not printed:
+        print('This group may not have interesting rights')
+
+    print()
 
 
 def print_paths(args, db:Database, paths:list):
