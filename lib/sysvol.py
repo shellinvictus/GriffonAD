@@ -124,8 +124,16 @@ class Sysvol():
                             o.rights_by_sid[ou_sid]['SeBackupPrivilege'] = None
 
                         # Administrators
-                        if g_sid == 'S-1-5-32-544':
+                        elif g_sid == 'S-1-5-32-544':
                             o.rights_by_sid[ou_sid]['AdminTo'] = None
+
+                        # Remote desktop users
+                        elif g_sid == 'S-1-5-32-555':
+                            o.rights_by_sid[ou_sid]['CanRDP'] = None
+
+                        # Remote management users
+                        elif g_sid == 'S-1-5-32-580':
+                            o.rights_by_sid[ou_sid]['CanPSRemote'] = None
 
 
         # Apply privileges
