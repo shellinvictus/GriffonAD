@@ -183,7 +183,7 @@ GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
 ::WriteGPLink(ou) -> stop  # Unimplemented
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou  # from GPO (Backup Operators)
-AdminTo(ou) -> ::_Secretsdump require_targets ta_all_computers_in_ou # from GPO (local Administrator)
+AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou # from GPO (local Administrator)
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if not opt.nofull
