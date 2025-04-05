@@ -1,0 +1,104 @@
+[
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Exclusions",
+        "valuename": "Exclusions_Paths",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Exclusions",
+        "valuename": "Exclusions_Processes",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Paths",
+        "valuename": "",
+        "data": "C:\\",
+        "type": "REG_SZ"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Exclusions\\Processes",
+        "valuename": "desc",
+        "data": "C:\\mybin.exe",
+        "type": "REG_SZ"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "valuename": "DisableRealtimeMonitoring",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "valuename": "DisableBehaviorMonitoring",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "valuename": "DisableScriptScanning",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "valuename": "DisableOnAccessProtection",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection",
+        "valuename": "DisableScanOnRealtimeEnable",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\RemoteAdminSettings",
+        "valuename": "Enabled",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\RemoteAdminSettings",
+        "valuename": "RemoteAddresses",
+        "data": "",
+        "type": "REG_SZ"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\Services\\RemoteDesktop",
+        "valuename": "Enabled",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\DomainProfile\\Services\\RemoteDesktop",
+        "valuename": "RemoteAddresses",
+        "data": "",
+        "type": "REG_SZ"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\StandardProfile\\RemoteAdminSettings",
+        "valuename": "Enabled",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\StandardProfile\\RemoteAdminSettings",
+        "valuename": "RemoteAddresses",
+        "data": "",
+        "type": "REG_SZ"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\StandardProfile\\Services\\RemoteDesktop",
+        "valuename": "Enabled",
+        "data": 1,
+        "type": "REG_DWORD"
+    },
+    {
+        "keyname": "SOFTWARE\\Policies\\Microsoft\\WindowsFirewall\\StandardProfile\\Services\\RemoteDesktop",
+        "valuename": "RemoteAddresses",
+        "data": "",
+        "type": "REG_SZ"
+    }
+]
