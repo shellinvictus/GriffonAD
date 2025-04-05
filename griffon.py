@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
         db.propagate_admin_groups()
         db.propagate_aces()
-        db.merge_getchanges_rights()
+        db.merge_rights()
         db.set_delegations()
         db.reverse_relations()
         db.propagate_can_admin(ml)

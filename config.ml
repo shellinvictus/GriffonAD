@@ -82,6 +82,7 @@ ReadLAPSPassword(computer) -> ::ReadLAPSPassword
 ::ReadLAPSPassword(computer) -> ::_TransformPasswordToAES
 SeBackupPrivilege(computer) -> ::RegBackup
 ::RegBackup(computer) -> ::_TransformPasswordToAES
+::CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(computer) -> ::_TransformPasswordToAES
 
 # RBCD
 AllowedToAct(computer) -> ::AllowedToAct if parent.has_spn
@@ -184,6 +185,7 @@ WriteGPLink(ou) -> ::WriteGPLink
 ::WriteGPLink(ou) -> stop  # Unimplemented
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou  # from GPO (Backup Operators)
 AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou # from GPO (local Administrator)
+CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(ou) -> ::CanRDP_SeBackupPrivilege_LATFP_or_RDP_required  require_targets ta_all_computers_in_ou
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if not opt.nofull

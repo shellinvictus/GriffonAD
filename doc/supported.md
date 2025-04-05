@@ -26,6 +26,7 @@ Users:
 - HasSession
 - CanRDP (Remote Desktop User, unchecked values in json for the attribute RemoteDesktopUsers)
 - CanPSRemote (Remote Management Users)
+- CanRDP + SeBackup from GPO
 
 Computers:
 
@@ -60,7 +61,7 @@ admin users + computers in the same OU as the gpo link):
 - Startup/logon script
 - Add a user in the local Administrators group
 - Firewall open port
-- Sysvol parsing (privileges, local groups: Backup Operators, Administrators). TODO: handle other local groups (RDP, ...)
+- Sysvol parsing
 
 
 TODO/Unsupported

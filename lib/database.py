@@ -512,7 +512,7 @@ class Database():
                         o.rights_by_sid[target.sid] = {'AllowedToDelegate': [spn]}
 
 
-    def merge_getchanges_rights(self):
+    def merge_rights(self):
         for o in self.objects_by_sid.values():
             for rights in o.rights_by_sid.values():
                 if 'GetChanges' in rights:
@@ -527,6 +527,9 @@ class Database():
                         found_one = True
                     if found_one:
                         del rights['GetChanges']
+
+                if 'SeBackupPrivilege_LATFP_or_RDP_required' in rights and 'CanRDP' in rights:
+                    rights['CanRDP_SeBackupPrivilege_LATFP_or_RDP_required'] = None
 
 
     def propagate_admin_groups(self):
