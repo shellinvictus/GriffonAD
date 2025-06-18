@@ -1,6 +1,7 @@
 from lib.database import LDAPObject, FakeLDAPObject, Owned, Database
 from lib.actionutils import *
 import lib.consts as c
+import config
 
 
 class Require():
@@ -168,9 +169,9 @@ class x_add_computer(Require):
     def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
         obj = FakeLDAPObject()
         obj.type = c.T_COMPUTER
-        obj.name = c.NEW_DESKTOP
+        obj.name = config.DEFAULT_COMPUTER_NAME
         obj.spn = ['HOST/' + obj.name.replace('$', '')]
-        return Owned(obj, secret=c.NEW_DESKTOP_PASS, secret_type=c.SECRET_PASSWORD)
+        return Owned(obj, secret=config.DEFAULT_PASSWORD, secret_type=c.T_SECRET_PASSWORD)
 
     def print(glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
@@ -182,11 +183,11 @@ class x_add_computer(Require):
 
         if parent.krb_auth:
             cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.SECRET_NTHASH:
+        elif parent.secret_type == c.T_SECRET_NTHASH:
             cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.SECRET_AESKEY:
+        elif parent.secret_type == c.T_SECRET_AESKEY:
             cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.SECRET_PASSWORD:
+        elif parent.secret_type == c.T_SECRET_PASSWORD:
             cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} | grep MachineAccountQuota -A 2"
 
         print_line(comment, cmd, v)
@@ -195,11 +196,11 @@ class x_add_computer(Require):
 
         if parent.krb_auth:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR -dc-host {dc_name}"
-        elif parent.secret_type == c.SECRET_NTHASH:
+        elif parent.secret_type == c.T_SECRET_NTHASH:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret} -computer-name '{required_object.secret}' -computer-pass '{required_object.secret}' -method SAMR"
-        elif parent.secret_type == c.SECRET_AESKEY:
+        elif parent.secret_type == c.T_SECRET_AESKEY:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -aesKey {parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
-        elif parent.secret_type == c.SECRET_PASSWORD:
+        elif parent.secret_type == c.T_SECRET_PASSWORD:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
 
         print_line(comment, cmd, v)

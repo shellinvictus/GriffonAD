@@ -26,15 +26,16 @@ Don't look too much in create.ps1 if you don't want to be spoiled 🙂 !
     .\create.ps1
 
 > [!NOTE]
-> `Alyx` is an administrator, his password is `admin01.`
+> `Alyx` is an administrator, his password is `admin01.` This account is not in the
+> solution of this lab.
 
 
 Challenge
 ---------
 
-You have succeeded to get `Tracy`'s password! Next step is to retrieve ACLs...
+You have succeeded to get `Tracy`'s password! All ACEs have been dumped to json.
 
     cat owned
     Tracy:password:Spring2025
 
-There are 3 main paths to domain admins (without `Alyx`), good luck!
+There are 3 main paths to domain admin (without `Alyx`), good luck!

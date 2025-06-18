@@ -173,7 +173,7 @@ class Database():
             if obj.type == c.T_COMPUTER:
                 self.owned_db[obj.name.upper()] = Owned(obj,
                     secret=get_aes_256_from_hex(self.domain.name, obj.name, line[2]),
-                    secret_type=c.SECRET_AESKEY,
+                    secret_type=c.T_SECRET_AESKEY,
                     krb_auth=False)
             else:
                 self.owned_db[obj.name.upper()] = Owned(obj,

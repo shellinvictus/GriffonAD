@@ -8,10 +8,6 @@ APPLY = [
 
 TERMINALS = APPLY + ['stop']
 
-NEW_PASS = 'User123-'
-NEW_DESKTOP = 'DESKTOP-GR1FF0$'
-NEW_DESKTOP_PASS = 'Desktop123+'
-
 T_MANY = -1
 T_USER = 0
 T_COMPUTER = 1
@@ -59,16 +55,15 @@ BH_OBJECT_TYPE = {
     'ous': T_OU,
 }
 
-SECRET_PASSWORD = 0
-SECRET_NTHASH = 1
-SECRET_AESKEY = 2
+T_SECRET_PASSWORD = 0
+T_SECRET_NTHASH = 1
+T_SECRET_AESKEY = 2
 
 MAP_SECRET_TYPE = {
-    'password': SECRET_PASSWORD,
-    'aes': SECRET_AESKEY,
-    'nt': SECRET_NTHASH,
+    'password': T_SECRET_PASSWORD,
+    'aes': T_SECRET_AESKEY,
+    'nt': T_SECRET_NTHASH,
 }
-
 
 BUILTIN_SID = {
     "S-1-0-0", # Null SID: A group with no members. This is often used when a SID value is not known.

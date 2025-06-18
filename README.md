@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.6.1.svg?raw=true)
+![griffon version](/assets/version-0.6.2.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -25,6 +25,9 @@ You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
 Installation
 ============
 
+A pull request has been sent to impacket for dacledit but it's still in review.
+This script allows you to edit ACL with more granularities.
+
     pip install -r requirements.txt
     cp tools/dacledit.py path_to_impacket/examples/
 
@@ -40,9 +43,6 @@ Step 1
 Retrieve Bloodhound json files:
 
     ./bloodhound.py -u USER -d DOMAIN -p PASSWORD -ns DNS_IP -c DCOnly
-
-> [!NOTE]
-> Try with the option `--fakedb` or use jsons in [lab](/lab/README.md)`
 
 Step 2: ACLs analysis
 ---------------------
@@ -84,11 +84,11 @@ Other options:
 > About the `many` target: it means that you can have multiple targets.
 > It depends of the right you have:
 > 
-> - `GenericAll`: on all users and groups with admincount=0 if in the Account
+> - `GenericAll`: on all users and groups with admincount=0 if the user is in the Account
 > Operators group
-> - `AddKeyCredentialLink`: on all users with admincount=0 if in Key Admins group
+> - `AddKeyCredentialLink`: on all users with admincount=0 if the user is in the Key Admins group
 > - `AllowedToDelegate`: means an unconstrained delegation
-> - `SeBackupPrivilege`: can access to DC/C$ (theorically also on all computers, does it requires RDP?)
+> - `SeBackupPrivilege`: can access to DC/C$ (`FIXME` theorically also on all computers, does it requires RDP?)
 
 > [!NOTE]
 > Supported ACEs here: [supported](/doc/supported.md)
@@ -99,44 +99,46 @@ Step 3: Search paths
 From owned users, it reads the text file `owned`.
 
 > [!TIP]
-> Line format of the file `owned`:
+> Line format is:
 >
 > `SAMACCOUNTNAME:TYPE:SECRET`
 >
-> - `SAMACCOUNTNAME` (insensitive)
-> - `TYPE` = `password` | `aes` | `nt` (passwords are in hex for computers)
+> - `SAMACCOUNTNAME` : insensitive case, a computer ends with a `$`
+> - `TYPE` = `password` | `aes` | `nt`
 >
-> The separator can be changed with the option `--sep` (you can put a string with
-> more than one character).
+> A password for a computer MUST BE set in hex. The separator can be changed with the
+> option `--sep` (you can put a string with more than one character).
 
+    # Warning: if you put multiple secrets for one user, only the last one will be kept!
     cat owned
-    alice:password:User123-
-    WORKSTATION_EXAMPLE$:password:9ddb7bfd6a2e49e184d36bd7...
+    WORKSTATION$:password:0d3c811f9c817a0cf3...
+    Tracy:aes:1D5A2C4E52584F0A699D0853D2EBF8EBDB6713183D9A303AB8AAACB87818BDEE
+    Tracy:aes:6AD07E6F0F25DE8906D444EEC50BD83C
+    Tracy:nt:4869b177d39962457ff9fb185b35c5ba
+    Tracy:password:Spring2025
 
-    ./griffon.py *.json --fromo
+    ./griffon.py lab/json/* --fromo
 
 ![fromo](/assets/fromo.png?raw=true)
 
 Other options:
 
-- `--fromv`: from vulnerable users (NP users (only unprotected users), password
-not required,  and kerberoastable users)
-- `--from USER`: test paths from a user
-- `--rights`: this is a flag to add with previous options. It allows you to view
-rights instead of actions in paths (an action is prefixed by `::`)
+- `--fromv`: from vulnerable users (NP users (only for unprotected users), blank
+passwords, and kerberoastable users)
+- `--from USER`: test paths from an arbitrary user
+- `--rights`: view ACE names instead of actions
 - `--onlyadmin`: display only paths to domain admin (paths prefixed by the
-- `--no-follow`: don't try to continue on owned targets but display all available
-scenarios for one target.
-
-> [!NOTE]
-> With `--fakedb` try: `--fromo`, `--from 'desktop-1$'`, `--from 'server-1$'`,
-> `--from 'server-2$'`, `--fromv`.
+- `--no-follow`: don't try to continue on new owned targets but display all available
+scenarios for the current target. For example: with a GenericAll on a user, you can
+reset the password, add a shadow key credential... If this option is unset, it will
+take the first scenario (in config.ml it's ForceChangePassword). With this option,
+you will see all scenarios but without continuing the path on the new owned target.
 
 
 Step 4: Generate the script
 ---------------------------
 
-    ./griffon.py *.json --fromo -s 001 --dc-ip 10.0.0.2
+    ./griffon.py lab/json/* --fromo -s0 --dc-ip 10.0.0.2
 
 ![script](/assets/script.png?raw=true)
 
@@ -169,7 +171,7 @@ a flag was already defined in config.ml if you don't wan't to use the
 ForceChangePassword. It will then fallback on the default next scenario which
 is AddKeyCredentialLink.
 
-    ./griffon.py *.json --fromo --opt noforce 
+    ./griffon.py lab/json/* --from MALORY --opt noforce
 
 Available options:
 
@@ -178,6 +180,8 @@ Available options:
 - `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
 - `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
 - `--opt allkeys`: for the Key Admins group (+Enterprise), iterate on all users and computers
+
+You can also write options in `config.py`.
 
 
 Tests

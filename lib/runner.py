@@ -2,6 +2,7 @@
 import copy
 import lib.require
 import lib.actions
+import config
 from lib.database import Owned, LDAPObject
 from lib.expression import rpn_eval
 
@@ -47,7 +48,7 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LD
         paths.append(list(stack))
         stack.pop()
         return False
-    new_owned = Owned(target, secret='{{c.NEW_PASS}}', secret_type={{c.SECRET_PASSWORD}})
+    new_owned = Owned(target, secret='config.DEFAULT_PASSWORD', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
@@ -61,7 +62,7 @@ def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, target:LDA
         paths.append(list(stack))
         stack.pop()
         return False
-    new_owned = Owned(target, secret='', secret_type={{c.SECRET_PASSWORD}})
+    new_owned = Owned(target, secret='', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
@@ -86,7 +87,7 @@ def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:L
         paths.append(list(stack))
         stack.pop()
         return False
-    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_CRACKED_PASSWORD', secret_type={{c.SECRET_PASSWORD}})
+    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_CRACKED_PASSWORD', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
@@ -114,7 +115,7 @@ def apply_with_aes(args, executed_symbols:set, parent:Owned, target:LDAPObject=N
         paths.append(list(stack))
         stack.pop()
         return False
-    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.SECRET_AESKEY}})
+    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.T_SECRET_AESKEY}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))

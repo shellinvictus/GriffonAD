@@ -12,11 +12,11 @@ Style.UNDERLINE = '\033[4m'
 import os
 import argparse
 
-from lib.fakedb import generate_fake_db
 import lib.consts as c
+import config
 from lib.print import (print_path, print_paths, print_script, print_groups, print_hvt,
         print_ous, print_desc, print_comment)
-from lib.database import Database, FakeLDAPObject, Owned
+from lib.database import Database, Owned
 from lib.ml import MiniLanguage
 from lib.graph import Graph
 from lib.sysvol import Sysvol
@@ -77,8 +77,6 @@ if __name__ == '__main__':
     parser.add_argument('--desc', action='store_true', help='Print all objects with a description')
     parser.add_argument('--graph', action='store_true', help='Generate a js graph')
     parser.add_argument('--sep', type=str, default=':', help='Separator string in the owned file')
-    parser.add_argument('--fakedb', action='store_true',
-            help='Generate a fake database, positional arguments are then ignored')
     parser.add_argument('--save-compiled', type=str, metavar='FILE')
     parser.add_argument('--select', type=str, metavar='STARTSWITH', help='Filter targets/ous/groups')
     parser.add_argument('--sysvol', metavar='PATH', type=str, help='Analyze GPOs')
@@ -102,10 +100,13 @@ if __name__ == '__main__':
 
     trace_start(args)
 
-    o = set()
-    for opt in args.opt.split(','):
-        o.add(f'opt.{opt}')
-    args.opt = o
+    if config.OPTS:
+        args.opt = config.OPTS
+    else:
+        o = set()
+        for opt in args.opt.split(','):
+            o.add(f'opt.{opt}')
+        args.opt = o
 
     config_path = os.path.dirname(os.path.abspath(__file__)) + '/config.ml'
     ml = MiniLanguage(args)
@@ -116,9 +117,7 @@ if __name__ == '__main__':
         print(f'compiled code saved to {args.save_compiled}')
         exit(0)
 
-    if args.fakedb:
-        db = generate_fake_db()
-    elif not args.filename and args.sysvol:
+    if not args.filename and args.sysvol:
         if args.sysvol:
             sysv = Sysvol(args.sysvol)
             sysv.search_all_gpt()
@@ -196,7 +195,7 @@ if __name__ == '__main__':
         if obj is None:
             print(f"[-] error: can't find the object '{args.__getattribute__('from')}'")
             exit(1)
-        o = Owned(obj, secret='PASSWORD', secret_type=c.SECRET_PASSWORD)
+        o = Owned(obj, secret='PASSWORD', secret_type=c.T_SECRET_PASSWORD)
         final_paths = ml.execute_user_rights(db, o)
         db.owned_db[obj.name] = o
 

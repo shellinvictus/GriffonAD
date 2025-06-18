@@ -74,10 +74,7 @@ class Graph():
             name = ''
 
         if o.type == c.T_GPO:
-            if o.bloodhound_json is None:
-                name += o.original_name # only for fakedb
-            else:
-                name += o.bloodhound_json['Properties']['name'].upper()
+            name += o.bloodhound_json['Properties']['name'].upper()
         else:
             name += o.name.upper()
 

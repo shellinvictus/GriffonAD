@@ -1,3 +1,5 @@
+# Documentation is here doc/config.md
+
 # Private actions
 ::_Secretsdump(computer) -> ::_TransformPasswordToAES
 ::_TransformPasswordToAES(any) -> apply_with_aes

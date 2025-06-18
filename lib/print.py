@@ -5,6 +5,7 @@ from colorama import Back, Fore, Style
 
 import lib.consts as c
 import lib.actions
+import config
 from lib.actionutils import *
 from lib.database import Owned, Database
 from lib.ml import MiniLanguage
@@ -280,7 +281,7 @@ def print_script(args, db:Database, path:list):
         'dc_name': db.main_dc.name.replace('$', ''),
         'dc_ip': args.dc_ip,
         'domain_sid': db.domain.sid,
-        'new_pass': c.NEW_PASS,
+        'new_pass': config.DEFAULT_PASSWORD,
     }
 
     print_comment([
@@ -296,7 +297,7 @@ def print_script(args, db:Database, path:list):
 
     for parent, symbol, target, require in path:
 
-        if not args.fakedb and target is not None and last_target is not None and \
+        if target is not None and last_target is not None and \
                 last_target.sid != target.sid and target.sid in db.users:
             diff = time.time() - target.lastlogon
             if target.lastlogon == -1:
@@ -320,7 +321,7 @@ def print_script(args, db:Database, path:list):
             if parent.obj.protected:
                 print_comment(f'{parent.obj.name} is protected, switch to kerberos')
                 lib.actions.TGTRequest(glob, parent)
-            elif parent.secret_type == c.SECRET_PASSWORD and parent.secret == '':
+            elif parent.secret_type == c.T_SECRET_PASSWORD and parent.secret == '':
                 print_comment(f'PASSWORD_NOTREQUIRED: the password may be blank, it\'s easier to get a TGT first')
                 lib.actions.TGTRequest(glob, parent, nopass=True)
 
