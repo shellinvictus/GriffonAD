@@ -1,0 +1,5 @@
+# overwrite options
+OPTS = set()
+#OPTS = set({'opt.noforce'})
+DEFAULT_PASSWORD = 'DEFAULT_PASSWORD'
+DEFAULT_COMPUTER_NAME = 'DEFAULT_COMPUTER_NAME'
