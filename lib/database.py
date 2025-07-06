@@ -424,7 +424,6 @@ class Database():
         # None means there is no argument for this right (useful with constrained
         # delegation where the argument is the spn)
         for target in self.objects_by_sid.values():
-
             if isinstance(target, FakeLDAPObject):
                 continue
 
@@ -451,9 +450,6 @@ class Database():
                 # Groups are already propagated, so don't need to recurse on members
                 if parent.type == c.T_GROUP:
                     for member_sid in self.groups_by_sid[parent.sid]:
-                        if member_sid == target_sid:
-                            # infinite loop otherwise
-                            continue
                         __add(self.objects_by_sid[member_sid], target_sid, ace['RightName'])
 
 
