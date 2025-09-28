@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.6.2.svg?raw=true)
+![griffon version](/assets/version-0.6.3.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -25,12 +25,18 @@ You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
 Installation
 ============
 
-A pull request has been sent to impacket for dacledit but it's still in review.
-This script allows you to edit ACL with more granularities.
+You will need the latest version of impacket to use dacledit.py on some
+scenarios of GriffonAD. The expected commit is fortra/impacket@bf2d749f49588183b7aee732276440fe018a417d.
 
+    python3 -m venv venv
+    source venv/bin/activate
+    git clone https://github.com/shellinvictus/GriffonAD
+    git clone https://github.com/fortra/impacket
+    cd impacket
     pip install -r requirements.txt
-    cp tools/dacledit.py path_to_impacket/examples/
-
+    python3 setup.py install
+    cd ../GriffonAD
+    pip install -r requirements.txt
 
 4 steps to Domain Admin
 =======================
@@ -158,7 +164,6 @@ Embedded tools
 - `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
 - `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
 - `./tools/aesKrbKeyGen.py`: login parameters uniformization
-- `./tools/dacledit.py`: -mask + bugfix (pull request to impacket in review)
 
 
 Customization
