@@ -149,11 +149,11 @@ you will see all scenarios but without continuing the path on the new owned targ
 > A path is a succession of action(s) to exploit one or many ACEs. The format is:
 > `OWNED -> [REQUIRED_TARGET]::ACTION[REQUIRED_OBJECT](TARGET):RESULT_OBJECT`
 >
-> - `OWNED`: initialially in the list in `owned` (or the user set with `--from`)
+> - `OWNED`: initialially from the `owned` file (or the user sets with `--from`)
 > - `REQUIRED_TARGET` (optional): in some rare cases, Griffon choose a new target (check require_targets
 > - in config.ml
 > - `::ACTION`: one or many successive actions to exploit the ACE
-> - `REQUIRED_OBJECT`: sometimes the action needs another object to exploit the ACE
+> - `REQUIRED_OBJECT` (optional): sometimes the action needs another object to exploit the ACE
 > - `TARGET`: the object we wan't to own
 > - `RESULT_OBJECT`: it's often the same as `TARGET`, it means that now `TARGET` is owned
 
