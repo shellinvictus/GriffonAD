@@ -151,7 +151,7 @@ def GetSTImpersonate(glob:dict, parent:Owned, requested_spn:str,
     parent.krb_auth = True
 
 
-# View or modify an ldap attribute
+# View or modify a ldap attribute
 def Attr(glob:dict, parent:Owned, target_name:LDAPObject,
          key:str, write_value:str=None, add_value:str=None, save_in_var:str=None):
     v = vars(glob, parent, target_name=target_name, key=key)

@@ -13,7 +13,7 @@ class Require():
 
 
 ###############################################################################
-# require_targets: return a list of LDAPObject
+# require_targets: return a list of LDAPObject (not Owned)
 # Convention: all of them are prefixed by ta_
 
 class x_ta_dc(Require):

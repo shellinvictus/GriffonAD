@@ -15,13 +15,13 @@ from lib.actionutils import *
 # format is = {'object': LDAPObject, 'class_name': str(require_class_name)}
 # There is also an other key 'original_target' for the require_targets.
 # 
-# All action class have a 'commit' function. This function is used to set
+# All action classes have a 'commit' function. This function is used to set
 # extra data on the target (not the secret_type which is done with the
-# apply* functions). In the commit function you can for example set an SPN,
+# apply* functions). In the commit function you can, for example, set an SPN,
 # change the NP flag, ... This is useful if in the config.ml you have a
 # condition on these parameters and they are unset.
 # 
-# A action class starts with 'x_'.
+# An action class must start with 'x_'.
 #
 
 class Action():

@@ -417,12 +417,16 @@ class Database():
                             o.rights_by_sid[target_sid] = {}
                         o.rights_by_sid[target_sid][right_name] = args
 
-        # ACEs are stored in the reversed direction in AD
-        # If A has the right GenericAll on B, so B has an ACE GenericAll from A
+        #
+        # ACEs are stored in the reversed direction in Active Directory
+        # It means that if A has the right GenericAll on B, then B has the
+        # 'GenericAll' ACE from A
+        #
         # The relation is reversed in rights_by_sid (A stores his rights to B in his object):
         # -> A.rights_by_sid[sid_of_B] = {'GenericAll': None}
         # None means there is no argument for this right (useful with constrained
         # delegation where the argument is the spn)
+        #
         for target in self.objects_by_sid.values():
             if isinstance(target, FakeLDAPObject):
                 continue

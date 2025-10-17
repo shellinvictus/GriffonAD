@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.6.3.svg?raw=true)
+![griffon version](/assets/version-0.6.4.svg?raw=true)
 ![gpl](/assets/gpl.svg?raw=true)
 ![offsec](/assets/offsec.svg?raw=true)
 ![python](/assets/python.svg?raw=true)
@@ -46,7 +46,7 @@ scenarios of GriffonAD. The expected commit is fortra/impacket@bf2d749f49588183b
 Step 1
 ------
 
-Retrieve Bloodhound json files:
+Retrieve Bloodhound json files with a collector (untested with SharpHound):
 
     ./bloodhound.py -u USER -d DOMAIN -p PASSWORD -ns DNS_IP -c DCOnly
 
@@ -57,6 +57,9 @@ Only interesting users are kept. If you have underlined yellowed users, that
 sounds good!
 
     ./griffon.py *.json
+
+- yellow user = can become an admin
+- red user = an admin
 
 ![rights](/assets/hvt.png?raw=true)
 
@@ -132,14 +135,27 @@ Other options:
 - `--fromv`: from vulnerable users (NP users (only for unprotected users), blank
 passwords, and kerberoastable users)
 - `--from USER`: test paths from an arbitrary user
-- `--rights`: view ACE names instead of actions
-- `--onlyadmin`: display only paths to domain admin (paths prefixed by the
+- `--rights`: view ACEs names instead of actions
+- `--onlyadmin`: display only paths to domain admin (prefixed by `+`)
 - `--no-follow`: don't try to continue on new owned targets but display all available
 scenarios for the current target. For example: with a GenericAll on a user, you can
 reset the password, add a shadow key credential... If this option is unset, it will
 take the first scenario (in config.ml it's ForceChangePassword). With this option,
 you will see all scenarios but without continuing the path on the new owned target.
 
+> [!TIP]
+> About the output:
+>
+> A path is a succession of action(s) to exploit one or many ACEs. The format is:
+> `OWNED -> [REQUIRED_TARGET]::ACTION[REQUIRED_OBJECT](TARGET):RESULT_OBJECT`
+>
+> - `OWNED`: initialially in the list in `owned` (or the user set with `--from`)
+> - `REQUIRED_TARGET` (optional): in some rare cases, Griffon choose a new target (check require_targets
+> - in config.ml
+> - `::ACTION`: one or many successive actions to exploit the ACE
+> - `REQUIRED_OBJECT`: sometimes the action needs another object to exploit the ACE
+> - `TARGET`: the object we wan't to own
+> - `RESULT_OBJECT`: it's often the same as `TARGET`, it means that now `TARGET` is owned
 
 Step 4: Generate the script
 ---------------------------

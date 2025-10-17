@@ -1,3 +1,5 @@
+# TODO: draw a better graph with cytoscape directly
+
 import lib.consts as c
 import dash
 from dash import Dash, html, dcc, callback, Input, Output
