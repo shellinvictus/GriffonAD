@@ -1,4 +1,13 @@
-# Documentation is here doc/config.md
+#
+# Convention:
+# ::NAME(target) = this is an action (it generates code in lib/actions.py)
+# __NAME(target) = this is a temporary state
+# NAME(target) = this is a bloodhound right
+#
+# The parent is the object we own (we have his password or a ticket) and the one
+# which has the right on the target.
+# Full documentation here: doc/config.md
+#
 
 # Private actions
 ::_Secretsdump(computer) -> ::_TransformPasswordToAES
@@ -9,10 +18,10 @@ GenericAll(any) -> AllExtendedRights
 GenericAll(any) -> GenericWrite
 
 # Unconstrained delegation
-# It could be any computer instead of the dc. If we coerce the dc we are admin!
+# TRUSTED_FOR_DELEGATION: userAccountControl & 0x80000
+# It could be any computer instead of the dc, if we coerce the dc we are admin!
 # TODO: delegation parameter on a user (actually only on computer)
-AllowedToDelegate(many) -> ::AllowedToDelegateToAny \
-        require_targets ta_dc
+AllowedToDelegate(many) -> ::AllowedToDelegateToAny require_targets ta_dc
 ::AllowedToDelegateToAny(dc) -> apply_with_ticket \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToDelegateToAny(TARGET): PARENT is sensitive or protected"
@@ -39,6 +48,7 @@ SeBackupPrivilege(many) -> ::RegBackup \
         if 551 in parent.groups
 ::RegBackup(dc) -> ::_TransformPasswordToAES
 
+# PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd
 
@@ -71,9 +81,11 @@ WriteDacl(user) -> ::DaclInitialProgram
         if target.has_spn and not target.protected \
         elsewarn "Kerberoasting: I need an owned user to request the TGS for TARGET"
 ::SetLogonScript(user) -> stop
-::ASREPRoasting(user) -> apply_with_cracked_passwd if target.np
-::EnableNP(user) -> ::ASREPRoasting
 ::WriteSPN(user) -> ::Kerberoasting
+
+# DONT_REQ_PREAUTH: userAccountControl & 0x400000
+::EnableNP(user) -> ::ASREPRoasting
+::ASREPRoasting(user) -> apply_with_cracked_passwd if target.np
 
 ReadGMSAPassword(user) -> ::ReadGMSAPassword
 ::ReadGMSAPassword(user) -> apply_with_aes
@@ -87,8 +99,15 @@ SeBackupPrivilege(computer) -> ::RegBackup
 ::CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(computer) -> ::_TransformPasswordToAES
 
 # RBCD
+# In the computer ldap object:
+# - msDS-AllowedToActOnBehalfOfOtherIdentity: contains the allowed accounts
+# - msDS-AllowedToDelegateTo: contains the list of allowed SPNs
+# Griffon inverts the relation and sets the AllowedToAct right on the account
+# (the parent which executes this statement)
 AllowedToAct(computer) -> ::AllowedToAct if parent.has_spn
 AllowedToAct(computer) -> ::U2U
+
+# Add an account on the computer
 AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::AllowedToAct    require unprotected_owned_with_spn
 ::RBCD(computer) -> ::AllowedToAct    require add_computer   if not opt.noaddcomputer
@@ -99,19 +118,20 @@ AddAllowedToAct(computer) -> ::RBCD
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToAct(TARGET): PARENT is sensitive or protected"
 
-# Delegations
+# Constrained delegations (with/without protocol transition)
+# msDS-AllowedToDelegateTo contains a list of SPNs
 AllowedToDelegate(computer) -> __AllowedToDelegate_ok \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToDelegate(TARGET): PARENT is sensitive or protected"
 
 # Constrained delegations with protocol transition
-# trustedtoauth = TRUSTED_TO_AUTH_FOR_DELEGATION
+# TRUSTED_TO_AUTH_FOR_DELEGATION: userAccountControl & 0x1000000
 __AllowedToDelegate_ok(computer) -> ::AllowedToDelegate if parent.trustedtoauth
 
-# Constrained delegations without protocol transition (kerberos only)
-# SelfRBCD: parent modifies its own rbcd and allows to delegate from an other object (the require)
-# Then a TGS (impersonated to admin) is requested by the require and passed to AllowedToDelegate
-# It also works if trustedtoauth is True but it's to avoid duplicated paths
+# Else: Constrained delegations without protocol transition (kerberos only)
+# Mimic Kerberos protocol transition using reflective RBCD
+# https://medium.com/tenable-techblog/how-to-mimic-kerberos-protocol-transition-using-reflective-rbcd-a4984bb7c4cb
+# It also works if trustedtoauth is True but we check trustedtoauth to avoid duplicated paths
 # TODO: U2U?
 __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
 ::SelfRBCD(computer) -> ::AllowedToDelegate require_once unprotected_owned_with_spn_not_eq_parent
@@ -182,12 +202,19 @@ WriteDacl(gpo) -> ::DaclFullControl
 ::GPOAddLocalAdmin(gpo) -> ::_Secretsdump     require_targets ta_all_computers_in_ou
 
 # OU
+
+# Unimplemented
+# https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
+# https://markgamache.blogspot.com/2020/07/exploiting-ad-gplink-for-good-or-evil.html
 GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
-::WriteGPLink(ou) -> stop  # Unimplemented
+::WriteGPLink(ou) -> stop
+
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou  # from GPO (Backup Operators)
 AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou # from GPO (local Administrator)
-CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(ou) -> ::CanRDP_SeBackupPrivilege_LATFP_or_RDP_required  require_targets ta_all_computers_in_ou
+CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(ou) -> \
+    ::CanRDP_SeBackupPrivilege_LATFP_or_RDP_required \
+    require_targets ta_all_computers_in_ou
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if not opt.nofull
