@@ -1,8 +1,0 @@
-include config.ml
-include config.py
-include requirements.txt
-include README.md
-include LICENSE
-recursive-include assets *
-recursive-include doc *
-recursive-include lab *
