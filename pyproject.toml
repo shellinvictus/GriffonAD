@@ -30,5 +30,11 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["lib", "tools"]
 py-modules = ["griffon", "config"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["lib*", "tools*"]
+
+[tool.setuptools.package-data]
+lib = ["*.ml"]

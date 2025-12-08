@@ -13,6 +13,7 @@ import os
 import argparse
 
 import lib.consts as c
+import lib.ml
 import config
 from lib.print import (print_path, print_paths, print_script, print_groups, print_hvt,
         print_ous, print_desc, print_comment)
@@ -108,7 +109,9 @@ def main():
             o.add(f'opt.{opt}')
         args.opt = o
 
-    config_path = os.path.dirname(os.path.abspath(__file__)) + '/config.ml'
+    lib_dir = os.path.dirname(os.path.abspath(lib.ml.__file__))
+    config_path = os.path.join(lib_dir, 'config.ml')
+   
     ml = MiniLanguage(args)
     ml.compile(config_path)
 
