@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!usr/bin/env python3
 
 import time
 import re
@@ -65,7 +65,7 @@ def trace_stop(args):
         tracemalloc.stop()
 
 
-if __name__ == '__main__':
+def main():
     colorama_init()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -215,3 +215,6 @@ if __name__ == '__main__':
     print()
     print_script(args, db, path)
     trace_stop(args)
+
+if __name__ == '__main__':
+    main()
