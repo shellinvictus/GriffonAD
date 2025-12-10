@@ -83,6 +83,11 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::SetLogonScript(user) -> stop
 ::WriteSPN(user) -> ::Kerberoasting
 
+ExistingSessionFor(user) -> ::LSASS_dumper
+# computer -> LSASS_dumper(user)
+# it means we own the computer and we know that the user has a session on it
+::LSASS_dumper(user) -> apply_with_nthash
+
 # DONT_REQ_PREAUTH: userAccountControl & 0x400000
 ::EnableNP(user) -> ::ASREPRoasting
 ::ASREPRoasting(user) -> apply_with_cracked_passwd if target.np

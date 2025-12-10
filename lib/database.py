@@ -260,19 +260,22 @@ class Database():
 
 
     def set_has_sessions(self):
+        # HasSession: with bloodhound we have "user HasSession on a computer"
+        # With griffon we want "there is a session on computer for user" to continue a possible path
+        # The right is renamed to ExistingSessionFor
         for user_sid, targets_sid in self.sessions_by_sid.items():
-            if user_sid not in self.objects_by_sid:
-                o = FakeLDAPObject()
-                o.sid = user_sid
-                o.name = user_sid
-                o.type = c.T_USER
-                self.users.add(o.sid)
-                self.objects_by_sid[user_sid] = o
-                self.objects_by_name[user_sid] = o
-            else:
-                o = self.objects_by_sid[user_sid]
-            for sid in targets_sid:
-                o.rights_by_sid[sid] = {'HasSession': None}
+            for computer_sid in targets_sid:
+                if computer_sid not in self.objects_by_sid:
+                    o = FakeLDAPObject()
+                    o.sid = computer_sid
+                    o.name = computer_sid
+                    o.type = c.T_USER
+                    self.users.add(o.sid)
+                    self.objects_by_sid[o.sid] = o
+                    self.objects_by_name[o.sid] = o
+                else:
+                    o = self.objects_by_sid[computer_sid]
+                    o.rights_by_sid[user_sid] = {'ExistingSessionFor': None}
 
 
     def populate_groups(self):

