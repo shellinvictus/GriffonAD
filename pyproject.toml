@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "griffon"
+version = "0.6.4"
+description = "A tool to exploit bad configurations in Active Directory"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "GPL-3.0"}
+authors = [
+    {name = "GriffonAD Contributors"}
+]
+dependencies = [
+    "ldap3",
+    "dash",
+    "dash-cytoscape",
+    "jinja2",
+    "colorama",
+    "pycryptodome",
+]
+
+[project.scripts]
+griffon = "griffon:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools]
+py-modules = ["griffon", "config"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["lib*", "tools*"]
+
+[tool.setuptools.package-data]
+lib = ["*.ml"]

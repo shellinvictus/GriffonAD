@@ -28,6 +28,8 @@ Installation
 You will need the latest version of impacket to use dacledit.py on some
 scenarios of GriffonAD. The expected commit is fortra/impacket@bf2d749f49588183b7aee732276440fe018a417d.
 
+## Installing with Venv
+
     python3 -m venv venv
     source venv/bin/activate
     git clone https://github.com/shellinvictus/GriffonAD
@@ -37,6 +39,16 @@ scenarios of GriffonAD. The expected commit is fortra/impacket@bf2d749f49588183b
     python3 setup.py install
     cd ../GriffonAD
     pip install -r requirements.txt
+
+## Installing with pipx
+Make sure your current working directory is inside GriffonAD then run:
+
+    pipx install .
+
+    griffon --help
+
+## Uninstalling GriffonAD with pipx
+    pipx uninstall griffon
 
 4 steps to Domain Admin
 =======================
