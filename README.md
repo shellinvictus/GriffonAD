@@ -14,7 +14,7 @@ have to copy-paste these commands (with a few modifications). The main goal is
 to let the user a full control on what is modified: all commands are fully
 commented and parameters to change are highlighted in red.
 
-Griffon supports many scenarios, take a look into [config.ml](config.ml) !
+Griffon supports many scenarios, take a look into [config.ml](lib/config.ml) !
 
 Challenge
 ---------
