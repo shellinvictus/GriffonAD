@@ -189,7 +189,15 @@ class Database():
         for o_json in objects:
             sid = o_json['ObjectIdentifier']
             o = LDAPObject(o_json, type)
-            self.objects_by_sid[sid] = o
+            # For GPOs, index by both ObjectIdentifier (RustHound) and DN GUID (BloodHound)
+            if type == c.T_GPO:
+                gpo_guid_from_dn = o.gpo_dirname_id.strip('{}').upper()
+                # Index by ObjectIdentifier (what RustHound uses in Links)
+                self.objects_by_sid[sid] = o
+                # Also index by DN GUID (what BloodHound uses in Links)
+                self.objects_by_sid[gpo_guid_from_dn] = o
+            else:
+                self.objects_by_sid[sid] = o
             # Bloodhound adds the domain as a prefix for builtin sid
             # Example: CORP-LOCAL-S-1-5-32-555
             # save the sid translation, used with sysvol
@@ -316,7 +324,7 @@ class Database():
                 self.ous_dn_to_sid[o.dn] = sid
                 self.ous_by_dn[o.dn] = {'members': [], 'gpo_links': []}
                 for lk in o.bloodhound_json['Links']:
-                    gpo_guid = lk['GUID']
+                    gpo_guid = lk['GUID'].upper()
                     self.ous_by_dn[o.dn]['gpo_links'].append(gpo_guid)
                     self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
                     # Not every efficient, bu we expect the list is not too long
