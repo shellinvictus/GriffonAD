@@ -224,7 +224,8 @@ Tests
     - Json parsing + analysis = 2 seconds (4 cores, 8 threads, 1.6GHz)
     - Memory consumption peak = 150 MiB
     - the js graph is very slow when permissions are too random
-- tested only with bloodhound-python
+- bloodhound-python
+- rusthound
 
 
 Credits
