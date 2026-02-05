@@ -11,18 +11,78 @@ Style.UNDERLINE = '\033[4m'
 
 import os
 import argparse
+import zipfile
+import tempfile
+import shutil
+from pathlib import Path
 
 import griffonad
-import griffonad as lib
 import griffonad.lib.consts as c
-import griffonad.lib.ml
 import griffonad.config
-from griffonad.lib.print import (print_path, print_paths, print_script, print_groups, print_hvt,
-        print_ous, print_desc, print_comment)
+from griffonad.lib.print import (print_path, print_paths, print_script,
+        print_groups, print_hvt, print_ous, print_desc, print_comment)
 from griffonad.lib.database import Database, Owned
 from griffonad.lib.ml import MiniLanguage
 from griffonad.lib.graph import Graph
 from griffonad.lib.sysvol import Sysvol
+
+
+def extract_bloodhound_zip(zip_path):
+    temp_dir = tempfile.mkdtemp(prefix='griffon_')
+    json_files = []
+
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for member in zip_ref.namelist():
+                if member.startswith('/') or '..' in member:
+                    raise Exception(f"Unsafe zip path detected: {member}")
+
+            total_size = sum(info.file_size for info in zip_ref.infolist())
+            if total_size > 500 * 1024 * 1024:
+                raise Exception(f"Zip too large: {total_size} bytes (500MB limit)")
+
+            zip_ref.extractall(temp_dir)
+
+            for root, dirs, files in os.walk(temp_dir):
+                for file in files:
+                    if file.endswith('.json'):
+                        json_files.append(os.path.join(root, file))
+
+        return json_files, temp_dir
+    except Exception as e:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise Exception(f"Failed to extract {zip_path}: {e}")
+
+
+def process_input_files(filenames):
+    json_files = []
+    temp_dirs = []
+
+    for filepath in filenames:
+        filepath_obj = Path(filepath)
+
+        if not filepath_obj.exists():
+            print(f"[-] error: file not found: {filepath}")
+            continue
+
+        if filepath_obj.suffix.lower() == '.zip':
+            print(f'[+] extracting {filepath}')
+            try:
+                extracted_jsons, temp_dir = extract_bloodhound_zip(filepath)
+                json_files.extend(extracted_jsons)
+                temp_dirs.append(temp_dir)
+                print(f'[+] found {len(extracted_jsons)} JSON files in zip')
+            except Exception as e:
+                print(f"[-] {e}")
+        elif filepath_obj.suffix.lower() == '.json':
+            json_files.append(str(filepath_obj))
+        else:
+            print(f"[-] warning: unsupported file type: {filepath}")
+
+    if not json_files:
+        print("[-] error: no JSON files found to process")
+
+    return json_files, temp_dirs
 
 
 def trace_start(args):
@@ -104,7 +164,7 @@ def main():
     trace_start(args)
 
     if griffonad.config.OPTS:
-        args.opt = config.OPTS
+        args.opt = griffonad.config.OPTS
     else:
         o = set()
         for opt in args.opt.split(','):
@@ -112,7 +172,7 @@ def main():
         args.opt = o
 
     config_path = os.path.join(griffonad.__path__[0], 'config.ml')
-   
+
     ml = MiniLanguage(args)
     ml.compile(config_path)
 
@@ -135,32 +195,43 @@ def main():
         print('error: positional argument is missing')
         exit(0)
     else:
-        t = time.time()
+        json_files, temp_dirs = process_input_files(args.filename)
 
-        db = Database()
-        db.load_objects(args)
-        db.populate_ous()
-        db.populate_groups()
+        if not json_files:
+            exit(1)
 
-        if args.sysvol:
-            sysv = Sysvol(args.sysvol)
-            sysv.search_all_gpt()
-            sysv.updatedb(db)
+        args.filename = json_files
 
-        db.propagate_admin_groups()
-        db.propagate_aces()
-        db.merge_rights()
-        db.set_delegations()
-        db.reverse_relations()
-        db.propagate_can_admin(ml)
-        # db.reduce_aces()
-        db.set_has_sessions()
-        db.prune_users()
-        db.load_owned(args)
+        try:
+            t = time.time()
 
-        diff = time.time() - t
-        if diff > .4:
-            print(f'[+] database analyzed in {diff} seconds')
+            db = Database()
+            db.load_objects(args)
+            db.populate_ous()
+            db.populate_groups()
+
+            if args.sysvol:
+                sysv = Sysvol(args.sysvol)
+                sysv.search_all_gpt()
+                sysv.updatedb(db)
+
+            db.propagate_admin_groups()
+            db.propagate_aces()
+            db.merge_rights()
+            db.set_delegations()
+            db.reverse_relations()
+            db.propagate_can_admin(ml)
+            # db.reduce_aces()
+            db.set_has_sessions()
+            db.prune_users()
+            db.load_owned(args)
+
+            diff = time.time() - t
+            if diff > .4:
+                print(f'[+] database analyzed in {diff} seconds')
+        finally:
+            for temp_dir in temp_dirs:
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
     if args.graph:
         Graph(db).run()

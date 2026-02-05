@@ -189,7 +189,15 @@ class Database():
         for o_json in objects:
             sid = o_json['ObjectIdentifier']
             o = LDAPObject(o_json, type)
-            self.objects_by_sid[sid] = o
+            # For GPOs, index by both ObjectIdentifier (RustHound/BloodHound CE) and DN GUID (old BloodHound)
+            if type == c.T_GPO:
+                gpo_guid_from_dn = o.gpo_dirname_id.strip('{}').upper()
+                # Index by ObjectIdentifier (normalized to uppercase)
+                self.objects_by_sid[sid.upper()] = o
+                # Also index by DN GUID (normalized to uppercase)
+                self.objects_by_sid[gpo_guid_from_dn] = o
+            else:
+                self.objects_by_sid[sid] = o
             # Bloodhound adds the domain as a prefix for builtin sid
             # Example: CORP-LOCAL-S-1-5-32-555
             # save the sid translation, used with sysvol
@@ -260,22 +268,19 @@ class Database():
 
 
     def set_has_sessions(self):
-        # HasSession: with bloodhound we have "user HasSession on a computer"
-        # With griffon we want "there is a session on computer for user" to continue a possible path
-        # The right is renamed to ExistingSessionFor
         for user_sid, targets_sid in self.sessions_by_sid.items():
-            for computer_sid in targets_sid:
-                if computer_sid not in self.objects_by_sid:
-                    o = FakeLDAPObject()
-                    o.sid = computer_sid
-                    o.name = computer_sid
-                    o.type = c.T_USER
-                    self.users.add(o.sid)
-                    self.objects_by_sid[o.sid] = o
-                    self.objects_by_name[o.sid] = o
-                else:
-                    o = self.objects_by_sid[computer_sid]
-                    o.rights_by_sid[user_sid] = {'ExistingSessionFor': None}
+            if user_sid not in self.objects_by_sid:
+                o = FakeLDAPObject()
+                o.sid = user_sid
+                o.name = user_sid
+                o.type = c.T_USER
+                self.users.add(o.sid)
+                self.objects_by_sid[user_sid] = o
+                self.objects_by_name[user_sid] = o
+            else:
+                o = self.objects_by_sid[user_sid]
+            for sid in targets_sid:
+                o.rights_by_sid[sid] = {'HasSession': None}
 
 
     def populate_groups(self):
@@ -319,7 +324,7 @@ class Database():
                 self.ous_dn_to_sid[o.dn] = sid
                 self.ous_by_dn[o.dn] = {'members': [], 'gpo_links': []}
                 for lk in o.bloodhound_json['Links']:
-                    gpo_guid = lk['GUID']
+                    gpo_guid = lk['GUID'].upper()
                     self.ous_by_dn[o.dn]['gpo_links'].append(gpo_guid)
                     self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
                     # Not every efficient, bu we expect the list is not too long
