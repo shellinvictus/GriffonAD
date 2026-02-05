@@ -1,10 +1,10 @@
 GriffonAD
 =========
 
-![griffon version](/griffonad/version-0.6.6.svg?raw=true)
-![gpl](/griffonad/gpl.svg?raw=true)
-![offsec](/griffonad/offsec.svg?raw=true)
-![python](/griffonad/python.svg?raw=true)
+![griffon version](/griffonad/assets/version-0.6.6.svg?raw=true)
+![gpl](/griffonad/assets/gpl.svg?raw=true)
+![offsec](/griffonad/assets/offsec.svg?raw=true)
+![python](/griffonad/assets/python.svg?raw=true)
 
 A new tool to exploit bad configurations in Active Directory (based on
 Bloodhound json files).
@@ -53,7 +53,7 @@ Make sure your current working directory is inside GriffonAD then run:
 4 steps to Domain Admin
 =======================
 
-![steps](/griffonad/griffonad/steps.svg?raw=true)
+![steps](/griffonad/assets/steps.svg?raw=true)
 
 Step 1
 ------
@@ -69,11 +69,13 @@ Only interesting users are kept. If you have underlined yellowed users, that
 sounds good!
 
     griffon *.json
+    or
+    griffon bloodhound.zip
 
 - yellow user = can become an admin
 - red user = an admin
 
-![rights](/griffonad/hvt.png?raw=true)
+![rights](/griffonad/assets/hvt.png?raw=true)
 
 Other options:
 
@@ -99,7 +101,7 @@ Other options:
 >
 >     echo -e "recurse\nprompt\nmget *" | smbclient -U 'DOMAIN/USER%PASSWORD' '\\IP\SYSVOL'
 
-![graph](/griffonad/graph.png?raw=true)
+![graph](/griffonad/assets/graph.png?raw=true)
 
 > [!TIP]
 > About the `many` target: it means that you can have multiple targets.
@@ -140,7 +142,7 @@ From owned users, it reads the text file `owned`.
 
     griffon lab/json/* --fromo
 
-![fromo](/griffonad/fromo.png?raw=true)
+![fromo](/griffonad/assets/fromo.png?raw=true)
 
 Other options:
 
@@ -174,7 +176,7 @@ Step 4: Generate the script
 
     griffon lab/json/* --fromo -s0 --dc-ip 10.0.0.2
 
-![script](/griffonad/script.png?raw=true)
+![script](/griffonad/assets/script.png?raw=true)
 
 
 Embedded tools
