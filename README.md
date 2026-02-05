@@ -1,10 +1,10 @@
 GriffonAD
 =========
 
-![griffon version](/assets/version-0.6.5.svg?raw=true)
-![gpl](/assets/gpl.svg?raw=true)
-![offsec](/assets/offsec.svg?raw=true)
-![python](/assets/python.svg?raw=true)
+![griffon version](/griffonad/version-0.6.6.svg?raw=true)
+![gpl](/griffonad/gpl.svg?raw=true)
+![offsec](/griffonad/offsec.svg?raw=true)
+![python](/griffonad/python.svg?raw=true)
 
 A new tool to exploit bad configurations in Active Directory (based on
 Bloodhound json files).
@@ -53,7 +53,7 @@ Make sure your current working directory is inside GriffonAD then run:
 4 steps to Domain Admin
 =======================
 
-![steps](/assets/steps.svg?raw=true)
+![steps](/griffonad/griffonad/steps.svg?raw=true)
 
 Step 1
 ------
@@ -68,12 +68,12 @@ Step 2: ACLs analysis
 Only interesting users are kept. If you have underlined yellowed users, that
 sounds good!
 
-    ./griffon.py *.json
+    griffon *.json
 
 - yellow user = can become an admin
 - red user = an admin
 
-![rights](/assets/hvt.png?raw=true)
+![rights](/griffonad/hvt.png?raw=true)
 
 Other options:
 
@@ -99,7 +99,7 @@ Other options:
 >
 >     echo -e "recurse\nprompt\nmget *" | smbclient -U 'DOMAIN/USER%PASSWORD' '\\IP\SYSVOL'
 
-![graph](/assets/graph.png?raw=true)
+![graph](/griffonad/graph.png?raw=true)
 
 > [!TIP]
 > About the `many` target: it means that you can have multiple targets.
@@ -138,9 +138,9 @@ From owned users, it reads the text file `owned`.
     Tracy:nt:4869b177d39962457ff9fb185b35c5ba
     Tracy:password:Spring2025
 
-    ./griffon.py lab/json/* --fromo
+    griffon lab/json/* --fromo
 
-![fromo](/assets/fromo.png?raw=true)
+![fromo](/griffonad/fromo.png?raw=true)
 
 Other options:
 
@@ -172,26 +172,26 @@ you will see all scenarios but without continuing the path on the new owned targ
 Step 4: Generate the script
 ---------------------------
 
-    ./griffon.py lab/json/* --fromo -s0 --dc-ip 10.0.0.2
+    griffon lab/json/* --fromo -s0 --dc-ip 10.0.0.2
 
-![script](/assets/script.png?raw=true)
+![script](/griffonad/script.png?raw=true)
 
 
 Embedded tools
 ==============
 
-- `./tools/attr.py`: generic script to modify one ldap attribute
-- `./tools/addspn.py`: modify the attribute servicePrincipalName
-- `./tools/logonscript.py`: modify the attribute msTSInitialProgram
-- `./tools/addmember.py`: modify the attribute member
-- `./tools/toggleNP.py`: enable or disable the donotpreauth flag
-- `./tools/getbyname.py`: get all attributes of one object
-- `./tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
-- `./tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
-- `./tools/scriptsini.py`: re-format a scripts.ini with correct encoding
-- `./tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
-- `./tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
-- `./tools/aesKrbKeyGen.py`: login parameters uniformization
+- `griffonad/tools/attr.py`: generic script to modify one ldap attribute
+- `griffonad/tools/addspn.py`: modify the attribute servicePrincipalName
+- `griffonad/tools/logonscript.py`: modify the attribute msTSInitialProgram
+- `griffonad/tools/addmember.py`: modify the attribute member
+- `griffonad/tools/toggleNP.py`: enable or disable the donotpreauth flag
+- `griffonad/tools/getbyname.py`: get all attributes of one object
+- `griffonad/tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
+- `griffonad/tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
+- `griffonad/tools/scriptsini.py`: re-format a scripts.ini with correct encoding
+- `griffonad/tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
+- `griffonad/tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
+- `griffonad/tools/aesKrbKeyGen.py`: login parameters uniformization
 
 
 Customization
@@ -204,7 +204,7 @@ a flag was already defined in config.ml if you don't wan't to use the
 ForceChangePassword. It will then fallback on the default next scenario which
 is AddKeyCredentialLink.
 
-    ./griffon.py lab/json/* --from MALORY --opt noforce
+    griffon lab/json/* --from MALORY --opt noforce
 
 Available options:
 
@@ -230,7 +230,7 @@ Tests
 Credits
 =======
 
-- Impacket (the kerberos login function inside ./tools/ldap_auth.py is a copy)
+- Impacket (the kerberos login function inside griffonad/tools/ldap_auth.py is a copy)
 - https://github.com/Tw1sm/aesKrbKeyGen
 - https://github.com/micahvandeusen/gMSADumper
 - Bloodhound for the opsec comments
