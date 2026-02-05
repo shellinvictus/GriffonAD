@@ -1,6 +1,7 @@
 # TODO: draw a better graph with cytoscape directly
 
-import lib.consts as c
+import griffonad
+import griffonad.lib.consts as c
 import dash
 from dash import Dash, html, dcc, callback, Input, Output
 import dash_cytoscape as cyto
@@ -116,19 +117,9 @@ class Graph():
 
 
     def run(self):
-        app = Dash(title='Griffon')
+        app = Dash(title='Griffon', assets_folder=griffonad.__path__[0] + '/assets')
 
         app.layout = html.Div([
-            # dcc.Dropdown(
-                # id='dropdown-update-layout',
-                # value='cose',
-                # clearable=False,
-                # options=[
-                    # {'label': name.capitalize(), 'value': name}
-                    # for name in ['cose', 'breadthfirst']
-                # ]
-            # ),
-
             html.Table([
                     html.Tr([
                         html.Td([html.Img(className='domain', src='assets/domain.svg')]),

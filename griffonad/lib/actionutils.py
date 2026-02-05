@@ -1,6 +1,6 @@
 from colorama import Back, Fore, Style
-from lib.database import Owned, LDAPObject
-import lib.consts as c
+from griffonad.lib.database import Owned, LDAPObject
+import griffonad.lib.consts as c
 
 def vars(glob:dict, parent:Owned, target:LDAPObject=None, **more_vars):
     v = {}

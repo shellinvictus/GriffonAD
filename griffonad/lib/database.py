@@ -1,10 +1,10 @@
 import time
 import json
 import binascii
-import lib.consts as c
 import uuid
-from lib.utils import get_aes_256_from_hex
-from lib.ml import MiniLanguage
+import griffonad.lib.consts as c
+from griffonad.lib.utils import get_aes_256_from_hex
+from griffonad.lib.ml import MiniLanguage
 
 
 VERBOSE = False

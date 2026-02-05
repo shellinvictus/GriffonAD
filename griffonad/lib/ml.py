@@ -2,9 +2,8 @@ import os
 import re
 from jinja2 import Template
 
-import lib.consts as c
-from lib.utils import sanityze_symbol
-from lib.expression import Expression
+import griffonad.lib.consts as c
+from griffonad.lib.expression import Expression
 
 
 REGEX_PREDICATE = r'^\s*([+:_a-zA-Z0-9]+)\s*\(\s*([a-z]+)\s*\)\s*(->|=>)\s*([():+_a-zA-Z0-9]+)' + \

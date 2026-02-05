@@ -4,7 +4,7 @@ import configparser
 import os
 import re
 
-from lib.database import Database
+from griffonad.lib.database import Database
 
 
 class Sysvol():

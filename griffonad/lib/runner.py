@@ -1,10 +1,10 @@
 {# Jinja template #}
 import copy
-import lib.require
-import lib.actions
-import config
-from lib.database import Owned, LDAPObject
-from lib.expression import rpn_eval
+import griffonad.lib.require
+import griffonad.lib.actions
+import griffonad.config
+from griffonad.lib.database import Owned, LDAPObject
+from griffonad.lib.expression import rpn_eval
 
 stack = []
 

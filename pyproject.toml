@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.scripts]
-griffon = "griffon:main"
+griffon = "griffonad.griffon:main"
 
 [project.optional-dependencies]
 dev = [
@@ -30,11 +30,12 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["griffon", "config"]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["lib*", "tools*"]
+include = ["griffonad*"]
 
 [tool.setuptools.package-data]
-lib = ["*.ml"]
+"griffonad" = ["config.ml"]
+"griffonad.assets" = ["*"]
+"griffonad.tools" = ["comment.cmtx", "pol.json"]

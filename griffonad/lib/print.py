@@ -3,13 +3,13 @@ import binascii
 import time
 from colorama import Back, Fore, Style
 
-import lib.consts as c
-import lib.actions
-import config
-from lib.actionutils import *
-from lib.database import Owned, Database
-from lib.ml import MiniLanguage
-from lib.utils import sanityze_symbol
+import griffonad.lib.consts as c
+import griffonad.lib.actions
+import griffonad.config
+from griffonad.lib.actionutils import *
+from griffonad.lib.database import Owned, Database
+from griffonad.lib.ml import MiniLanguage
+from griffonad.lib.utils import sanityze_symbol
 
 
 def color1_object(o:LDAPObject, underline=False) -> str:
@@ -288,7 +288,7 @@ def print_script(args, db:Database, path:list):
         'dc_name': db.main_dc.name.replace('$', ''),
         'dc_ip': args.dc_ip,
         'domain_sid': db.domain.sid,
-        'new_pass': config.DEFAULT_PASSWORD,
+        'new_pass': griffonad.config.DEFAULT_PASSWORD,
     }
 
     print_comment([
@@ -327,19 +327,19 @@ def print_script(args, db:Database, path:list):
         if parent is not None and not parent.krb_auth:
             if parent.obj.protected:
                 print_comment(f'{parent.obj.name} is protected, switch to kerberos')
-                lib.actions.TGTRequest(glob, parent)
+                # griffonad.lib.actions.TGTRequest(glob, parent)
             elif parent.secret_type == c.T_SECRET_PASSWORD and parent.secret == '':
                 print_comment(f'PASSWORD_NOTREQUIRED: the password may be blank, it\'s easier to get a TGT first')
-                lib.actions.TGTRequest(glob, parent, nopass=True)
+                griffonad.lib.actions.TGTRequest(glob, parent, nopass=True)
 
         if require is not None:
             class_name = sanityze_symbol(require['class_name'])
-            lib.require.__getattribute__(class_name).print(glob, parent, require)
+            griffonad.lib.require.__getattribute__(class_name).print(glob, parent, require)
 
         if symbol.startswith('::'):
             # Print commands, we will create a new owned object if we have a full control on it
             s = sanityze_symbol(symbol)
-            res = lib.actions.__getattribute__(s).print(
+            res = griffonad.lib.actions.__getattribute__(s).print(
                     previous_action,
                     glob,
                     parent,

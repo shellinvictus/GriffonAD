@@ -1,10 +1,10 @@
 import uuid
 from colorama import Back, Fore, Style
 
-import lib.consts as c
-from lib.database import Owned, LDAPObject
-from lib.utils import password_to_nthash
-from lib.actionutils import *
+import griffonad.lib.consts as c
+from griffonad.lib.database import Owned, LDAPObject
+from griffonad.lib.utils import password_to_nthash
+from griffonad.lib.actionutils import *
 
 #
 # parent = Owned

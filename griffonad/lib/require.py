@@ -1,7 +1,7 @@
-from lib.database import LDAPObject, FakeLDAPObject, Owned, Database
-from lib.actionutils import *
-import lib.consts as c
-import config
+from griffonad.lib.database import LDAPObject, FakeLDAPObject, Owned, Database
+from griffonad.lib.actionutils import *
+import griffonad.lib.consts as c
+import griffonad.config
 
 
 class Require():
@@ -169,9 +169,9 @@ class x_add_computer(Require):
     def get(db:Database, parent:Owned, target:LDAPObject) -> Owned:
         obj = FakeLDAPObject()
         obj.type = c.T_COMPUTER
-        obj.name = config.DEFAULT_COMPUTER_NAME
+        obj.name = griffonad.config.DEFAULT_COMPUTER_NAME
         obj.spn = ['HOST/' + obj.name.replace('$', '')]
-        return Owned(obj, secret=config.DEFAULT_PASSWORD, secret_type=c.T_SECRET_PASSWORD)
+        return Owned(obj, secret=griffonad.config.DEFAULT_PASSWORD, secret_type=c.T_SECRET_PASSWORD)
 
     def print(glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
