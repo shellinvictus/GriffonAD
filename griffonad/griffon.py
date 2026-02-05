@@ -144,6 +144,7 @@ def main():
     parser.add_argument('--select', type=str, metavar='STARTSWITH', help='Filter targets/ous/groups')
     parser.add_argument('--sysvol', metavar='PATH', type=str, help='Analyze GPOs')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--sid', action='store_true', help='Show object SIDs')
 
     arg_paths = parser.add_argument_group('Paths')
     arg_paths.add_argument('--fromo', action='store_true', help='Paths from owned')

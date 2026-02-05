@@ -90,6 +90,10 @@ def print_hvt(args, db:Database):
             print(f'{Fore.GREEN} T{Style.RESET_ALL}', end='')
         if o.pwdneverexpires:
             print(f'{Fore.GREEN} !X{Style.RESET_ALL}', end='')
+
+        if args.sid:
+            print(f' {Fore.BLACK}{o.sid}{Style.RESET_ALL}', end='')
+
         print()
 
         if not o.can_admin and not o.is_admin:
@@ -124,6 +128,7 @@ def print_hvt(args, db:Database):
 
 
 def print_ous(args, db:Database):
+    print()
     names = []
     for dn in db.ous_by_dn.keys():
         ou = db.objects_by_sid[db.ous_dn_to_sid[dn]]
@@ -138,7 +143,12 @@ def print_ous(args, db:Database):
         if not data['members'] and not data['gpo_links']:
             continue
 
-        print(ou.dn)
+        print(ou.dn, end='')
+
+        if args.sid:
+            print(f' {Fore.BLACK}{ou.sid}{Style.RESET_ALL}', end='')
+
+        print()
 
         if data['gpo_links']:
             for sid in data['gpo_links']:
@@ -182,7 +192,12 @@ def print_groups(args, db:Database):
 
         sid = g.sid.replace(g.from_domain + '-', '')
 
-        print(f'{color1_object(g)} ({sid})')
+        print(f'{color1_object(g)}', end='')
+
+        if args.sid:
+            print(f' {Fore.BLACK}{g.sid}{Style.RESET_ALL}', end='')
+
+        print()
 
         if members:
             print(f'    {len(members)} members')
