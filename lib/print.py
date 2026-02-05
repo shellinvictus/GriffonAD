@@ -92,6 +92,13 @@ def print_hvt(args, db:Database):
             print(f'{Fore.GREEN} !X{Style.RESET_ALL}', end='')
         print()
 
+        if not o.can_admin and not o.is_admin:
+            for sid, rights in o.rights_by_sid.items():
+                if 'RestrictedGroups' in rights:
+                    print(f'    {Fore.BLACK}This user may be interesting. RestrictedGroups have not been{Style.RESET_ALL}')
+                    print(f'    {Fore.BLACK}propagated to determine if the user can become an admin.{Style.RESET_ALL}')
+                    break
+
         for sid in o.group_sids:
             if sid == 'many':
                 name = 'many'

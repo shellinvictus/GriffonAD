@@ -401,12 +401,12 @@ class Database():
         # Remote desktop users
         sid = f'{self.domain.name}-S-1-5-32-555'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanRDP': None}
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanRDP_on_DC': None}
 
         # Remote Management Users
         sid = f'{self.domain.name}-S-1-5-32-580'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanPSRemote': None}
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanPSRemote_on_DC': None}
 
         # Propagate previous rights and some added with gpo (sysvol parsing)
         for group_sid, members in self.groups_by_sid.items():
@@ -479,7 +479,7 @@ class Database():
                     # If 'o' has object sids in the list, it means that these sids
                     # can ask a TGS to 'o' and 'o' can impersonate any users
                     if from_sid not in self.objects_by_sid:
-                        print(f'warning: {o} can AllowedToActOnBehalf {from_sid} but {from_sid} is unknown')
+                        print(f'warning: {o} can AllowedToActOnBehalf {from_sid} but this SID is unknown')
                         continue
                     from_obj = self.objects_by_sid[from_sid]
                     if o.sid not in from_obj.rights_by_sid:
@@ -531,8 +531,9 @@ class Database():
                     if found_one:
                         del rights['GetChanges']
 
-                if 'SeBackupPrivilege_LATFP_or_RDP_required' in rights and 'CanRDP' in rights:
-                    rights['CanRDP_SeBackupPrivilege_LATFP_or_RDP_required'] = None
+                if 'SeBackupPrivilege_RDP_required' in rights and 'CanRDP' in rights:
+                    rights['CanRDP+SeBackupPrivilege'] = None
+                    del rights['SeBackupPrivilege_RDP_required']
 
 
     def propagate_admin_groups(self):

@@ -7,7 +7,7 @@ from lib.utils import sanityze_symbol
 from lib.expression import Expression
 
 
-REGEX_PREDICATE = r'^\s*([:_a-zA-Z0-9]+)\s*\(\s*([a-z]+)\s*\)\s*(->|=>)\s*([():_a-zA-Z0-9]+)' + \
+REGEX_PREDICATE = r'^\s*([+:_a-zA-Z0-9]+)\s*\(\s*([a-z]+)\s*\)\s*(->|=>)\s*([():+_a-zA-Z0-9]+)' + \
     r'(\s+require(_for_auth|_targets|_once)? ([_.a-zA-Z0-9]+))?' + \
     r'(\s+if ([_ .a-zA-Z0-9()]+))?' + \
     r'(\s+elsewarn "([->< _=()$&:./,/*-+a-zA-Z0-9]+)")?' + \

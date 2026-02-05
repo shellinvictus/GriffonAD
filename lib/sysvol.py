@@ -99,8 +99,14 @@ class Sysvol():
             return None
 
         # Create the right RestrictedGroups to all local members
+        # -> members and memberof
 
+        # example: o has the right SeBackupPrivilege on ou_sid
         for gpo_dirname_id, groups in self.gpo_groups.items():
+            if gpo_dirname_id not in db.objects_by_name:
+                print(f'warning: {gpo_dirname_id} not found /SKIP')
+                continue
+
             gpo = db.objects_by_name[gpo_dirname_id]
 
             for g_sid, members in groups.items():
@@ -135,10 +141,12 @@ class Sysvol():
                         elif g_sid == 'S-1-5-32-580':
                             o.rights_by_sid[ou_sid]['CanPSRemote'] = None
 
-
-        # Apply privileges
+        # Apply specific privileges
 
         for gpo_dirname_id, privileges in self.gpo_privileges.items():
+            if gpo_dirname_id not in db.objects_by_name:
+                continue
+
             gpo = db.objects_by_name[gpo_dirname_id]
 
             for ou_dn in gpo.gpo_links_to_ou:
@@ -149,4 +157,4 @@ class Sysvol():
                         o = get_object(sid)
                         if ou_sid not in o.rights_by_sid:
                             o.rights_by_sid[ou_sid] = {}
-                        o.rights_by_sid[ou_sid][priv_name + '_LATFP_or_RDP_required'] = None
+                        o.rights_by_sid[ou_sid][priv_name + '_RDP_required'] = None
