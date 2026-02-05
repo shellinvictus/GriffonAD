@@ -961,7 +961,7 @@ class x_RegBackup(Action):
         print_line(comment, cmd, v)
 
         comment = [
-            "TODO: check before if there is a GPO which restrict the SeBackup privilege",
+            "TODO: check before if there is a GPO which restricts the SeBackup privilege",
             "Backup SAM, SECURITY and SYSTEM",
             "Warning: if you put '-o .', it will write files into {target_no_dollar}/C$/Windows/System32!",
             "Access to registry hives can be monitored and alerted via event ID 4656 (A handle",
