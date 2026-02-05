@@ -82,7 +82,7 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::SetLogonScript(user) -> stop
 ::WriteSPN(user) -> ::Kerberoasting
 
-ExistingSessionFor(user) -> ::LSASS_dumper
+SessionForUser(user) -> ::LSASS_dumper
 # computer -> LSASS_dumper(user)
 # it means we own the computer and we know that the user has a session on it
 ::LSASS_dumper(user) -> apply_with_nthash

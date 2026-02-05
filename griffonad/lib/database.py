@@ -270,17 +270,30 @@ class Database():
     def set_has_sessions(self):
         for user_sid, targets_sid in self.sessions_by_sid.items():
             if user_sid not in self.objects_by_sid:
-                o = FakeLDAPObject()
-                o.sid = user_sid
-                o.name = user_sid
-                o.type = c.T_USER
-                self.users.add(o.sid)
-                self.objects_by_sid[user_sid] = o
-                self.objects_by_name[user_sid] = o
+                user_object = FakeLDAPObject()
+                user_object.sid = user_sid
+                user_object.name = user_sid
+                user_object.type = c.T_USER
+                self.users.add(user_object.sid)
+                self.objects_by_sid[user_sid] = user_object
+                self.objects_by_name[user_sid] = user_object
             else:
-                o = self.objects_by_sid[user_sid]
-            for sid in targets_sid:
-                o.rights_by_sid[sid] = {'HasSession': None}
+                user_object = self.objects_by_sid[user_sid]
+
+            for computer_sid in targets_sid:
+                user_object.rights_by_sid[computer_sid] = {'HasSession': None}
+
+                if computer_sid not in self.objects_by_sid:
+                    computer_object = FakeLDAPObject()
+                    computer_object.sid = computer_sid
+                    computer_object.name = computer_sid
+                    computer_object.type = c.T_USER
+                    self.users.add(computer_object.sid)
+                    self.objects_by_sid[computer_sid] = computer_object
+                    self.objects_by_name[computer_sid] = computer_object
+                else:
+                    computer_object = self.objects_by_sid[computer_sid]
+                    computer_object.rights_by_sid[user_sid] = {'SessionForUser': None}
 
 
     def populate_groups(self):
