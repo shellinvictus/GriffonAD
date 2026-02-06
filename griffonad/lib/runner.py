@@ -48,7 +48,7 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LD
         paths.append(list(stack))
         stack.pop()
         return False
-    new_owned = Owned(target, secret=config.DEFAULT_PASSWORD, secret_type={{c.T_SECRET_PASSWORD}})
+    new_owned = Owned(target, secret=griffonad.config.DEFAULT_PASSWORD, secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
