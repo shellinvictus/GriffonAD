@@ -197,7 +197,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
            pred.symbol_result in c.TERMINALS or
            pred.is_required_target %}
 
-    {#print({{pred.do_fork}})#}
+    {% if pred.do_fork %}
+    # this predicate is in fork mode
+    {% endif %}
 
     {% if pred.symbol_result in c.TERMINALS %}
         {% set xxsymres = pred.symbol_result %}
@@ -252,6 +254,8 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
             if {{pred.symbol_result}}(args, set(), p, t):
                 {% if not pred.do_fork %}
                 found_one = True
+                {% else %}
+                # fork
                 {% endif %}
                 continue
 
@@ -261,49 +265,49 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
             if t.type == {{c.T_DC}}:
                 if dc_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_USER}}:
                 if user_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_COMPUTER}}:
                 if computer_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_DOMAIN}}:
                 if domain_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_GPO}}:
                 if gpo_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_GROUP}}:
                 if group_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}
             elif t.type == {{c.T_OU}}:
                 if ou_{{xxsymres}}(args, set(), p, t):
                     {% if pred.do_fork %}
-                    pass
+                    pass # fork
                     {% else %}
                     found_one = True
                     {% endif %}

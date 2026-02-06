@@ -21,31 +21,32 @@ GenericAll(any) -> GenericWrite
 # TRUSTED_FOR_DELEGATION: userAccountControl & 0x80000
 # It could be any computer instead of the dc, if we coerce the dc we are admin!
 # TODO: delegation parameter on a user (actually only on computer)
-AllowedToDelegate(many) -> ::AllowedToDelegateToAny require_targets ta_dc
+# fork to get also the SeBackupPrivilege (=> instead of ->)
+AllowedToDelegate(many) => ::AllowedToDelegateToAny require_targets ta_dc
 ::AllowedToDelegateToAny(dc) -> apply_with_ticket \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToDelegateToAny(TARGET): PARENT is sensitive or protected"
 
 # Manage special groups
 
-# 'Key Admins' or 'Enterprise Key Admins'
-AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
-        require_targets ta_users_without_admincount \
-        if opt.allkeys and (526 in parent.groups or 527 in parent.groups) \
-        elsewarn "Set the option --opt allkeys to execute the scenario AddKeyCredentialLink(many)"
+# 'Backup Operators'
+# Works only on a DC when we are directly under this group
+# To work on other computers a GPO must set the user in this group
+SeBackupPrivilege(many) -> ::RegBackup \
+        require_targets ta_dc \
+        if 551 in parent.groups
+::RegBackup(dc) -> ::_TransformPasswordToAES
 
 # 'Account Operators'
 GenericAll(many) -> GenericAll \
         require_targets ta_users_and_groups_without_admincount \
         if 548 in parent.groups
 
-# 'Backup Operators'
-# Works only on a DC. To work on other computers a GPO must set this privilege to
-# be applied on all computers
-SeBackupPrivilege(many) -> ::RegBackup \
-        require_targets ta_dc \
-        if 551 in parent.groups
-::RegBackup(dc) -> ::_TransformPasswordToAES
+# 'Key Admins' or 'Enterprise Key Admins'
+AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
+        require_targets ta_users_without_admincount \
+        if opt.allkeys and (526 in parent.groups or 527 in parent.groups) \
+        elsewarn "Set the option --opt allkeys to execute the scenario AddKeyCredentialLink(many)"
 
 # PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
@@ -152,8 +153,8 @@ GenericWrite(computer) -> AddAllowedToAct
 GenericWrite(computer) -> AddKeyCredentialLink
 WriteDacl(computer) -> ::DaclAccountRestrictions
 WriteDacl(computer) -> ::DaclKeyCredentialLink
-WriteDacl(computer) -> ::DaclAllowedToAct
 # DaclAllowedToAct is an other alternative to DaclAccountRestrictions
+# WriteDacl(computer) -> ::DaclAllowedToAct
 # ::DaclAllowedToAct(computer) -> AddAllowedToAct
 ::DaclAccountRestrictions(computer) -> AddAllowedToAct
 ::DaclKeyCredentialLink(computer) -> AddKeyCredentialLink
@@ -161,7 +162,7 @@ WriteDacl(computer) -> ::DaclAllowedToAct
 
 # Group
 AddMember(group) -> ::AddMember
-AddSelf(group) -> ::AddSelf
+AddSelf(group) -> ::AddMember
 GenericWrite(group) -> AddMember
 GenericWrite(group) -> AddSelf
 WriteDacl(group) -> ::DaclMemberShips
@@ -169,7 +170,6 @@ WriteDacl(group) -> ::DaclSelf
 ::DaclMemberShips(group) -> AddMember
 ::DaclSelf(group) -> AddSelf
 ::AddMember(group) -> apply_group
-::AddSelf(group) -> apply_group
 
 # Domain
 AllExtendedRights(domain) -> GetChanges_GetChangesAll
@@ -188,14 +188,15 @@ AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::AddKeyCredentialLink(dc) -> apply_with_ticket
 
 # GPO
-GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo \
+GenericWrite(gpo) -> ::GPOAddLocalAdmin        if opt.allgpo \
     elsewarn "Set the option --opt allgpo to execute all GPO scenarios"
 GenericWrite(gpo) -> ::GPOLogonScript          if opt.allgpo
+GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo
 GenericWrite(gpo) -> ::GPODisableDefender      if opt.allgpo
-GenericWrite(gpo) -> ::GPOAddLocalAdmin
 WriteDacl(gpo) -> ::DaclFullControl
 
 # Execute a command
+# => fork! (not ->)
 ::GPOImmediateTask(gpo) => stop               require_targets ta_all_computers_in_ou
 ::GPOImmediateTask(gpo) => stop               require_targets ta_all_users_in_ou
 # Execute a script (Startup / Logon)
@@ -220,8 +221,7 @@ WriteGPLink(ou) -> ::WriteGPLink
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou
 # from GPO on an OU (local Administrator)
 AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
-CanRDP+SeBackupPrivilege(ou) -> \
-    ::CanRDP+SeBackupPrivilege \
+CanRDP+SeBackupPrivilege(ou) -> ::CanRDP+SeBackupPrivilege \
     require_targets ta_all_computers_in_ou
 
 # Last chance
