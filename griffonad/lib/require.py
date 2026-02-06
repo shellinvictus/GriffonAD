@@ -26,7 +26,7 @@ class x_ta_users_without_admincount(Require):
         ret = []
         # iter_users contains only interesting users so it's relatively fast
         for o in db.iter_users():
-            if not o.admincount and o.rights_by_sid and o.name not in db.owned_db:
+            if not o.admincount and o.rights_by_sid and o.name.upper() not in db.owned_db:
                 ret.append(o)
 
         if not ret:
@@ -36,9 +36,10 @@ class x_ta_users_without_admincount(Require):
 
 
 class x_ta_users_and_groups_without_admincount(Require):
-
     def get(db:Database, parent:Owned, target:LDAPObject):
         ret = x_ta_users_without_admincount.get(db, parent, target)
+        if ret is None:
+            ret = []
 
         for group_sid in db.groups_by_sid.keys():
             if group_sid not in db.objects_by_sid:
