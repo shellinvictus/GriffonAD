@@ -150,7 +150,7 @@ Other options:
 passwords, and kerberoastable users)
 - `--from USER`: test paths from an arbitrary user
 - `--rights`: view ACEs names instead of actions
-- `--onlyadmin`: display only paths to domain admin (prefixed by `+`)
+- `--da`: display only paths to domain admin (prefixed by `+`)
 - `--no-follow`: don't try to continue on new owned targets but display all available
 scenarios for the current target. For example: with a GenericAll on a user, you can
 reset the password, add a shadow key credential... If this option is unset, it will

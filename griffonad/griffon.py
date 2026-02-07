@@ -153,7 +153,7 @@ def main():
     arg_paths.add_argument('--fromo', action='store_true', help='Paths from owned')
     arg_paths.add_argument('--fromv', action='store_true', help='Paths from vulnerable users (NP users (only unprotected users), password not required,  and kerberoastable users)')
     arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromv, display rights instead of actions')
-    arg_paths.add_argument('--onlyadmin', action='store_true')
+    arg_paths.add_argument('--da', action='store_true', help='Only paths to domain admin')
     arg_paths.add_argument('--from', type=str, metavar='USER', help='Get paths from this user')
     arg_paths.add_argument('--opt', type=str, default='', metavar='OPT1,OPT2,...', help='Custom flags')
     parser.add_argument('-f', '--no-follow', action='store_true',

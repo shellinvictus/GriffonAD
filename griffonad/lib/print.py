@@ -1,7 +1,9 @@
 import os
 import binascii
 import time
+import re
 from colorama import Back, Fore, Style
+from jinja2 import Template, Environment, FileSystemLoader
 
 import griffonad.lib.consts as c
 import griffonad.lib.actions
@@ -9,8 +11,10 @@ import griffonad.config
 from griffonad.lib.actionutils import *
 from griffonad.lib.database import Owned, Database
 from griffonad.lib.ml import MiniLanguage
-from griffonad.lib.utils import sanityze_symbol
+from griffonad.lib.utils import sanityze_symbol, password_to_nthash
 
+
+COMMENT_RE = re.compile(r'^(#.*)$', re.MULTILINE)
 
 def color1_object(o:LDAPObject, underline=False) -> str:
     if o is None:
@@ -47,6 +51,15 @@ def color2_object(o:LDAPObject, underline=False) -> str:
     if o.can_admin:
         return f'{u}{Fore.YELLOW}★{name}{Style.RESET_ALL}'
     return f'{u}{Fore.GREEN}{name}{Style.RESET_ALL}'
+
+def set_attr(obj, name, value):
+    if name == 'secret':
+        value = red(value)
+    setattr(obj, name, value)
+    return ''
+
+def red(s):
+    return f'{Fore.RED}{s}{Style.RESET_ALL}'
 
 
 # High value targets
@@ -229,14 +242,14 @@ def print_paths(args, db:Database, paths:list):
         print()
         found_path_to_admin = False
         for i, p in enumerate(paths):
-            if not args.onlyadmin or p[-1][2].is_admin and args.onlyadmin:
+            if not args.da or p[-1][2].is_admin and args.da:
                 print('%0.3x ' % i, end='')
             last_is_admin = p[-1][2] is not None and p[-1][2].is_admin
             if last_is_admin:
                 print(f'{Fore.WHITE}{Back.RED}+{Style.RESET_ALL}', end=' ')
-            elif not args.onlyadmin:
+            elif not args.da:
                 print('  ', end='')
-            if not args.onlyadmin or last_is_admin and args.onlyadmin:
+            if not args.da or last_is_admin and args.da:
                 print_path(args, p)
                 print()
     else:
@@ -303,19 +316,48 @@ def print_script(args, db:Database, path:list):
         'dc_name': db.main_dc.name.replace('$', ''),
         'dc_ip': args.dc_ip,
         'domain_sid': db.domain.sid,
-        'new_pass': griffonad.config.DEFAULT_PASSWORD,
+        'spn': 'random/spn',
+        'plain': 'PLAIN_PASSWORD_HEX',
+        'connectback_ip': f'CONNECTBACK_IP',
+        'DEFAULT_PASSWORD': griffonad.config.DEFAULT_PASSWORD,
+        'T_SECRET_PASSWORD': c.T_SECRET_PASSWORD,
+        'T_SECRET_NTHASH': c.T_SECRET_NTHASH,
+        'T_SECRET_AESKEY': c.T_SECRET_AESKEY,
+        'T_COMPUTER': c.T_COMPUTER,
+        'T_USER': c.T_USER,
+        'T_DC': c.T_DC,
+        'T_MANY': c.T_MANY,
+        'T_OU': c.T_OU,
+        'T_DOMAIN': c.T_DOMAIN,
+        'T_CONTAINER': c.T_CONTAINER,
+        'T_GROUP': c.T_GROUP,
+        'T_GPO': c.T_GPO,
+        'password_to_nthash': password_to_nthash,
+        'set_attr': set_attr,
     }
+    glob['mydomain'] = f'arbitrary.{glob["fqdn_lower"]}'
 
     print_comment([
-        'You may need to add these lines to /etc/hosts:',
+        'You may need to add these lines to your /etc/hosts:',
         f"{glob['dc_ip']} {glob['dc_name']}.{glob['fqdn']}",
         f"{glob['dc_ip']} {glob['dc_name']}",
     ])
+
+    if glob['dc_ip'] == 'DC_IP':
+        print_comment('Use the option --dc-ip to set DC_IP!')
 
     last_target = None
     last_parent = None
 
     previous_action = ''
+
+    tmpl_path = os.path.dirname(os.path.abspath(__file__)) + '/../templates'
+    env = Environment(
+        loader=FileSystemLoader(tmpl_path),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    env.filters['red'] = red
 
     for parent, symbol, target, require in path:
 
@@ -323,9 +365,9 @@ def print_script(args, db:Database, path:list):
                 last_target.sid != target.sid and target.sid in db.users:
             diff = time.time() - target.lastlogon
             if target.lastlogon == -1:
-                print_warning(f'{target.name} never logged, is it a honey pot?')
+                print_warning(f'{target.name} never logged, is it a honey pot?\n')
             elif diff > 60*60*24*30*6:
-                print_warning(f'{target.name} lastlogon > 6 months, is it a honey pot?')
+                print_warning(f'{target.name} lastlogon > 6 months, is it a honey pot?\n')
 
         if target is None:
             last_target = None
@@ -342,7 +384,7 @@ def print_script(args, db:Database, path:list):
         if parent is not None and not parent.krb_auth:
             if parent.obj.protected:
                 print_comment(f'{parent.obj.name} is protected, switch to kerberos')
-                # griffonad.lib.actions.TGTRequest(glob, parent)
+                griffonad.lib.actions.TGTRequest(glob, parent)
             elif parent.secret_type == c.T_SECRET_PASSWORD and parent.secret == '':
                 print_comment(f'PASSWORD_NOTREQUIRED: the password may be blank, it\'s easier to get a TGT first')
                 griffonad.lib.actions.TGTRequest(glob, parent, nopass=True)
@@ -353,6 +395,36 @@ def print_script(args, db:Database, path:list):
 
         if symbol.startswith('::'):
             # Print commands, we will create a new owned object if we have a full control on it
+
+            v = {
+                'previous_action': previous_action,
+                'require': require,
+            }
+
+            if parent is not None:
+                v['parent'] = parent
+                v['parent_no_dollar'] = parent.obj.name.replace('$', '')
+                v['parent_ip'] = f'{parent.obj.name.replace("$","")}_IP'
+
+            if target is not None:
+                v['target'] = target
+                v['target_no_dollar'] = target.name.replace('$', '')
+                v['target_ip'] = f'{target.name.replace("$","")}_IP'
+
+            if parent is not None and target is not None:
+                if parent.krb_need_fqdn:
+                    v['target_no_dollar'] += f".{glob['fqdn']}"
+
+            v.update(glob)
+
+            s = sanityze_symbol(symbol)[2:]
+
+            template = env.get_template(f'{s}.jinja2')
+            out = template.render(**v)
+            out = COMMENT_RE.sub(rf'{Fore.BLUE}\1{Style.RESET_ALL}', out)
+            print(out)
+            print()
+
             s = sanityze_symbol(symbol)
             res = griffonad.lib.actions.__getattribute__(s).print(
                     previous_action,
