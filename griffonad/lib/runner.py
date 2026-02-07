@@ -8,6 +8,13 @@ from griffonad.lib.expression import rpn_eval
 
 stack = []
 
+STATUS_FOUND_ONE = 0b01
+STATUS_NOT_FOUND_ONE = 0b00
+STATUS_FORK_FOUND_ONE = 0b11
+STATUS_FORK_NOT_FOUND_ONE = 0b10
+MASK_FOUND = 0b01
+MASK_FORK = 0b10
+
 {% set DEBUG = False %}
 
 def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
@@ -38,112 +45,116 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
     return rpn_eval(condition, vars)
 
 {# Functions return True if a path was found
- # apply*: if the run failed, add at least a shortest path
- # fork feature: to simulate a fork, the return of a function will be ignored
- #}
+ # apply*: if the run failed, add at least a shortest path #}
 
 def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_forced_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, secret=griffonad.config.DEFAULT_PASSWORD, secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_blank_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, secret='', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_group", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
-    if not run(args, parent, target.rights_by_sid):
+        return STATUS_NOT_FOUND_ONE
+    st = run(args, parent, target.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_cracked_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_CRACKED_PASSWORD', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def apply_with_ticket(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_ticket", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, krb_auth=True)
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def apply_with_aes(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_aes", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.T_SECRET_AESKEY}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 def stop(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "stop", target, None))
     paths.append(list(stack))
     stack.pop()
     if args.no_follow:
-        return False
-    return True
+        return STATUS_NOT_FOUND_ONE
+    return STATUS_FOUND_ONE
 
 def apply_with_nthash(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_nthash", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return False
+        return STATUS_NOT_FOUND_ONE
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_NTHASH', secret_type={{c.T_SECRET_NTHASH}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
-    return True
+    return STATUS_FOUND_ONE
 
 printed_messages = set()
 def warn(message:str, parent:Owned, target:LDAPObject):
@@ -182,7 +193,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     stack.append((parent, '{{sym}}', target, None))
     executed_symbols.add('{{sym}}')
-    found_one = False
+    status = STATUS_NOT_FOUND_ONE
 
     {# commit the action #}
     {% if sym.startswith('::') %}
@@ -196,10 +207,6 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
         if pred.symbol_result in symbols or
            pred.symbol_result in c.TERMINALS or
            pred.is_required_target %}
-
-    {% if pred.do_fork %}
-    # this predicate is in fork mode
-    {% endif %}
 
     {% if pred.symbol_result in c.TERMINALS %}
         {% set xxsymres = pred.symbol_result %}
@@ -232,7 +239,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# check if the require and the condition are valid #}
 
-    if {% if not pred.do_fork %}not found_one and {% endif %}req is not None{% if pred.condition is not none %} and cond_ok{% endif %}:
+    if status != STATUS_FOUND_ONE and req is not None{% if pred.condition is not none %} and cond_ok{% endif %}:
 
         {# require_targets: replace the original target by the require #}
         {% if pred.is_required_target %}
@@ -251,68 +258,33 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
             {% if pred.symbol_result in c.TERMINALS %}
 
-            if {{pred.symbol_result}}(args, set(), p, t):
-                {% if not pred.do_fork %}
-                found_one = True
-                {% else %}
-                # fork
-                {% endif %}
-                continue
+            st = {{pred.symbol_result}}(args, set(), p, t)
 
             {% else %}
 
             {# t is the new target #}
             if t.type == {{c.T_DC}}:
-                if dc_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = dc_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_USER}}:
-                if user_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = user_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_COMPUTER}}:
-                if computer_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = computer_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_DOMAIN}}:
-                if domain_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = domain_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_GPO}}:
-                if gpo_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = gpo_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_GROUP}}:
-                if group_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = group_{{xxsymres}}(args, set(), p, t)
             elif t.type == {{c.T_OU}}:
-                if ou_{{xxsymres}}(args, set(), p, t):
-                    {% if pred.do_fork %}
-                    pass # fork
-                    {% else %}
-                    found_one = True
-                    {% endif %}
+                st = ou_{{xxsymres}}(args, set(), p, t)
 
             {% endif %}
+
+            status |= st & MASK_FOUND
+
+        {% if pred.do_fork %}
+        status |= MASK_FORK # fork
+        {% endif %}
 
         {# require_for_auth: replace the parent by the require object #}
         {% elif pred.is_required_for_auth %}
@@ -325,12 +297,8 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
         {# replace the parent, used for the auth, by req #}
         stack[-1] = (req, "{{pred.symbol}}", target, r)
         {# replace the parent by req #}
-        if {% if not pred.do_fork %}not found_one and {% endif %}{{xxsymres}}(args, executed_symbols, req, target):
-            {% if pred.do_fork %}
-            pass
-            {% else %}
-            found_one = True
-            {% endif %}
+        st = {{xxsymres}}(args, executed_symbols, req, target)
+        status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {# require_once: used only once time, internally, during the execution of the action #}
         {% elif pred.is_required_once %}
@@ -341,12 +309,8 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
         r = {'object': req, 'class_name': '{{pred.require_class_name}}'}
         stack[-1] = (parent, "{{pred.symbol}}", target, r)
-        if {% if not pred.do_fork %}not found_one and {% endif %}{{xxsymres}}(args, executed_symbols, parent, target):
-            {% if pred.do_fork %}
-            pass
-            {% else %}
-            found_one = True
-            {% endif %}
+        st = {{xxsymres}}(args, executed_symbols, parent, target)
+        status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {# simple require, the require becomes the parent for the next actions (not the current) #}
         {% else %}
@@ -360,24 +324,17 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
          # and the first value is the object we use to authenticate) #}
         stack[-1] = (parent, "{{pred.symbol}}", target, r) 
         {# replace the parent by req #}
-        if {% if not pred.do_fork %}not found_one and {% endif %}{{xxsymres}}(args, executed_symbols, req, target):
-            {% if pred.do_fork %}
-            pass
-            {% else %}
-            found_one = True
-            {% endif %}
+        st = {{xxsymres}}(args, executed_symbols, req, target)
+        status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {% endif %}
 
     {# default: no require #}
     {% else %}
 
-    if {% if not pred.do_fork %}not found_one and {% endif %}{% if pred.condition is not none %}cond_ok and {% endif %}{{xxsymres}}(args, executed_symbols, parent, target):
-        {% if pred.do_fork %}
-        pass
-        {% else %}
-        found_one = True
-        {% endif %}
+    if status != STATUS_FOUND_ONE{% if pred.condition is not none %} and cond_ok{% endif %}:
+        st = {{xxsymres}}(args, executed_symbols, parent, target)
+        status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
     {% endif %}
 
@@ -385,7 +342,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# end of the function #}
 
-    {# rollback the action to avoid unwanted behavior on future paths #}
+    {# rollback the action to avoid unwanted behaviors on future paths #}
     {% if sym.startswith('::') %}
     griffonad.lib.actions.x_{{sym|replace('::', '')|replace('+', '_plus_')}}.rollback(target)
     {% endif %}
@@ -395,14 +352,14 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     {% endif %}
 
     stack.pop()
-    return found_one
+    return status
 
 {% endfor %}
 {% endfor %}
 
 {# apply all rights of parent #}
 def run(args, parent:Owned, rights_by_sid:dict) -> bool:
-    found_one = False
+    status = STATUS_NOT_FOUND_ONE
 
     {# apply all rights of parent #}
     for sid, rights in rights_by_sid.items():
@@ -413,10 +370,9 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in ml.symbols_by_type[c.T_MANY] %}
             {% set xxsym = sym|replace('::', 'xx')|replace('+', '_plus_') %}
             if '{{sym}}' in rights:
-                ret = many_{{xxsym}}(args, executed_symbols, parent)
-                found_one |= ret
-                if ret:
-                    continue
+                st = many_{{xxsym}}(args, executed_symbols, parent)
+                if st & MASK_FOUND:
+                    status |= MASK_FOUND
             {% endfor %}
             continue
 
@@ -434,15 +390,19 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
         {% else %}
         elif target.type == {{ty}}:
         {% endif %}
-
-            {% for sym in symbols if sym[:2] != '::' %}
+            {% for sym in symbols %}
+            {% if sym[:2] != '::' and sym[0] != '_' %}
             if '{{sym}}' in rights:
-                ret = {{c.ML_TYPES_TO_STR[ty]}}_{{sym|replace('+', '_plus_')}}(args, executed_symbols, parent, target)
-                found_one |= ret
-                if ret:
-                    continue
+                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym|replace('+', '_plus_')}}(args, executed_symbols, parent, target)
+                if st & MASK_FOUND:
+                    status |= MASK_FOUND
+                    {# don't continue if STATUS_FORK_FOUND_ONE #}
+                    if st == STATUS_FOUND_ONE:
+                        continue
+            {% endif %}
             {% endfor %}
+            pass {# if no symbols found, write something to avoid a syntax error #}
 
         {% endfor %}
 
-    return found_one
+    return status & MASK_FOUND

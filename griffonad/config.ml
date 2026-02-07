@@ -10,10 +10,13 @@
 #
 
 # Private actions
+# The password is in hexa, it's easier to manage the computer with
+# it's AES key
 ::_Secretsdump(computer) -> ::_TransformPasswordToAES
 ::_TransformPasswordToAES(any) -> apply_with_aes
 
 # FullControl, let Griffon choose the best scenario
+# any != many
 GenericAll(any) -> AllExtendedRights
 GenericAll(any) -> GenericWrite
 
@@ -79,7 +82,7 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::Kerberoasting(user) -> apply_with_cracked_passwd \
         require_for_auth any_owned \
         if target.has_spn and not target.protected \
-        elsewarn "Kerberoasting: I need an owned user to request the TGS for TARGET"
+        elsewarn "warning: TARGET seems to be kerberoastable, but I need an owned user to request the TGS"
 ::SetLogonScript(user) -> stop
 ::WriteSPN(user) -> ::Kerberoasting
 
@@ -112,13 +115,11 @@ SeBackupPrivilege(computer) -> ::RegBackup
 AllowedToAct(computer) -> ::AllowedToAct if parent.has_spn
 AllowedToAct(computer) -> ::U2U
 
-# Add an account on the computer
 AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::AllowedToAct    require unprotected_owned_with_spn
 ::RBCD(computer) -> ::AllowedToAct    require add_computer   if not opt.noaddcomputer
 ::RBCD(computer) -> ::U2U             require owned_user_without_spn
 ::U2U(computer) -> ::AllowedToAct if parent.is_user
-# return aes instead of password because it's easier (otherwise the password is in hexa)
 ::AllowedToAct(computer) -> ::_Secretsdump \
         if not parent.sensitive and not parent.protected \
         elsewarn "PARENT -> AllowedToAct(TARGET): PARENT is sensitive or protected"
@@ -133,10 +134,19 @@ AllowedToDelegate(computer) -> __AllowedToDelegate_ok \
 # TRUSTED_TO_AUTH_FOR_DELEGATION: userAccountControl & 0x1000000
 __AllowedToDelegate_ok(computer) -> ::AllowedToDelegate if parent.trustedtoauth
 
-# Else: Constrained delegations without protocol transition (kerberos only)
+# else
+# Constrained delegations without protocol transition (kerberos only)
+#
 # Mimic Kerberos protocol transition using reflective RBCD
 # https://medium.com/tenable-techblog/how-to-mimic-kerberos-protocol-transition-using-reflective-rbcd-a4984bb7c4cb
-# It also works if trustedtoauth is True but we check trustedtoauth to avoid duplicated paths
+#
+# It also works if trustedtoauth is True but we check trustedtoauth to avoid
+# duplicated paths
+#
+# Here we use the 'require_once' and not the 'require' like the normal RBCD
+# For the RBCD: the 'require' is used to authenticate after
+# Here we just need an object to create the SelfRBCD, then we don't use it anymore
+#
 # TODO: U2U?
 __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
 ::SelfRBCD(computer) -> ::AllowedToDelegate require_once unprotected_owned_with_spn_not_eq_parent
@@ -188,15 +198,14 @@ AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::AddKeyCredentialLink(dc) -> apply_with_ticket
 
 # GPO
-GenericWrite(gpo) -> ::GPOAddLocalAdmin        if opt.allgpo \
+GenericWrite(gpo) -> ::GPOLogonScript          if opt.allgpo \
     elsewarn "Set the option --opt allgpo to execute all GPO scenarios"
-GenericWrite(gpo) -> ::GPOLogonScript          if opt.allgpo
 GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo
 GenericWrite(gpo) -> ::GPODisableDefender      if opt.allgpo
+GenericWrite(gpo) -> ::GPOAddLocalAdmin
 WriteDacl(gpo) -> ::DaclFullControl
 
 # Execute a command
-# => fork! (not ->)
 ::GPOImmediateTask(gpo) => stop               require_targets ta_all_computers_in_ou
 ::GPOImmediateTask(gpo) => stop               require_targets ta_all_users_in_ou
 # Execute a script (Startup / Logon)
