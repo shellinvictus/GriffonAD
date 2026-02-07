@@ -27,7 +27,7 @@ from griffonad.lib.graph import Graph
 from griffonad.lib.sysvol import Sysvol
 
 
-def extract_bloodhound_zip(zip_path):
+def extract_bloodhound_zip(zip_path:str) -> tuple:
     temp_dir = tempfile.mkdtemp(prefix='griffon_')
     json_files = []
 
@@ -54,7 +54,7 @@ def extract_bloodhound_zip(zip_path):
         raise Exception(f"Failed to extract {zip_path}: {e}")
 
 
-def process_input_files(filenames):
+def process_input_files(filenames:list) -> tuple:
     json_files = []
     temp_dirs = []
 

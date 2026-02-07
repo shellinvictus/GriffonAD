@@ -8,7 +8,7 @@ from jinja2 import Template, Environment, FileSystemLoader
 import griffonad.lib.consts as c
 import griffonad.lib.actions
 import griffonad.config
-from griffonad.lib.actionutils import *
+from griffonad.lib.actions import *
 from griffonad.lib.database import Owned, Database
 from griffonad.lib.ml import MiniLanguage
 from griffonad.lib.utils import sanityze_symbol, password_to_nthash
@@ -60,6 +60,14 @@ def set_attr(obj, name, value):
 
 def red(s):
     return f'{Fore.RED}{s}{Style.RESET_ALL}'
+
+tmpl_path = os.path.dirname(os.path.abspath(__file__)) + '/../templates'
+env = Environment(
+    loader=FileSystemLoader(tmpl_path),
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
+env.filters['red'] = red
 
 
 # High value targets
@@ -261,8 +269,6 @@ def print_path(args, path:list):
     end = ' —> '
     i = 0
 
-    # print(path)
-
     while i < length:
         if i == length - 1:
             end = ''
@@ -308,6 +314,14 @@ def print_path(args, path:list):
     print(f'{target_name}')
 
 
+def render_template(filename, **kwargs):
+    template = env.get_template(filename)
+    out = template.render(**kwargs)
+    out = COMMENT_RE.sub(rf'{Fore.BLUE}\1{Style.RESET_ALL}', out)
+    print(out)
+    print()
+
+
 def print_script(args, db:Database, path:list):
     glob = {
         'fqdn': db.domain.name,
@@ -351,15 +365,13 @@ def print_script(args, db:Database, path:list):
 
     previous_action = ''
 
-    tmpl_path = os.path.dirname(os.path.abspath(__file__)) + '/../templates'
-    env = Environment(
-        loader=FileSystemLoader(tmpl_path),
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    env.filters['red'] = red
-
     for parent, symbol, target, require in path:
+
+        if last_target is not None and target is not None and \
+                target.name != last_target.name:
+            print(f'{Fore.YELLOW}{last_target.name} is owned{Style.RESET_ALL}')
+            print(f'{Fore.YELLOW}Next target is {target.name}{Style.RESET_ALL}')
+            print()
 
         if target is not None and last_target is not None and \
                 last_target.sid != target.sid and target.sid in db.users:
@@ -382,12 +394,23 @@ def print_script(args, db:Database, path:list):
             last_parent = parent
 
         if parent is not None and not parent.krb_auth:
+            nopass = None
             if parent.obj.protected:
                 print_comment(f'{parent.obj.name} is protected, switch to kerberos')
-                griffonad.lib.actions.TGTRequest(glob, parent)
+                nopass = False
             elif parent.secret_type == c.T_SECRET_PASSWORD and parent.secret == '':
                 print_comment(f'PASSWORD_NOTREQUIRED: the password may be blank, it\'s easier to get a TGT first')
-                griffonad.lib.actions.TGTRequest(glob, parent, nopass=True)
+                nopass = True
+            if nopass is not None:
+                render_template('_TGTRequest.jinja2',
+                    parent=parent,
+                    T_SECRET_PASSWORD=c.T_SECRET_PASSWORD,
+                    T_SECRET_AESKEY=c.T_SECRET_AESKEY,
+                    T_SECRET_NTHASH=c.T_SECRET_NTHASH,
+                    dc_ip=glob['dc_ip'],
+                    fqdn=glob['fqdn'],
+                    set_attr=set_attr,
+                    nopass=nopass)
 
         if require is not None:
             class_name = sanityze_symbol(require['class_name'])
@@ -418,20 +441,7 @@ def print_script(args, db:Database, path:list):
             v.update(glob)
 
             s = sanityze_symbol(symbol)[2:]
-
-            template = env.get_template(f'{s}.jinja2')
-            out = template.render(**v)
-            out = COMMENT_RE.sub(rf'{Fore.BLUE}\1{Style.RESET_ALL}', out)
-            print(out)
-            print()
-
-            s = sanityze_symbol(symbol)
-            res = griffonad.lib.actions.__getattribute__(s).print(
-                    previous_action,
-                    glob,
-                    parent,
-                    target,
-                    require)
+            render_template(f'{s}.jinja2', **v)
 
         previous_action = symbol
 
@@ -451,4 +461,3 @@ def print_desc(db:Database):
                 else:
                     print(color1_object(o))
                 print('   ', o.description)
-

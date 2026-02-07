@@ -1,0 +1,39 @@
+{% set gpo = require['original_target'] %}
+{% if gpo.gpo_links_to_ou %}
+# The GPO {{gpo.name}} is linked on OU(s):
+    {% for dn in gpo.gpo_links_to_ou %}
+# {{dn}}
+    {% endfor %}
+{%- else %}
+# The GPO {{gpo.name}} is not linked to an OU
+{%- endif %}
+
+{% set folder = 'Startup' if target.type == T_COMPUTER else 'Logon' %}
+
+# Prepare the scripts.ini (replace or update it!)
+echo 'echo hello >C:\hello.txt' >myscript.bat
+./tools/scriptsini.py --tag {{folder}} myscript.bat >scripts.ini
+
+{% include '_pre_update_gpo.jinja2' %}
+
+# Create the subpath if not present and push files
+{% if target.type == T_COMPUTER %}
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/Machine/Scripts
+{%- else %}
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/User/Scripts
+{% endif %}
+
+## get scripts.ini # to restore if you want
+put scripts.ini
+cd {{folder}}
+put myscript.bat
+exit
+
+{% if target.type == T_COMPUTER %}
+# The startup script is executed only on reboot
+{% set extnames = '[{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}]' %}
+{% include '_post_update_gpo.jinja2' %}
+{%- else %}
+{% set extnames = '[{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B66650-4972-11D1-A7CA-0000F87571E3}]' %}
+{% include '_post_update_gpo.jinja2' %}
+{%- endif %}

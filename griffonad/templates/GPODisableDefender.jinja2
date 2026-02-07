@@ -1,0 +1,35 @@
+{% set gpo = require['original_target'] %}
+{% if gpo.gpo_links_to_ou %}
+# The GPO {{gpo.name}} is linked on OU(s):
+    {% for dn in gpo.gpo_links_to_ou %}
+# {{dn}}
+    {% endfor %}
+{%- else %}
+# The GPO {{gpo.name}} is not linked to an OU
+{%- endif %}
+
+# Prepare comment.cmtx (original format and spaces) and Registry.pol. You can also
+# update an Registry.pol by converting to json.
+# Select the policies you need (update comment.cmtx and pol.json if you remove
+# one of these entries):
+# - Exclusions
+# - Disable RealTime
+# - Enable RDP
+# - Disable Firewall
+./tools/readpol.py tools/pol.json --save Registry.pol
+cp tools/comment.cmtx .
+
+{% include '_pre_update_gpo.jinja2' %}
+
+# Push files (replace or update them)
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/Machine/
+## mv comment.cmtx __comment.cmtx
+## mv Registry.pol __Registry.pol
+## get comment.cmtx
+## get Registry.pol
+put comment.cmtx
+put Registry.pol
+exit
+
+{% set extnames = '[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]' %}
+{% include '_post_update_gpo.jinja2' %}

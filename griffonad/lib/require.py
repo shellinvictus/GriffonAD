@@ -1,7 +1,10 @@
 from griffonad.lib.database import LDAPObject, FakeLDAPObject, Owned, Database
-from griffonad.lib.actionutils import *
+from griffonad.lib.actions import *
 import griffonad.lib.consts as c
 import griffonad.config
+
+
+# TODO: move require commands in jinja templates
 
 
 class Require():

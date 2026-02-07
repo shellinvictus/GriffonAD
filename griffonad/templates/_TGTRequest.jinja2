@@ -1,0 +1,14 @@
+{% if not parent.krb_auth %}
+{% set nopass = ' -no-pass' if nopass else '' %}
+# Ask a TGT for {{parent.obj.name}}
+{% if parent.secret_type == T_SECRET_AESKEY %}
+getTGT.py '{{fqdn}}/{{parent.obj.name}}' -dc-ip {{dc_ip}} -aesKey {{parent.secret|red}}{{nopass}}
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+getTGT.py '{{fqdn}}/{{parent.obj.name}}' -dc-ip {{dc_ip}} -hashes :{{parent.secret|red}}{{nopass}}
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+getTGT.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -dc-ip {{dc_ip}}{{nopass}}
+{%- endif %}
+
+export KRB5CCNAME='{{parent.obj.name}}.ccache'
+{{ set_attr(parent, 'krb_auth', True) }}
+{%- endif %}

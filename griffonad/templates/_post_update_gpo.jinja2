@@ -1,0 +1,23 @@
+# Update values
+{% if target.type == T_COMPUTER %}
+{% set key = 'gPCMachineExtensionNames' %}
+{%- elif target.type == T_USER %}
+{% set key = 'gPCUserExtensionNames' %}
+{% endif %}
+{% set target_name = gpo.gpo_dirname_id %}
+{% set add_value = False %}
+{% set write_value = '"`./tools/mergeGUID.py "$en" \'' + extnames + '\'`"' %}
+{% set save_in_var = False %}
+{% include '_Attr.jinja2' %}
+
+{% set key = 'versionNumber' %}
+{% set write_value = '$vn' %}
+{% include '_Attr.jinja2' %}
+
+
+{% if target.type == T_USER %}
+# Wait {{target.name}} log on...'
+{%- else %}
+# Wait max 90 min for gpo propagation... (or gpudate /force on the target for testing)
+# You can check the report on the target with: GPRESULT /H GPReport.html
+{% endif %}

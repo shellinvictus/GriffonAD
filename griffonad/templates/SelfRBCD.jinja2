@@ -1,0 +1,19 @@
+# Constrained delegation without protocol transition (Kerberos only)
+# Around Aug./Sept. 2022, Microsoft seems to have patched the "self-rbcd" approach,
+# but relaying on another account for the RBCD will still work (UNIMPLEMENTED -> TODO)
+
+# Self-RBCD
+
+{% set target = parent.obj %}
+{% include 'RBCD.jinja2' %}
+
+
+{% set do_u2u = False %}
+{% set do_additional = False %}
+{% set requested_spn = 'HOST/' + parent.obj.name.replace('$', '') %}
+{% set parent = require['object'] %}
+{% include '_GetSTImpersonate.jinja2' %}
+
+
+{# Save the ticket for AllowedToDelegate (-additional-ticket) #}
+ticket="$KRB5CCNAME"
