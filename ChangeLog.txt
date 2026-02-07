@@ -1,0 +1,16 @@
+0.6.8: 2026/02/07
+- --onlyadmin replaced by --da
+- All actions are now in jinja templates
+- Fix: rewrite the runner for the fork mode
+    Before some interminated paths were added
+
+0.6.7: 2026/02/06
+- Check Backup Operators before other special groups
+- Backup Operators also display even if the Unconstrained delegation find a path
+- Fix: small bugs in 'require' functions
+- Fix: --from didn't set the user as owned (looping...)
+
+0.6.6: 2026/02/05
+- Everything is now in the package griffonad for a better installation
+- Fix: with rusthound some names are not capitalized like bloodhound-python (@schlopshow)
+- Feature to read the zip instead of *.json (@schlopshow)
