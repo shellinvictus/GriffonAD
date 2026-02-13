@@ -274,9 +274,10 @@ def main():
         if obj is None:
             print(f"[-] error: can't find the object '{args.__getattribute__('from')}'")
             exit(1)
-        o = Owned(obj, secret='PASSWORD', secret_type=c.T_SECRET_PASSWORD)
-        db.owned_db[obj.name.upper()] = o
-        final_paths = ml.execute_user_rights(db, o)
+        owned = db.owned_db.get(obj.name.upper(), None)
+        if owned is None:
+            owned = Owned(obj, secret='PASSWORD', secret_type=c.T_SECRET_PASSWORD)
+        final_paths = ml.execute_user_rights(db, owned)
 
     if not args.script:
         print_paths(args, db, final_paths)
