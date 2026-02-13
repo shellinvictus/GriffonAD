@@ -4,16 +4,18 @@
 
 # Self-RBCD
 
+{# target can be modified because it's not used in _GetSTImpersonate #}
 {% set target = parent.obj %}
 {% include 'RBCD.jinja2' %}
 
 
 {% set do_u2u = False %}
 {% set do_additional = False %}
-{% set requested_spn = 'HOST/' + parent.obj.name.replace('$', '') %}
+{% set requested_spn = 'HOST/' + parent.obj.name.replace('$', '') + '.' + fqdn %}
 {% set parent = require['object'] %}
 {% include '_GetSTImpersonate.jinja2' %}
 
 
 {# Save the ticket for AllowedToDelegate (-additional-ticket) #}
 ticket="$KRB5CCNAME"
+unset $KRB5CCNAME

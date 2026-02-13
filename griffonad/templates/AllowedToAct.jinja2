@@ -1,4 +1,4 @@
 {% set do_u2u = previous_action == '::U2U' %}
 {% set do_additional = False %}
-{% set requested_spn = 'HOST/' + target_no_dollar %}
+{% set requested_spn = 'HOST/' + parent.obj.name.replace('$', '') + '.' + fqdn %}
 {% include '_GetSTImpersonate.jinja2' %}
