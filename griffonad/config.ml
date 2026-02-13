@@ -6,7 +6,7 @@ set DontAddComputer = false
 
 #
 # Convention:
-# ::NAME(target) = this is an action (it generates code in lib/actions.py)
+# ::NAME(target) = this is an action (generated code is in templates/)
 # __NAME(target) = this is a temporary state
 # NAME(target) = this is a bloodhound right
 #
@@ -17,7 +17,7 @@ set DontAddComputer = false
 
 # Private actions
 # The password is in hexa, it's easier to manage the computer with
-# it's AES key
+# its AES key
 ::_Secretsdump(computer) -> ::_TransformPasswordToAES
 ::_TransformPasswordToAES(any) -> apply_with_aes
 
