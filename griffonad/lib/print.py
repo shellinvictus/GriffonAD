@@ -391,6 +391,7 @@ def print_script(args, db:Database, path:list):
         else:
             if last_parent is not None and last_parent.krb_auth and not parent.krb_auth:
                 print_cmd('unset KRB5CCNAME\n')
+                last_parent.krb_auth = False
             last_parent = parent
 
         if parent is not None and not parent.krb_auth:
