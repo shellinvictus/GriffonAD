@@ -339,9 +339,12 @@ class Database():
                 for lk in o.bloodhound_json['Links']:
                     gpo_guid = lk['GUID'].upper()
                     self.ous_by_dn[o.dn]['gpo_links'].append(gpo_guid)
-                    self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
-                    # Not every efficient, bu we expect the list is not too long
-                    self.objects_by_sid[gpo_guid].gpo_links_to_ou.sort()
+                    if gpo_guid in self.objects_by_sid:
+                        self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
+                        # Not every efficient, bu we expect the list is not too long
+                        self.objects_by_sid[gpo_guid].gpo_links_to_ou.sort()
+                    else:
+                        logger(f'warning: GPO {gpo_guid} linked from {o.dn} not found in collected data')
 
         # Populate OU members
         for sid, o in self.objects_by_sid.items():
