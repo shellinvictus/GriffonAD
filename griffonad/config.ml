@@ -1,3 +1,9 @@
+set DefaultForceChangePassword = true
+set DefaultSetFullControl = true
+set DisplayAllGPOs = false
+set AllAddKeyCredentialLink = false
+set DontAddComputer = false
+
 #
 # Convention:
 # ::NAME(target) = this is an action (it generates code in lib/actions.py)
@@ -48,8 +54,9 @@ GenericAll(many) -> GenericAll \
 # 'Key Admins' or 'Enterprise Key Admins'
 AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
         require_targets ta_users_without_admincount \
-        if opt.allkeys and (526 in parent.groups or 527 in parent.groups) \
-        elsewarn "Set the option --opt allkeys to execute the scenario AddKeyCredentialLink(many)"
+        if AllAddKeyCredentialLink and \
+            (526 in parent.groups or 527 in parent.groups) \
+        elsewarn "Set the flag AllAddKeyCredentialLink in config.ml to execute the scenario AddKeyCredentialLink(many)"
 
 # PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
@@ -77,7 +84,7 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::DaclUserAccountControl(user) -> WriteUserAccountControl
 ::DaclServicePrincipalName(user) -> WriteSPN
 ::DaclInitialProgram(user) -> SetLogonScript
-::ForceChangePassword(user) -> apply_with_forced_passwd if not opt.noforce
+::ForceChangePassword(user) -> apply_with_forced_passwd if DefaultForceChangePassword
 ::AddKeyCredentialLink(user) -> apply_with_ticket
 ::Kerberoasting(user) -> apply_with_cracked_passwd \
         require_for_auth any_owned \
@@ -117,7 +124,7 @@ AllowedToAct(computer) -> ::U2U
 
 AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::AllowedToAct    require unprotected_owned_with_spn
-::RBCD(computer) -> ::AllowedToAct    require add_computer   if not opt.noaddcomputer
+::RBCD(computer) -> ::AllowedToAct    require add_computer   if not DontAddComputer
 ::RBCD(computer) -> ::U2U             require owned_user_without_spn
 ::U2U(computer) -> ::AllowedToAct if parent.is_user
 ::AllowedToAct(computer) -> ::_Secretsdump \
@@ -198,10 +205,10 @@ AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::AddKeyCredentialLink(dc) -> apply_with_ticket
 
 # GPO
-GenericWrite(gpo) -> ::GPOLogonScript          if opt.allgpo \
-    elsewarn "Set the option --opt allgpo to execute all GPO scenarios"
-GenericWrite(gpo) -> ::GPOImmediateTask        if opt.allgpo
-GenericWrite(gpo) -> ::GPODisableDefender      if opt.allgpo
+GenericWrite(gpo) -> ::GPOLogonScript          if DisplayAllGPOs \
+    elsewarn "Set the flag DisplayAllGPOs to execute all GPO scenarios"
+GenericWrite(gpo) -> ::GPOImmediateTask        if DisplayAllGPOs
+GenericWrite(gpo) -> ::GPODisableDefender      if DisplayAllGPOs
 GenericWrite(gpo) -> ::GPOAddLocalAdmin
 WriteDacl(gpo) -> ::DaclFullControl
 
@@ -234,8 +241,8 @@ CanRDP+SeBackupPrivilege(ou) -> ::CanRDP+SeBackupPrivilege \
     require_targets ta_all_computers_in_ou
 
 # Last chance
-__WriteDacl(any) -> ::DaclFullControl if not opt.nofull
-__WriteDacl(any) -> WriteDacl         if opt.nofull
+__WriteDacl(any) -> ::DaclFullControl if DefaultSetFullControl
+__WriteDacl(any) -> WriteDacl         if not DefaultSetFullControl
 ::DaclFullControl(any) -> GenericAll
 Owns(any) -> __WriteDacl
 ::WriteOwner(any) -> Owns

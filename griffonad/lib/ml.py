@@ -6,20 +6,22 @@ import griffonad.lib.consts as c
 from griffonad.lib.expression import Expression
 
 
-REGEX_PREDICATE = r'^\s*([+:_a-zA-Z0-9]+)\s*\(\s*([a-z]+)\s*\)\s*(->|=>)\s*([():+_a-zA-Z0-9]+)' + \
-    r'(\s+require(_for_auth|_targets|_once)? ([_.a-zA-Z0-9]+))?' + \
-    r'(\s+if ([_ .a-zA-Z0-9()]+))?' + \
-    r'(\s+elsewarn "([->< _=()$&:./,/*-+a-zA-Z0-9]+)")?' + \
-    r'\s*(#.+)?$'
+REGEX_PREDICATE = re.compile(
+    r'^\s*(?P<symbol>[+:_a-zA-Z0-9]+)' + \
+    r'\s*\(\s*(?P<object_type>[a-z]+)\s*\)' + \
+    r'\s*(?P<arrow>->|=>)' + \
+    r'\s*(?P<symbol_result>[():+_a-zA-Z0-9]+)' + \
+    r'(\s+require(?P<require_suffix>_for_auth|_targets|_once)? ' + \
+    r'(?P<require_class_name>[_.a-zA-Z0-9]+))?' + \
+    r'(\s+if (?P<condition>[_ .a-zA-Z0-9()]+))?' + \
+    r'(\s+elsewarn "(?P<elsewarn>[->< _=()$&:./,/*-+a-zA-Z0-9]+)")?' + \
+    r'\s*(?P<comment>#.+)?$')
 
-LEF_SYMBOL = 0
-OBJECT_TYPE = 1
-ARROW = 2
-RIGHT_SYMBOL = 3
-REQUIRE_NAME = 5
-REQUIRE = 6
-CONDITION = 8
-ELSEWARN = 10
+REGEX_SET = re.compile(
+    r'^\s*set\s+(?P<varname>[a-zA-Z0-9_]+)' + \
+    r'\s*=\s*' + \
+    r'(?P<bool>true|false)$')
+
 
 def index(list, search):
     try:
@@ -115,6 +117,7 @@ class MiniLanguage():
             c.T_CONTAINER: set(),
         }
         self.args = args
+        self.args.consts = {}
 
 
     def __parse_file(self, filename):
@@ -139,19 +142,18 @@ class MiniLanguage():
                 line = line[:-1] + ' ' + new_line.strip()
                 n += 1
 
-            res = re.findall(REGEX_PREDICATE, line)
+            res = REGEX_SET.match(line)
+            if res is not None:
+                self.args.consts[res['varname']] = res['bool'] == 'true'
+                continue
 
+            res = REGEX_PREDICATE.match(line)
             if not res:
                 print(f'{filename}: syntax error at line {n}')
                 print(line)
                 exit(1)
 
-            symbol = res[0][LEF_SYMBOL]
-            object_type = res[0][OBJECT_TYPE]
-            symbol_result = res[0][RIGHT_SYMBOL]
-            require_class_name = res[0][REQUIRE]
-            condition = res[0][CONDITION]
-            elsewarn = res[0][ELSEWARN]
+            object_type = res['object_type']
 
             if object_type != 'any' and object_type not in c.ML_TYPES_FROM_STR:
                 print(f'{filename}: unknown object type at line {n}')
@@ -159,16 +161,16 @@ class MiniLanguage():
                 exit(1)
 
             p = Predicate(
-                    symbol,
+                    res['symbol'],
                     object_type,
-                    symbol_result,
-                    require_class_name,
-                    condition,
-                    elsewarn,
-                    res[0][REQUIRE_NAME] == '_for_auth',
-                    res[0][REQUIRE_NAME] == '_targets',
-                    res[0][REQUIRE_NAME] == '_once',
-                    res[0][ARROW] == '=>')
+                    res['symbol_result'],
+                    res['require_class_name'],
+                    res['condition'],
+                    res['elsewarn'],
+                    res['require_suffix'] == '_for_auth',
+                    res['require_suffix'] == '_targets',
+                    res['require_suffix'] == '_once',
+                    res['arrow'] == '=>')
 
             if object_type == 'any':
                 types_to_apply = list(c.ML_TYPES_TO_STR.keys())

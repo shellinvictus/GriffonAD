@@ -1,5 +1,6 @@
 0.6.9: 2026/02/13
 - Some fixes (@fkxdr)
+- Removed parameter --opt -> replaced by flags in config.ml
 
 0.6.8: 2026/02/07
 - --onlyadmin replaced by --da

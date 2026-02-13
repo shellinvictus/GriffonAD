@@ -40,8 +40,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
             'parent.trustedtoauth': parent.obj.trustedtoauth,
             'parent.groups': parent.obj.group_rids,
         })
-    for opt in args.opt:
-        vars[opt] = True
+    vars.update(args.consts)
     return rpn_eval(condition, vars)
 
 {# Functions return True if a path was found
@@ -223,18 +222,18 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     {# manage the predicate condition #}
     {% if pred.condition is not none %}
     cond_ok = do_rpn_eval(args, {{pred.condition}}, parent, target)
-    {% if pred.elsewarn != '' %}
+    {% if pred.elsewarn is not none %}
     if not cond_ok:
         warn('{{pred.elsewarn}}', parent, target)
     {% endif %}
     {% endif %}
 
     {# manage all require statements #}
-    {% if pred.require_class_name != '' %}
+    {% if pred.require_class_name is not none %}
 
     req = griffonad.lib.require.x_{{pred.require_class_name}}.get(db, parent, target)
 
-    {% if pred.elsewarn != '' %}
+    {% if pred.elsewarn is not none %}
     if req is None:
         warn('{{pred.elsewarn}}', parent, target)
     {% endif %}

@@ -155,7 +155,6 @@ def main():
     arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromv, display rights instead of actions')
     arg_paths.add_argument('--da', action='store_true', help='Only paths to domain admin')
     arg_paths.add_argument('--from', type=str, metavar='USER', help='Get paths from this user')
-    arg_paths.add_argument('--opt', type=str, default='', metavar='OPT1,OPT2,...', help='Custom flags')
     parser.add_argument('-f', '--no-follow', action='store_true',
             help='Don\'t try to continue on owned targets but display all available scenarios for one target')
 
@@ -166,14 +165,6 @@ def main():
     args = parser.parse_args()
 
     trace_start(args)
-
-    if griffonad.config.OPTS:
-        args.opt = griffonad.config.OPTS
-    else:
-        o = set()
-        for opt in args.opt.split(','):
-            o.add(f'opt.{opt}')
-        args.opt = o
 
     config_path = os.path.join(griffonad.__path__[0], 'config.ml')
 

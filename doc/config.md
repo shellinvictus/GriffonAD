@@ -182,16 +182,10 @@ path. So the predicate `GenericAll -> AllExtendedRights` is never run.
     A -> AddKeyCredentialLink(B):B -> AddKeyCredentialLink(C)
 
 
-## Options
+## Flags
 
 If you want to disable a predicate, you can comment it without errors.
 If you want to change the priority of a predicate, move it.
 
-You can pass custom flags with the parameter `--opt`. If you want to disable
-completely the reset of passwords, you can add this:
-
-    # config.ml:
-    ::ForceChangePassword(user) -> apply_with_forced_passwd if not opt.noforce
-
-    # use it with:
-    ./griffon.py --opt noforce
+You can set custom flags to disable some predicates (see for example
+DefaultForceChangePassword).

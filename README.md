@@ -200,23 +200,7 @@ Customization
 =============
 
 The file config.ml is fully customizable, you can set your preferences based on
-scenario priorities (more at [config.md](/doc/config.md)). You can also define
-conditional predicates by adding flags with the parameter `--opt`. For example,
-a flag was already defined in config.ml if you don't wan't to use the
-ForceChangePassword. It will then fallback on the default next scenario which
-is AddKeyCredentialLink.
-
-    griffon lab/json/* --from MALORY --opt noforce
-
-Available options:
-
-- `--opt noforce`: no ForceChangePassword
-- `--opt noaddcomputer`: don't use the scenario 'add a computer' with RBCD
-- `--opt allgpo`: iterates on all gpo scenarios, by default it will use only the GPOAddLocalAdmin
-- `--opt nofull`: if we have WriteDacl, give only specific right to continue (not FullControl)
-- `--opt allkeys`: for the Key Admins group (+Enterprise), iterate on all users and computers
-
-You can also write options in `config.py`.
+scenario priorities (more at [config.md](/doc/config.md)).
 
 
 Tests
