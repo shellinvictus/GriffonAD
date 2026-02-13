@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "griffon"
-version = "0.6.8"
+version = "0.6.9"
 description = "A tool to exploit bad configurations in Active Directory"
 readme = "README.md"
 requires-python = ">=3.8"
