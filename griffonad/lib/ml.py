@@ -203,7 +203,7 @@ class MiniLanguage():
     # apply_with_forced_passwd. So add it in the set.
     def __get_all_symbols_to_any_apply(self):
         for ty in self.symbols_to_any_apply.keys():
-            for term in c.TERMINALS:
+            for term in c.APPLY:
                 if term in self.reversed_symbols[ty]:
                     self.__go_up_parent(ty,
                             self.symbols_to_any_apply[ty],

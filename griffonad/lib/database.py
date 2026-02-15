@@ -578,14 +578,16 @@ class Database():
             __propagate(self.objects_by_sid[sid])
 
 
+    # If we have A -> B and B -> C
+    # Then this function will generate all links: C -> B and B -> A
     def reverse_relations(self):
-        self.reversed_relations = {}
+        self.parents = {}
         for parent_sid in self.objects_by_sid:
             for target_sid in self.objects_by_sid[parent_sid].rights_by_sid.keys():
-                if target_sid not in self.reversed_relations:
-                    self.reversed_relations[target_sid] = {parent_sid}
+                if target_sid not in self.parents:
+                    self.parents[target_sid] = {parent_sid}
                 else:
-                    self.reversed_relations[target_sid].add(parent_sid)
+                    self.parents[target_sid].add(parent_sid)
 
 
     # Normally it's fastest after the call of prune_users
@@ -606,11 +608,12 @@ class Database():
             if o.can_admin:
                 return
             o.can_admin = True
-            if o.sid not in self.reversed_relations:
+            if o.sid not in self.parents:
                 return
-            for parent_sid in self.reversed_relations[o.sid]:
+            for parent_sid in self.parents[o.sid]:
                 parent = self.objects_by_sid[parent_sid]
                 rights = parent.rights_by_sid[o.sid]
+                # Propagate only rights to an apply_* function (it means we own the target)
                 if not rights.keys().isdisjoint(ml.get_rights_to_apply(o.type)):
                     __propagate_to_parent(parent)
 
