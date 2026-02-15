@@ -6,15 +6,9 @@ GriffonAD
 ![offsec](/griffonad/assets/offsec.svg?raw=true)
 ![python](/griffonad/assets/python.svg?raw=true)
 
-A new tool to exploit bad configurations in Active Directory (based on
-Bloodhound json files).
-
-Nothing is executed on the target, it generates commands for you and you just
-have to copy-paste these commands (with a few modifications). The main goal is
-to let the user a full control on what is modified: all commands are fully
-commented and parameters to change are highlighted in red.
-
-Griffon supports many scenarios, take a look into [config.ml](griffonad/config.ml) !
+Generate low-level commands (mainly impacket) to exploit the Active
+Directory easily: learn and control every steps. Griffon supports many
+scenarios, take a look into [config.ml](griffonad/config.ml) !
 
 Challenge
 ---------
@@ -149,7 +143,7 @@ Other options:
 - `--fromv`: from vulnerable users (NP users (only for unprotected users), blank
 passwords, and kerberoastable users)
 - `--from USER`: test paths from an arbitrary user
-- `--rights`: view ACEs names instead of actions
+- `--rights`: view ACE names instead of actions
 - `--da`: display only paths to domain admin (prefixed by `+`)
 - `--no-follow`: don't try to continue on new owned targets but display all available
 scenarios for the current target. For example: with a GenericAll on a user, you can
@@ -164,8 +158,7 @@ you will see all scenarios but without continuing the path on the new owned targ
 > `OWNED -> [REQUIRED_TARGET]::ACTION[REQUIRED_OBJECT](TARGET):RESULT_OBJECT`
 >
 > - `OWNED`: initialially from the `owned` file (or the user sets with `--from`)
-> - `REQUIRED_TARGET` (optional): in some rare cases, Griffon choose a new target (check require_targets
-> - in config.ml
+> - `REQUIRED_TARGET` (optional): in some rare cases, Griffon choose a new target (check require_targets in config.ml)
 > - `::ACTION`: one or many successive actions to exploit the ACE
 > - `REQUIRED_OBJECT` (optional): sometimes the action needs another object to exploit the ACE
 > - `TARGET`: the object we wan't to own
