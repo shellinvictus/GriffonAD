@@ -131,7 +131,7 @@ def trace_stop(args):
 def main():
     colorama_init()
 
-    print('GriffonAD 0.6.9')
+    print('GriffonAD 0.6.10')
     print()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)

@@ -1,3 +1,8 @@
+0.6.10: 2026/02/15
+- Fix: some object will be marked as 'can_admin' but they don't have critical rights
+- Fix: templates/ not included in pyproject.toml
+- Scenario CanRDP+SeBackup removed: it seems that if we only have the SeBackup it's ok to RegBackup
+
 0.6.9: 2026/02/13
 - Some fixes (@fkxdr)
 - Removed parameter --opt -> replaced by flags in config.ml
