@@ -131,20 +131,20 @@ def print_hvt(args, db:Database):
                 name = f'UNKNOWN_{sid}'
             else:
                 name = color1_object(db.objects_by_sid[sid])
-            print(f'    < {name}')
+            print(f'    {Fore.BLACK}<{Style.RESET_ALL} {name}')
 
         for sid, rights in o.rights_by_sid.items():
             if sid == 'many':
-                name = 'many'
+                name = f'{Fore.RED}many{Style.RESET_ALL}'
             elif sid not in db.objects_by_sid:
                 name = f'UNKNOWN_{sid}'
             else:
                 name = color1_object(db.objects_by_sid[sid])
             for i, r in enumerate(rights.keys()):
                 if rights[r] is not None:
-                    print(f'    ({r}, {rights[r]} -> {name})')
+                    print(f'    {r}({rights[r]} -> {name})')
                 else:
-                    print(f'    ({r}, {name})')
+                    print(f'    {r}({name})')
     print()
 
 
