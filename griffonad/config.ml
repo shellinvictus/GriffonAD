@@ -38,7 +38,7 @@ AllowedToDelegate(many) => ::AllowedToDelegateToAny require_targets ta_dc
 
 # Manage special groups
 
-# 'Backup Operators'
+# 'Backup Operators' (551)
 # Works only on a DC when we are directly under this group
 # To work on other computers a GPO must set the user in this group
 SeBackupPrivilege(many) -> ::RegBackup \
@@ -61,6 +61,10 @@ AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
 # PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd
+
+# We don't call the CanRDP on each computers (with a require_targets) of the
+# OU or domain because the list would be too long!
+::CanRDP(any) -> stop
 
 # User
 
@@ -107,11 +111,10 @@ ReadGMSAPassword(user) -> ::ReadGMSAPassword
 
 # Computer
 AdminTo(computer) -> ::_Secretsdump
+SeBackupPrivilege(computer) -> ::RegBackup
 ReadLAPSPassword(computer) -> ::ReadLAPSPassword
 ::ReadLAPSPassword(computer) -> ::_TransformPasswordToAES
-SeBackupPrivilege(computer) -> ::RegBackup
 ::RegBackup(computer) -> ::_TransformPasswordToAES
-::CanRDP+SeBackupPrivilege(computer) -> ::_TransformPasswordToAES
 
 # RBCD
 # In the computer ldap object:
@@ -193,11 +196,11 @@ AllExtendedRights(domain) -> GetChanges_GetChangesAll
 AllExtendedRights(domain) -> GetChanges_GetChangesInFilteredSet
 GetChanges_GetChangesAll(domain) -> ::DCSync
 GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
-# from GPO on domain
-SeBackupPrivilege(domain) -> ::RegBackup require_targets ta_dc
-# from GPO (local Administrator)
-AdminTo(domain) -> ::DCSync
 ::DCSync(domain) -> stop
+# from GPOs
+SeBackupPrivilege(domain) -> ::RegBackup require_targets ta_dc
+AdminTo(domain) -> ::DCSync # local Administrator
+CanRDP(domain) -> ::CanRDP
 
 # DC
 GenericWrite(dc) -> AddKeyCredentialLink
@@ -233,12 +236,10 @@ GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
 ::WriteGPLink(ou) -> stop
 
-# from GPO on an OU
+# from GPOs
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou
-# from GPO on an OU (local Administrator)
 AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
-CanRDP+SeBackupPrivilege(ou) -> ::CanRDP+SeBackupPrivilege \
-    require_targets ta_all_computers_in_ou
+CanRDP(ou) -> ::CanRDP
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if DefaultSetFullControl

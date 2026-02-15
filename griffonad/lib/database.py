@@ -422,12 +422,12 @@ class Database():
         # Remote desktop users
         sid = f'{self.domain.name}-S-1-5-32-555'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanRDP_on_DC': None}
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanRDP': None}
 
         # Remote Management Users
         sid = f'{self.domain.name}-S-1-5-32-580'
         if sid in self.objects_by_sid:
-            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanPSRemote_on_DC': None}
+            self.objects_by_sid[sid].rights_by_sid['many'] = {'CanPSRemote': None}
 
         # Propagate previous rights and some added with gpo (sysvol parsing)
         for group_sid, members in self.groups_by_sid.items():
@@ -552,10 +552,6 @@ class Database():
                     if found_one:
                         del rights['GetChanges']
 
-                if 'SeBackupPrivilege_RDP_required' in rights and 'CanRDP' in rights:
-                    rights['CanRDP+SeBackupPrivilege'] = None
-                    del rights['SeBackupPrivilege_RDP_required']
-
 
     def propagate_admin_groups(self):
         # propagate to children
@@ -618,7 +614,7 @@ class Database():
                 if not rights.keys().isdisjoint(ml.get_rights_to_apply(o.type)):
                     __propagate_to_parent(parent)
 
-        # Propagate backup operators
+        # Propagate backup operators (to direct members, not from a GPO)
         sid = f'{self.domain.name}-S-1-5-32-551'
         if sid in self.objects_by_sid:
             self.objects_by_sid[sid].can_admin = True

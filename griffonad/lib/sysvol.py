@@ -140,21 +140,3 @@ class Sysvol():
                         # Remote management users
                         elif g_sid == 'S-1-5-32-580':
                             o.rights_by_sid[ou_sid]['CanPSRemote'] = None
-
-        # Apply specific privileges
-
-        for gpo_dirname_id, privileges in self.gpo_privileges.items():
-            if gpo_dirname_id not in db.objects_by_name:
-                continue
-
-            gpo = db.objects_by_name[gpo_dirname_id]
-
-            for ou_dn in gpo.gpo_links_to_ou:
-                ou_sid = db.ous_dn_to_sid[ou_dn]
-
-                for priv_name, sids in privileges.items():
-                    for sid in sids:
-                        o = get_object(sid)
-                        if ou_sid not in o.rights_by_sid:
-                            o.rights_by_sid[ou_sid] = {}
-                        o.rights_by_sid[ou_sid][priv_name + '_RDP_required'] = None

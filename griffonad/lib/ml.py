@@ -7,10 +7,10 @@ from griffonad.lib.expression import Expression
 
 
 REGEX_PREDICATE = re.compile(
-    r'^\s*(?P<symbol>[+:_a-zA-Z0-9]+)' + \
+    r'^\s*(?P<symbol>[:_a-zA-Z0-9]+)' + \
     r'\s*\(\s*(?P<object_type>[a-z]+)\s*\)' + \
     r'\s*(?P<arrow>->|=>)' + \
-    r'\s*(?P<symbol_result>[():+_a-zA-Z0-9]+)' + \
+    r'\s*(?P<symbol_result>[():_a-zA-Z0-9]+)' + \
     r'(\s+require(?P<require_suffix>_for_auth|_targets|_once)? ' + \
     r'(?P<require_class_name>[_.a-zA-Z0-9]+))?' + \
     r'(\s+if (?P<condition>[_ .a-zA-Z0-9()]+))?' + \

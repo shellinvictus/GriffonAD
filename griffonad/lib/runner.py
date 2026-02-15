@@ -173,7 +173,7 @@ def warn(message:str, parent:Owned, target:LDAPObject):
 {% for ty, symbols in ml.symbols_by_type.items() %}
 {% for sym in symbols %}
 
-{% set xxsym = sym|replace('::', 'xx')|replace('+', '_plus_') %}
+{% set xxsym = sym|replace('::', 'xx') %}
 {% set i = loop.index0 %}
 
 {# run all symbol_results for a given symbol #}
@@ -196,7 +196,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# commit the action #}
     {% if sym.startswith('::') %}
-    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')|replace('+', '_plus_')}}', None)
+    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')}}', None)
     if cla is not None:
         cla.commit(target)
     {% endif %}
@@ -213,10 +213,10 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
         {% set xxsymres = pred.symbol_result %}
     {% elif pred.is_required_target %}
         {# The function will be prefixed by the target type (see below in the 'for t in req') #}
-        {% set xxsymres = pred.symbol_result|replace('::', 'xx')|replace('+', '_plus_') %}
+        {% set xxsymres = pred.symbol_result|replace('::', 'xx') %}
     {% else %}
         {# continue with the same type #}
-        {% set xxsymres = c.ML_TYPES_TO_STR[ty] + '_' + pred.symbol_result|replace('::', 'xx')|replace('+', '_plus_') %}
+        {% set xxsymres = c.ML_TYPES_TO_STR[ty] + '_' + pred.symbol_result|replace('::', 'xx') %}
     {% endif %}
 
     {# manage the predicate condition #}
@@ -345,7 +345,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# rollback the action to avoid unwanted behaviors on future paths #}
     {% if sym.startswith('::') %}
-    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')|replace('+', '_plus_')}}', None)
+    cla = griffonad.lib.actions.__dict__.get('x_{{sym|replace('::', '')}}', None)
     if cla is not None:
         cla.rollback(target)
     {% endif %}
@@ -371,7 +371,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
 
         if sid == 'many':
             {% for sym in ml.symbols_by_type[c.T_MANY] %}
-            {% set xxsym = sym|replace('::', 'xx')|replace('+', '_plus_') %}
+            {% set xxsym = sym|replace('::', 'xx') %}
             if '{{sym}}' in rights:
                 st = many_{{xxsym}}(args, executed_symbols, parent)
                 if st & MASK_FOUND:
@@ -396,7 +396,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in symbols %}
             {% if sym[:2] != '::' and sym[0] != '_' %}
             if '{{sym}}' in rights:
-                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym|replace('+', '_plus_')}}(args, executed_symbols, parent, target)
+                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(args, executed_symbols, parent, target)
                 if st & MASK_FOUND:
                     status |= MASK_FOUND
                     {# don't continue if STATUS_FORK_FOUND_ONE #}
