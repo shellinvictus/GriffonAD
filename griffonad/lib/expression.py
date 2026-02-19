@@ -5,7 +5,7 @@ Style.UNDERLINE = '\033[4m'
 
 NUMBERS = set('0123456789')
 CHARS = set('0123456789_.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-BIN_OP = set('+-*/&|?,') # without the ! which is an unary operator
+BIN_OP = set('+-*/&|∈∉')
 
 DEBUG = False
 
@@ -30,7 +30,7 @@ def rpn_eval(polish:list, vars:dict={}) -> int:
                     stack.append(l + r)
                 case '-':
                     stack.append(l - r)
-                case '*':
+                case '*': 
                     stack.append(l * r)
                 case '/':
                     stack.append(l / r)
@@ -38,10 +38,9 @@ def rpn_eval(polish:list, vars:dict={}) -> int:
                     stack.append(l & r)
                 case '|':
                     stack.append(l | r)
-                case '?':
+                case '∈':
                     stack.append(l in r)
-                case ',':
-                    print(l, r)
+                case '∉':
                     stack.append(l not in r)
                 case '!':
                     stack.append(not stack.pop())
@@ -74,28 +73,28 @@ class Expression():
 
     def __cleanup_spaces(self):
         self.string = self.string\
-            .replace(' not in ', ' , ')\
-            .replace(')not in ', ' ), ')\
-            .replace(' not in(', ' , ')\
-            .replace(')not in(', ' ),( ')\
-            .replace(' in ', ' ? ')\
-            .replace(')in ', ' )? ')\
-            .replace(' in(', ' ? ')\
-            .replace(')in(', ' )?( ')\
-            .replace(' and ', ' & ')\
-            .replace(')and ', ' )& ')\
-            .replace(' and(', ' & ')\
-            .replace(')and(', ' )&( ')\
-            .replace(' or ', ' | ')\
-            .replace(')or ', ' )| ')\
-            .replace(' or(', ' | ')\
-            .replace(')or(', ' )|( ')\
-            .replace(' not ', ' ! ')\
-            .replace(')not ', ' )! ')\
-            .replace(' not(', ' ! ')\
-            .replace(')not(', ' )!( ')\
-            .replace('not ', ' ! ')\
-            .replace('not(', ' )!( ')\
+            .replace(' not in ', '∉')\
+            .replace(')not in ', ')∉')\
+            .replace(' not in(', '∉(')\
+            .replace(')not in(', ')∉(')\
+            .replace(' in ', '∈')\
+            .replace(')in ', ')∈')\
+            .replace(' in(', '∈(')\
+            .replace(')in(', ')∈(')\
+            .replace(' and ', '&')\
+            .replace(')and ', ')&')\
+            .replace(' and(', '&(')\
+            .replace(')and(', ')&(')\
+            .replace(' or ', '|')\
+            .replace(')or ', ')|')\
+            .replace(' or(', '|(')\
+            .replace(')or(', ')|(')\
+            .replace(' not ', '!')\
+            .replace(')not ', ')!')\
+            .replace(' not(', '!(')\
+            .replace(')not(', ')!(')\
+            .replace('not ', '!')\
+            .replace('not(', '!(')\
             .replace(' ', '')
 
     def __rollback(self, n_stacked:int, depth:int):
@@ -111,7 +110,7 @@ class Expression():
 
     expression = boolor 'or' expression | boolor
     boolor = booland 'and' boolor | boolor
-    booland = boolin 'in/notin' booland |  '-' booland | boolin
+    booland = boolin '∈|∉' booland |  '-' booland | boolin
     boolin = term '+' boolin | term '-' boolin | term
     term = factor '*' boolnot | factor '/' boolnot | factor
     boolnot = 'not' factor | factor
@@ -192,8 +191,8 @@ class Expression():
     def __booland(self, start:int, end:int, depth:int) -> tuple:
         return self.__generic_expression(
             start, end, depth, 'booland',
-            ["boolin '?, (in/notin)' booland", 'boolin'],
-            {'?', ','}, self.__boolin)
+            ["boolin '(in/notin)' booland", 'boolin'],
+            {'∈', '∉'}, self.__boolin)
 
     def __boolin(self, start:int, end:int, depth:int) -> tuple:
         return self.__generic_expression(
@@ -280,15 +279,15 @@ class Expression():
             i += 1
         return self.string[start:i]
 
-
+        s
 if __name__ == '__main__':
     # None means python computes differently boolean with integers and we can't verify
     # the exact result
     tests = [
         ('5-3', [5, 3, '-'], 2),
-        ('1 in list', [1, 'list', '?'], True),
-        ('1 not in list', [1, 'list', ','], False),
-        ('1000 in list', [1000, 'list', '?'], False),
+        ('1 in list', [1, 'list', '∈'], True),
+        ('1 not in list', [1, 'list', '∉'], False),
+        ('1000 in list', [1000, 'list', '∈'], False),
         ('1+2+3+4', [1, 2, 3, 4, '+', '+', '+'], 10),
         ('1*2*3*4', [1, 2, 3, 4, '*', '*', '*'], 24),
         ('1+2*3+4', [1, 2, 3, '*', 4, '+', '+'], 11),
@@ -307,10 +306,11 @@ if __name__ == '__main__':
         ('1 * (3 and 0) * 7 + 5', [1, 3, 0, '&', 7, '*', '*', 5, '+'], 5),
         ('1 + 2 or 3+4*6 and 7*8 or 9*0', [1, 2, '+', 3, 4, 6, '*', '+', 7, 8, '*', '&', 9, 0, '*', '|', '|'], None),
         ('true and false or 123 * var1 + 789 * var2.attr', [1, 0, '&', 123, 'var1', '*', 789, 'var2.attr', '*', '+', '|'], None),
+        ('true and(true or false)', [1, 1, 0, '|', '&'], True),
     ]
 
     print('compileok    resok    expr')
     for expr, compiled, res in tests:
         r1 = Expression(expr).compile()
         r2 = rpn_eval(r1, {'a': True, 'b': False, 'var1':5, 'var2.attr':6, 'list': [1,2,3]})
-        print(r1 == compiled, '       ', res == r2 if res is not None else '?   ', '     ', expr)
+        print(r1 == compiled, '       ', res == r2 if res is not None else '?   ', '     ', expr, r1)
