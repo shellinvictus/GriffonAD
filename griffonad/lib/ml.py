@@ -20,7 +20,7 @@ REGEX_PREDICATE = re.compile(
 REGEX_SET = re.compile(
     r'^\s*set\s+(?P<varname>[a-zA-Z0-9_]+)' + \
     r'\s*=\s*' + \
-    r'(?P<bool>true|false)$')
+    r"(?P<value>true|false|'(?:\\.|[^'\\])*')\s*$")
 
 
 def index(list, search):
@@ -117,7 +117,7 @@ class MiniLanguage():
             c.T_CONTAINER: set(),
         }
         self.args = args
-        self.args.consts = {}
+        self.args.variables = {}
 
 
     def __parse_file(self, filename):
@@ -144,7 +144,11 @@ class MiniLanguage():
 
             res = REGEX_SET.match(line)
             if res is not None:
-                self.args.consts[res['varname']] = res['bool'] == 'true'
+                v = None
+                if res['value'] == 'true': v = True
+                elif res['value'] == 'false': v = True
+                elif res['value'][0] == "'": v = res['value'][1:-1]
+                self.args.variables[res['varname']] = v
                 continue
 
             res = REGEX_PREDICATE.match(line)
