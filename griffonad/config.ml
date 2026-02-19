@@ -1,8 +1,11 @@
 set DefaultForceChangePassword = true
 set DefaultSetFullControl = true
-set DisplayAllGPOs = false
 set AllAddKeyCredentialLink = false
 set DontAddComputer = false
+set DoGPOAddLocalAdmin = true
+set DoGPOLogonScript = false
+set DoGPOImmediateTask = false
+set DoGPODisableDefender = false
 
 #
 # Convention:
@@ -208,11 +211,10 @@ AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::AddKeyCredentialLink(dc) -> apply_with_ticket
 
 # GPO
-GenericWrite(gpo) -> ::GPOLogonScript          if DisplayAllGPOs \
-    elsewarn "Set the flag DisplayAllGPOs to execute all GPO scenarios"
-GenericWrite(gpo) -> ::GPOImmediateTask        if DisplayAllGPOs
-GenericWrite(gpo) -> ::GPODisableDefender      if DisplayAllGPOs
-GenericWrite(gpo) -> ::GPOAddLocalAdmin
+GenericWrite(gpo) -> ::GPOLogonScript          if DoGPOLogonScript
+GenericWrite(gpo) -> ::GPOImmediateTask        if DoGPOImmediateTask
+GenericWrite(gpo) -> ::GPODisableDefender      if DoGPODisableDefender
+GenericWrite(gpo) -> ::GPOAddLocalAdmin        if DoGPOAddLocalAdmin
 WriteDacl(gpo) -> ::DaclFullControl
 
 # Execute a command
