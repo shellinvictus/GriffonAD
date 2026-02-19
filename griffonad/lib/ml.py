@@ -20,7 +20,7 @@ REGEX_PREDICATE = re.compile(
 REGEX_SET = re.compile(
     r'^\s*set\s+(?P<varname>[a-zA-Z0-9_]+)' + \
     r'\s*=\s*' + \
-    r"(?P<value>true|false|'(?:\\.|[^'\\])*')\s*$")
+    r"(?P<value>true|false|[0-9]+|'(?:\\.|[^'\\])*')\s*$")
 
 
 def index(list, search):
@@ -148,6 +148,7 @@ class MiniLanguage():
                 if res['value'] == 'true': v = True
                 elif res['value'] == 'false': v = True
                 elif res['value'][0] == "'": v = res['value'][1:-1]
+                else: v = int(res['value'])
                 self.args.variables[res['varname']] = v
                 continue
 

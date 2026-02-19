@@ -114,6 +114,26 @@ class x_ta_all_users_in_ou(Require):
         return ret
 
 
+class x_ta_one_dc_in_ou(Require):
+    CACHE = {}
+
+    def get(db:Database, parent:Owned, target:LDAPObject) -> list:
+        if target.sid in x_ta_one_dc_in_ou.CACHE:
+            return x_ta_one_dc_in_ou.CACHE[target.sid]
+
+        ret = []
+
+        # for all links
+        for sid in db.ous_by_dn[target.dn]['members']:
+            o = db.objects_by_sid[sid]
+            if o.type == c.T_DC and o.sid != parent.obj.sid:
+                ret.append(o)
+                break
+
+        x_ta_one_dc_in_ou.CACHE[target.sid] = ret
+        return ret
+
+
 ###############################################################################
 # Below require + require_for_auth + require_once
 # They must return a single Owned object

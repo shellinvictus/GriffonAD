@@ -17,8 +17,9 @@ MASK_FORK = 0b10
 
 {% set DEBUG = False %}
 
-def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
-    vars = {}
+def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObject) -> int:
+    vars = {'rights': rights}
+
     if target is not None:
         vars.update({
             'target.has_spn': len(target.spn) != 0,
@@ -40,13 +41,13 @@ def do_rpn_eval(args, condition:list, parent:Owned, target:LDAPObject) -> int:
             'parent.trustedtoauth': parent.obj.trustedtoauth,
             'parent.groups': parent.obj.group_rids,
         })
-    vars.update(args.consts)
+    vars.update(args.variables)
     return rpn_eval(condition, vars)
 
 {# Functions return True if a path was found
  # apply*: if the run failed, add at least a shortest path #}
 
-def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_forced_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -61,7 +62,7 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, target:LD
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_blank_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -76,7 +77,7 @@ def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, target:LDA
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_group(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_group", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -88,7 +89,7 @@ def apply_group(args, executed_symbols:set, parent:Owned, target:LDAPObject=None
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_cracked_passwd", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -103,7 +104,7 @@ def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, target:L
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_ticket(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_ticket(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_ticket", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -118,7 +119,7 @@ def apply_with_ticket(args, executed_symbols:set, parent:Owned, target:LDAPObjec
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_aes(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_aes(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_aes", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -133,7 +134,7 @@ def apply_with_aes(args, executed_symbols:set, parent:Owned, target:LDAPObject=N
     stack.pop()
     return STATUS_FOUND_ONE
 
-def stop(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def stop(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "stop", target, None))
     paths.append(list(stack))
     stack.pop()
@@ -141,7 +142,7 @@ def stop(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bo
         return STATUS_NOT_FOUND_ONE
     return STATUS_FOUND_ONE
 
-def apply_with_nthash(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def apply_with_nthash(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_nthash", target, None))
     if args.no_follow:
         paths.append(list(stack))
@@ -177,7 +178,12 @@ def warn(message:str, parent:Owned, target:LDAPObject):
 {% set i = loop.index0 %}
 
 {# run all symbol_results for a given symbol #}
-def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned, target:LDAPObject=None) -> bool:
+def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
+        args,
+        executed_symbols:set,
+        parent:Owned,
+        rights=dict,
+        target:LDAPObject=None) -> bool:
 
     {# detect loops #}
     if target is not None and target.name.upper() in db.owned_db:
@@ -221,7 +227,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
     {# manage the predicate condition #}
     {% if pred.condition is not none %}
-    cond_ok = do_rpn_eval(args, {{pred.condition}}, parent, target)
+    cond_ok = do_rpn_eval(args, {{pred.condition}}, parent, rights, target)
     {% if pred.elsewarn is not none %}
     if not cond_ok:
         warn('{{pred.elsewarn}}', parent, target)
@@ -259,25 +265,25 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
             {% if pred.symbol_result in c.TERMINALS %}
 
-            st = {{pred.symbol_result}}(args, set(), p, t)
+            st = {{pred.symbol_result}}(args, set(), p, rights, t)
 
             {% else %}
 
             {# t is the new target #}
             if t.type == {{c.T_DC}}:
-                st = dc_{{xxsymres}}(args, set(), p, t)
+                st = dc_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_USER}}:
-                st = user_{{xxsymres}}(args, set(), p, t)
+                st = user_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_COMPUTER}}:
-                st = computer_{{xxsymres}}(args, set(), p, t)
+                st = computer_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_DOMAIN}}:
-                st = domain_{{xxsymres}}(args, set(), p, t)
+                st = domain_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_GPO}}:
-                st = gpo_{{xxsymres}}(args, set(), p, t)
+                st = gpo_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_GROUP}}:
-                st = group_{{xxsymres}}(args, set(), p, t)
+                st = group_{{xxsymres}}(args, set(), p, rights, t)
             elif t.type == {{c.T_OU}}:
-                st = ou_{{xxsymres}}(args, set(), p, t)
+                st = ou_{{xxsymres}}(args, set(), p, rights, t)
 
             {% endif %}
 
@@ -298,7 +304,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
         {# replace the parent, used for the auth, by req #}
         stack[-1] = (req, "{{pred.symbol}}", target, r)
         {# replace the parent by req #}
-        st = {{xxsymres}}(args, executed_symbols, req, target)
+        st = {{xxsymres}}(args, executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {# require_once: used only once time, internally, during the execution of the action #}
@@ -310,7 +316,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
 
         r = {'object': req, 'class_name': '{{pred.require_class_name}}'}
         stack[-1] = (parent, "{{pred.symbol}}", target, r)
-        st = {{xxsymres}}(args, executed_symbols, parent, target)
+        st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {# simple require, the require becomes the parent for the next actions (not the current) #}
@@ -325,7 +331,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
          # and the first value is the object we use to authenticate) #}
         stack[-1] = (parent, "{{pred.symbol}}", target, r) 
         {# replace the parent by req #}
-        st = {{xxsymres}}(args, executed_symbols, req, target)
+        st = {{xxsymres}}(args, executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
         {% endif %}
@@ -334,7 +340,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(args, executed_symbols:set, parent:Owned
     {% else %}
 
     if status != STATUS_FOUND_ONE{% if pred.condition is not none %} and cond_ok{% endif %}:
-        st = {{xxsymres}}(args, executed_symbols, parent, target)
+        st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
     {% endif %}
@@ -373,7 +379,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in ml.symbols_by_type[c.T_MANY] %}
             {% set xxsym = sym|replace('::', 'xx') %}
             if '{{sym}}' in rights:
-                st = many_{{xxsym}}(args, executed_symbols, parent)
+                st = many_{{xxsym}}(args, executed_symbols, parent, rights)
                 if st & MASK_FOUND:
                     status |= MASK_FOUND
             {% endfor %}
@@ -396,7 +402,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in symbols %}
             {% if sym[:2] != '::' and sym[0] != '_' %}
             if '{{sym}}' in rights:
-                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(args, executed_symbols, parent, target)
+                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(args, executed_symbols, parent, rights, target)
                 if st & MASK_FOUND:
                     status |= MASK_FOUND
                     {# don't continue if STATUS_FORK_FOUND_ONE #}

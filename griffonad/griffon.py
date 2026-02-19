@@ -131,9 +131,6 @@ def trace_stop(args):
 def main():
     colorama_init()
 
-    print('GriffonAD 0.6.10')
-    print()
-
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('filename', nargs='*')
 
@@ -148,6 +145,7 @@ def main():
     parser.add_argument('--sysvol', metavar='PATH', type=str, help='Analyze GPOs')
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--sid', action='store_true', help='Show object SIDs')
+    parser.add_argument('--version', action='store_true')
 
     arg_paths = parser.add_argument_group('Paths')
     arg_paths.add_argument('--fromo', action='store_true', help='Paths from owned')
@@ -163,6 +161,11 @@ def main():
     arg_script.add_argument('--dc-ip', type=str, default='DC_IP', metavar='DC_IP')
 
     args = parser.parse_args()
+
+    if args.version:
+        print('GriffonAD 0.6.11')
+        print('https://github.com/shellinvictus/GriffonAD')
+        exit(0)
 
     trace_start(args)
 

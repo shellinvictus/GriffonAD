@@ -7,6 +7,14 @@ set DoGPOLogonScript = false
 set DoGPOImmediateTask = false
 set DoGPODisableDefender = false
 
+set BACKUP_OPERATORS = 551
+set ACCOUNT_OPERATORS = 548
+set KEY_ADMINS = 526
+set ENTERPRISE_KEY_ADMINS = 527
+
+set DOMAIN_CONTROLLERS = 'DOMAIN CONTROLLERS@'
+set STR_CANRDP = 'CanRDP'
+
 #
 # Convention:
 # ::NAME(target) = this is an action (generated code is in templates/)
@@ -36,30 +44,20 @@ GenericAll(any) -> GenericWrite
 # fork to get also the SeBackupPrivilege (=> instead of ->)
 AllowedToDelegate(many) => ::AllowedToDelegateToAny require_targets ta_dc
 ::AllowedToDelegateToAny(dc) -> apply_with_ticket \
-        if not parent.sensitive and not parent.protected \
-        elsewarn "PARENT -> AllowedToDelegateToAny(TARGET): PARENT is sensitive or protected"
-
-# Manage special groups
-
-# 'Backup Operators' (551)
-# Works only on a DC when we are directly under this group
-# To work on other computers a GPO must set the user in this group
-SeBackupPrivilege(many) -> ::RegBackup \
-        require_targets ta_dc \
-        if 551 in parent.groups
-::RegBackup(dc) -> ::_TransformPasswordToAES
+    if not parent.sensitive and not parent.protected \
+    elsewarn "PARENT -> AllowedToDelegateToAny(TARGET): PARENT is sensitive or protected"
 
 # 'Account Operators'
 GenericAll(many) -> GenericAll \
-        require_targets ta_users_and_groups_without_admincount \
-        if 548 in parent.groups
+    require_targets ta_users_and_groups_without_admincount \
+    if ACCOUNT_OPERATORS in parent.groups
 
 # 'Key Admins' or 'Enterprise Key Admins'
 AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
-        require_targets ta_users_without_admincount \
-        if AllAddKeyCredentialLink and \
-            (526 in parent.groups or 527 in parent.groups) \
-        elsewarn "Set the flag AllAddKeyCredentialLink in config.ml to execute the scenario AddKeyCredentialLink(many)"
+    require_targets ta_users_without_admincount \
+    if AllAddKeyCredentialLink and \
+        (KEY_ADMINS in parent.groups or ENTERPRISE_KEY_ADMINS in parent.groups) \
+    elsewarn "Set the flag AllAddKeyCredentialLink in config.ml to execute the scenario AddKeyCredentialLink(many)"
 
 # PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
@@ -68,6 +66,9 @@ AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
 # We don't call the CanRDP on each computers (with a require_targets) of the
 # OU or domain because the list would be too long!
 ::CanRDP(any) -> stop
+
+::CanRDP_RegSave(dc) -> apply_with_aes
+::CanRDP_RegSave(computer) -> apply_with_aes
 
 # User
 
@@ -94,9 +95,9 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::ForceChangePassword(user) -> apply_with_forced_passwd if DefaultForceChangePassword
 ::AddKeyCredentialLink(user) -> apply_with_ticket
 ::Kerberoasting(user) -> apply_with_cracked_passwd \
-        require_for_auth any_owned \
-        if target.has_spn and not target.protected \
-        elsewarn "warning: TARGET seems to be kerberoastable, but I need an owned user to request the TGS"
+    require_for_auth any_owned \
+    if target.has_spn and not target.protected \
+    elsewarn "warning: TARGET seems to be kerberoastable, but I need an owned user to request the TGS"
 ::SetLogonScript(user) -> stop
 ::WriteSPN(user) -> ::Kerberoasting
 
@@ -134,14 +135,14 @@ AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::U2U             require owned_user_without_spn
 ::U2U(computer) -> ::AllowedToAct if parent.is_user
 ::AllowedToAct(computer) -> ::_Secretsdump \
-        if not parent.sensitive and not parent.protected \
-        elsewarn "PARENT -> AllowedToAct(TARGET): PARENT is sensitive or protected"
+    if not parent.sensitive and not parent.protected \
+    elsewarn "PARENT -> AllowedToAct(TARGET): PARENT is sensitive or protected"
 
 # Constrained delegations (with/without protocol transition)
 # msDS-AllowedToDelegateTo contains a list of SPNs
 AllowedToDelegate(computer) -> __AllowedToDelegate_ok \
-        if not parent.sensitive and not parent.protected \
-        elsewarn "PARENT -> AllowedToDelegate(TARGET): PARENT is sensitive or protected"
+    if not parent.sensitive and not parent.protected \
+    elsewarn "PARENT -> AllowedToDelegate(TARGET): PARENT is sensitive or protected"
 
 # Constrained delegations with protocol transition
 # TRUSTED_TO_AUTH_FOR_DELEGATION: userAccountControl & 0x1000000
@@ -201,7 +202,6 @@ GetChanges_GetChangesAll(domain) -> ::DCSync
 GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
 ::DCSync(domain) -> stop
 # from GPOs
-SeBackupPrivilege(domain) -> ::RegBackup require_targets ta_dc
 AdminTo(domain) -> ::DCSync # local Administrator
 CanRDP(domain) -> ::CanRDP
 
@@ -237,6 +237,19 @@ WriteDacl(gpo) -> ::DaclFullControl
 GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
 ::WriteGPLink(ou) -> stop
+
+# Works only on a DC when we are directly under this group
+# To work on other computers a GPO must set the user in this group
+SeBackupPrivilege(ou) -> ::RegBackup \
+    require_targets ta_one_dc_in_ou \
+    if BACKUP_OPERATORS in parent.groups
+::RegBackup(dc) -> ::_TransformPasswordToAES
+
+# FIXME: not sure if we can also do this on the OU=DOMAIN CONTROLLERS
+# and select the dc
+SeBackupPrivilege(ou) -> ::CanRDP_RegSave \
+    require_targets ta_all_computers_in_ou \
+    if STR_CANRDP in rights
 
 # from GPOs
 SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou
