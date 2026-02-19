@@ -35,11 +35,11 @@ def extract_bloodhound_zip(zip_path:str) -> tuple:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             for member in zip_ref.namelist():
                 if member.startswith('/') or '..' in member:
-                    raise Exception(f"Unsafe zip path detected: {member}")
+                    raise Exception(f'Unsafe zip path detected: {member}')
 
             total_size = sum(info.file_size for info in zip_ref.infolist())
             if total_size > 500 * 1024 * 1024:
-                raise Exception(f"Zip too large: {total_size} bytes (500MB limit)")
+                raise Exception(f'Zip too large: {total_size} bytes (500MB limit)')
 
             zip_ref.extractall(temp_dir)
 
@@ -51,7 +51,7 @@ def extract_bloodhound_zip(zip_path:str) -> tuple:
         return json_files, temp_dir
     except Exception as e:
         shutil.rmtree(temp_dir, ignore_errors=True)
-        raise Exception(f"Failed to extract {zip_path}: {e}")
+        raise Exception(f'Failed to extract {zip_path}: {e}')
 
 
 def process_input_files(filenames:list) -> tuple:
@@ -62,7 +62,7 @@ def process_input_files(filenames:list) -> tuple:
         filepath_obj = Path(filepath)
 
         if not filepath_obj.exists():
-            print(f"[-] error: file not found: {filepath}")
+            print(f'[-] error: file not found: {filepath}')
             continue
 
         if filepath_obj.suffix.lower() == '.zip':
@@ -73,14 +73,14 @@ def process_input_files(filenames:list) -> tuple:
                 temp_dirs.append(temp_dir)
                 print(f'[+] found {len(extracted_jsons)} JSON files in zip')
             except Exception as e:
-                print(f"[-] {e}")
+                print(f'[-] {e}')
         elif filepath_obj.suffix.lower() == '.json':
             json_files.append(str(filepath_obj))
         else:
-            print(f"[-] warning: unsupported file type: {filepath}")
+            print(f'[-] warning: unsupported file type: {filepath}')
 
     if not json_files:
-        print("[-] error: no JSON files found to process")
+        print('[-] error: no JSON files found to process')
 
     return json_files, temp_dirs
 
@@ -93,7 +93,7 @@ def trace_stop(args):
     if args.debug:
         first_size, first_peak = tracemalloc.get_traced_memory()
 
-        print("[ Memory ]")
+        print('[ Memory ]')
         print(f'peak: {first_peak//1024//1024} MiB')
         print(f'memory: {first_size//1024//1024} MiB')
         print()
@@ -104,15 +104,15 @@ def trace_stop(args):
         snapshot = tracemalloc.take_snapshot()
 
         snapshot = snapshot.filter_traces((
-            tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
-            tracemalloc.Filter(False, "<unknown>"),
+            tracemalloc.Filter(False, '<frozen importlib._bootstrap>'),
+            tracemalloc.Filter(False, '<unknown>'),
         ))
         top_stats = snapshot.statistics(key_type)
 
-        print("[ Top 10 ]")
+        print('[ Top 10 ]')
         for index, stat in enumerate(top_stats[:limit], 1):
             frame = stat.traceback[0]
-            print("#%s: %s:%s: %.1f KiB"
+            print('#%s: %s:%s: %.1f KiB'
                   % (index, frame.filename, frame.lineno, stat.size / 1024))
             line = linecache.getline(frame.filename, frame.lineno).strip()
             if line:
@@ -121,7 +121,7 @@ def trace_stop(args):
         other = top_stats[limit:]
         if other:
             size = sum(stat.size for stat in other)
-            print("%s other: %.1f KiB" % (len(other), size / 1024))
+            print('%s other: %.1f KiB' % (len(other), size / 1024))
 
         print()
 
