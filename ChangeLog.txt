@@ -1,3 +1,9 @@
+0.6.11: 2026/02/19
+- config.ml improvements
+- Revert the scenario CanRDP+SeBackup where it's useful when the user is not in
+    the backup operators group
+- --version added
+
 0.6.10: 2026/02/15
 - Fix: some object will be marked as 'can_admin' but they don't have critical rights
 - Fix: templates/ not included in pyproject.toml
