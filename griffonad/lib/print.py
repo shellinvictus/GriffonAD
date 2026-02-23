@@ -21,6 +21,8 @@ def color1_object(o:LDAPObject, underline=False) -> str:
         return 'many'
     if underline:
         u = Style.UNDERLINE
+    elif o.type == c.T_USER and not o.enabled:
+        u = Style.STRIKE
     else:
         u = ''
     sid = o.sid.replace(o.from_domain + '-', '')
@@ -35,11 +37,14 @@ def color1_object(o:LDAPObject, underline=False) -> str:
     return f'{u}{name}{Style.RESET_ALL}'
 
 
+# color in green if we are in the default case
 def color2_object(o:LDAPObject, underline=False) -> str:
     if o is None:
         return 'many'
     if underline:
         u = Style.UNDERLINE
+    elif o.type == c.T_USER and not o.enabled:
+        u = Style.STRIKE
     else:
         u = ''
     if o.sid in c.BUILTIN_SID:
@@ -76,6 +81,7 @@ def print_hvt(args, db:Database):
     print(f'{Fore.RED}♦USER{Style.RESET_ALL} the user is an admin')
     print(f'{Fore.YELLOW}★USER{Style.RESET_ALL} there is a path to gain admin privileges')
     print(f'{Style.UNDERLINE}USER{Style.RESET_ALL} the user is owned')
+    print(f'{Style.STRIKE}USER{Style.RESET_ALL} the user is disabled')
     print(f'{Fore.GREEN}A{Style.RESET_ALL}  admincount is set (this flag doesn\'t tell that the user is an admin, it could be an old admin)')
     print(f'{Fore.GREEN}K{Style.RESET_ALL}  the user may be Kerberoastable (at least one SPN is set)')
     print(f'{Fore.GREEN}N{Style.RESET_ALL}  DONT_REQUIRE_PREAUTH (ASREPRoastable)')

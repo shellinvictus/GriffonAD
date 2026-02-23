@@ -8,6 +8,7 @@ import json
 from colorama import init as colorama_init
 from colorama import Style
 Style.UNDERLINE = '\033[4m'
+Style.STRIKE = '\033[9m'
 
 import os
 import argparse

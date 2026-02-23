@@ -9,9 +9,9 @@ from griffonad.lib.expression import rpn_eval
 stack = []
 
 STATUS_FOUND_ONE = 0b01
-STATUS_NOT_FOUND_ONE = 0b00
+STATUS_NOT_FOUND = 0b00
 STATUS_FORK_FOUND_ONE = 0b11
-STATUS_FORK_NOT_FOUND_ONE = 0b10
+STATUS_FORK_NOT_FOUND = 0b10
 MASK_FOUND = 0b01
 MASK_FORK = 0b10
 
@@ -28,6 +28,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'target.groups': target.group_rids,
             'target.trustedtoauth': target.trustedtoauth,
             'target.name': target.name,
+            'target.disabled': not target.enabled,
         })
     if parent is not None:
         restr_groups = rights['RestrictedGroups'] if 'RestrictedGroups' in rights else []
@@ -42,6 +43,7 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'parent.trustedtoauth': parent.obj.trustedtoauth,
             'parent.groups': parent.obj.group_rids,
             'parent.name': parent.obj.name,
+            'parent.disabled': not parent.obj.enabled,
             # TODO improve the config.ml language to allow python object accesses
             'parent.restricted_groups_rids': [int(o.sid.split('-')[-1]) for o in restr_groups],
         })
@@ -56,7 +58,7 @@ def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, rights:di
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=griffonad.config.DEFAULT_PASSWORD, secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     st = run(args, new_owned, new_owned.obj.rights_by_sid)
@@ -71,7 +73,7 @@ def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, rights:dic
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret='', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     st = run(args, new_owned, new_owned.obj.rights_by_sid)
@@ -86,7 +88,7 @@ def apply_group(args, executed_symbols:set, parent:Owned, rights:dict, target:LD
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     st = run(args, parent, target.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
@@ -98,7 +100,7 @@ def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, rights:d
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_CRACKED_PASSWORD', secret_type={{c.T_SECRET_PASSWORD}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     st = run(args, new_owned, new_owned.obj.rights_by_sid)
@@ -113,7 +115,7 @@ def apply_with_ticket(args, executed_symbols:set, parent:Owned, rights:dict, tar
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, krb_auth=True)
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     st = run(args, new_owned, new_owned.obj.rights_by_sid)
@@ -128,7 +130,7 @@ def apply_with_aes(args, executed_symbols:set, parent:Owned, rights:dict, target
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.T_SECRET_AESKEY}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     st = run(args, new_owned, new_owned.obj.rights_by_sid)
@@ -143,15 +145,28 @@ def stop(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObjec
     paths.append(list(stack))
     stack.pop()
     if args.no_follow:
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     return STATUS_FOUND_ONE
+
+last_parent = None
+n_exec = 0
+def restart(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+    global last_parent, n_exec
+    if last_parent != parent:
+        last_parent = parent
+        n_exec = 0
+    n_exec += 1
+    if n_exec == 10:
+        print('Exec aborted, too many recursion of restart on', parent)
+        exit(0)
+    return run(args, parent, parent.obj.rights_by_sid)
 
 def apply_with_nthash(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_nthash", target, None))
     if args.no_follow:
         paths.append(list(stack))
         stack.pop()
-        return STATUS_NOT_FOUND_ONE
+        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_NTHASH', secret_type={{c.T_SECRET_NTHASH}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
     if not run(args, new_owned, new_owned.obj.rights_by_sid):
@@ -202,7 +217,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 
     stack.append((parent, '{{sym}}', target, None))
     executed_symbols.add('{{sym}}')
-    status = STATUS_NOT_FOUND_ONE
+    status = STATUS_NOT_FOUND
 
     {# commit the action #}
     {% if sym.startswith('::') %}
@@ -372,7 +387,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 
 {# apply all rights of parent #}
 def run(args, parent:Owned, rights_by_sid:dict) -> bool:
-    status = STATUS_NOT_FOUND_ONE
+    status = STATUS_NOT_FOUND
 
     {# apply all rights of parent #}
     for sid, rights in rights_by_sid.items():

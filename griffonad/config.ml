@@ -1,7 +1,7 @@
-set DefaultForceChangePassword = true
+set AllowChangePassword = true
 set DefaultSetFullControl = true
 set AllAddKeyCredentialLink = false
-set DontAddComputer = false
+set AllowAddComputer = true
 set DoGPOAddLocalAdmin = true
 set DoGPOLogonScript = false
 set DoGPOImmediateTask = false
@@ -68,7 +68,10 @@ AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
 
 # User
 
-ForceChangePassword(user) -> ::ForceChangePassword
+WriteUserAccountControl(user) -> ::EnableUser if target.disabled
+::EnableUser(user) -> restart
+
+ForceChangePassword(user) -> ::ForceChangePassword if not target.disabled
 AddKeyCredentialLink(user) -> ::AddKeyCredentialLink
 WriteUserAccountControl(user) -> ::EnableNP
 WriteSPN(user) -> ::WriteSPN
@@ -88,14 +91,15 @@ WriteDacl(user) -> ::DaclInitialProgram
 ::DaclUserAccountControl(user) -> WriteUserAccountControl
 ::DaclServicePrincipalName(user) -> WriteSPN
 ::DaclInitialProgram(user) -> SetLogonScript
-::ForceChangePassword(user) -> apply_with_forced_passwd if DefaultForceChangePassword
-::AddKeyCredentialLink(user) -> apply_with_ticket
+::ForceChangePassword(user) -> apply_with_forced_passwd \
+    if AllowChangePassword and not target.disabled
+::AddKeyCredentialLink(user) -> apply_with_ticket if not target.disabled
 ::Kerberoasting(user) -> apply_with_cracked_passwd \
     require_for_auth any_owned \
-    if target.has_spn and not target.protected \
+    if target.has_spn and not target.protected and not target.disabled \
     elsewarn "warning: TARGET seems to be kerberoastable, but I need an owned user to request the TGS"
-::SetLogonScript(user) -> stop
-::WriteSPN(user) -> ::Kerberoasting
+::SetLogonScript(user) -> stop if not target.disabled
+::WriteSPN(user) -> ::Kerberoasting if not target.disabled
 
 SessionForUser(user) -> ::LSASS_dumper
 # computer -> LSASS_dumper(user)
@@ -127,7 +131,7 @@ AllowedToAct(computer) -> ::U2U
 
 AddAllowedToAct(computer) -> ::RBCD
 ::RBCD(computer) -> ::AllowedToAct    require unprotected_owned_with_spn
-::RBCD(computer) -> ::AllowedToAct    require add_computer   if not DontAddComputer
+::RBCD(computer) -> ::AllowedToAct    require add_computer   if AllowAddComputer
 ::RBCD(computer) -> ::U2U             require owned_user_without_spn
 ::U2U(computer) -> ::AllowedToAct if parent.is_user
 ::AllowedToAct(computer) -> ::_Secretsdump \
@@ -160,7 +164,7 @@ __AllowedToDelegate_ok(computer) -> ::AllowedToDelegate if parent.trustedtoauth
 # TODO: U2U?
 __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
 ::SelfRBCD(computer) -> ::AllowedToDelegate require_once unprotected_owned_with_spn_not_eq_parent
-::SelfRBCD(computer) -> ::AllowedToDelegate require_once add_computer
+::SelfRBCD(computer) -> ::AllowedToDelegate require_once add_computer if AllowAddComputer
 
 ::AllowedToDelegate(computer) -> ::_Secretsdump
 

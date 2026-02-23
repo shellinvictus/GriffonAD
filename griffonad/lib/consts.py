@@ -7,7 +7,7 @@ APPLY = [
     'apply_with_nthash',
 ]
 
-TERMINALS = APPLY + ['stop']
+TERMINALS = APPLY + ['stop', 'restart']
 
 T_MANY = -1
 T_USER = 0

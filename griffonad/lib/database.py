@@ -641,9 +641,9 @@ class Database():
         # iter_users sorts by names before
         for sid in self.users:
             o = self.objects_by_sid[sid]
-            if not o.enabled:
+            if not o.enabled and not o.rights_by_sid and o.sid not in self.parents:
                 to_remove.append(o.sid)
-            elif not (o.rights_by_sid or o.np or (o.spn and o.type == c.T_USER) or \
+            elif o.enabled and not (o.rights_by_sid or o.np or (o.spn and o.type == c.T_USER) or \
                     o.is_admin or o.trustedtoauth or o.passwordnotreqd):
                 to_remove.append(o.sid)
         for sid in to_remove:

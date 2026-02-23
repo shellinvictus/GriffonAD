@@ -76,3 +76,10 @@ class x_EnableNP(Action):
         target.np = True
     def rollback(target:LDAPObject):
         target.np = target.old_np
+
+class x_EnableUser(Action):
+    def commit(target:LDAPObject):
+        target.old_enabled = target.enabled
+        target.enabled = True
+    def rollback(target:LDAPObject):
+        target.enabled = target.old_enabled
