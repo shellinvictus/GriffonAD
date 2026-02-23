@@ -7,13 +7,14 @@ set DoGPOLogonScript = false
 set DoGPOImmediateTask = false
 set DoGPODisableDefender = false
 
+# Group RIDs
 set BACKUP_OPERATORS = 551
 set ACCOUNT_OPERATORS = 548
 set KEY_ADMINS = 526
 set ENTERPRISE_KEY_ADMINS = 527
+set REMOTE_DESKTOP_USERS = 555
 
-set DOMAIN_CONTROLLERS = 'DOMAIN CONTROLLERS@'
-set STR_CANRDP = 'CanRDP'
+set DOMAIN_CONTROLLERS = "DOMAIN CONTROLLERS@" # TODO: check languages
 
 #
 # Convention:
@@ -41,8 +42,7 @@ GenericAll(any) -> GenericWrite
 # TRUSTED_FOR_DELEGATION: userAccountControl & 0x80000
 # It could be any computer instead of the dc, if we coerce the dc we are admin!
 # TODO: delegation parameter on a user (actually only on computer)
-# fork to get also the SeBackupPrivilege (=> instead of ->)
-AllowedToDelegate(many) => ::AllowedToDelegateToAny require_targets ta_dc
+AllowedToDelegate(many) -> ::AllowedToDelegateToAny require_targets ta_dc
 ::AllowedToDelegateToAny(dc) -> apply_with_ticket \
     if not parent.sensitive and not parent.protected \
     elsewarn "PARENT -> AllowedToDelegateToAny(TARGET): PARENT is sensitive or protected"
@@ -62,10 +62,6 @@ AddKeyCredentialLink(many) -> ::AddKeyCredentialLink   \
 # PASSWD_NOTREQD: userAccountControl & 0x20
 ::BlankPassword(user) -> apply_with_blank_passwd
 ::BlankPassword(computer) -> apply_with_blank_passwd
-
-# We don't call the CanRDP on each computers (with a require_targets) of the
-# OU or domain because the list would be too long!
-::CanRDP(any) -> stop
 
 ::CanRDP_RegSave(dc) -> apply_with_aes
 ::CanRDP_RegSave(computer) -> apply_with_aes
@@ -203,12 +199,27 @@ GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
 ::DCSync(domain) -> stop
 # from GPOs
 AdminTo(domain) -> ::DCSync # local Administrator
-CanRDP(domain) -> ::CanRDP
+
+# If the GPO is applied on the entire domaine
+# also ok on all computers but we are admin here!
+SeBackupPrivilege(domain) -> ::RegBackup \
+    require_targets ta_dc \
+    if BACKUP_OPERATORS in parent.groups or \
+        BACKUP_OPERATORS in parent.restricted_groups_rids
+
+# FIXME: a simple user cannot RDP on a on the DC even if he is
+# in the RDP Users group?
+SeBackupPrivilege(domain) -> ::CanRDP_RegSave \
+    require_targets ta_all_computers_in_domain \
+    if BACKUP_OPERATORS not in parent.groups and \
+        BACKUP_OPERATORS not in parent.restricted_groups_rids and \
+        REMOTE_DESKTOP_USERS in parent.restricted_groups_rids
 
 # DC
 GenericWrite(dc) -> AddKeyCredentialLink
 AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::AddKeyCredentialLink(dc) -> apply_with_ticket
+::RegBackup(dc) -> apply_with_aes
 
 # GPO
 GenericWrite(gpo) -> ::GPOLogonScript          if DoGPOLogonScript
@@ -238,23 +249,33 @@ GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
 ::WriteGPLink(ou) -> stop
 
-# Works only on a DC when we are directly under this group
-# To work on other computers a GPO must set the user in this group
-SeBackupPrivilege(ou) -> ::RegBackup \
+# If the user is a direct member of Backup Operators or
+# a GPO is applied on the 'Domain Controllers' container
+SeBackupPrivilege(ou) -> __IsInBackupGroup \
+    if BACKUP_OPERATORS in parent.groups or \
+        BACKUP_OPERATORS in parent.restricted_groups_rids
+
+SeBackupPrivilege(ou) -> __NotInBackupGroup \
+    if BACKUP_OPERATORS not in parent.groups and \
+        BACKUP_OPERATORS not in parent.restricted_groups_rids
+
+__IsInBackupGroup(ou) -> ::RegBackup \
     require_targets ta_one_dc_in_ou \
-    if BACKUP_OPERATORS in parent.groups
-::RegBackup(dc) -> ::_TransformPasswordToAES
+    if DOMAIN_CONTROLLERS in target.name
 
-# FIXME: not sure if we can also do this on the OU=DOMAIN CONTROLLERS
-# and select the dc
-SeBackupPrivilege(ou) -> ::CanRDP_RegSave \
-    require_targets ta_all_computers_in_ou \
-    if STR_CANRDP in rights
-
-# from GPOs
-SeBackupPrivilege(ou) -> ::RegBackup  require_targets ta_all_computers_in_ou
 AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
-CanRDP(ou) -> ::CanRDP
+
+__IsInBackupGroup(ou) -> ::RegBackup \
+    require_targets ta_all_computers_in_ou \
+    if DOMAIN_CONTROLLERS not in target.name
+
+# The user has only the SeBackup privilege and is NOT in the Backup
+# Operators group, then we need to RDP to enable the backup privilege
+# It seems that the access is denied on the DC (if the GPO is applied on
+# the 'Domain Controllers' container
+__NotInBackupGroup(ou) -> ::CanRDP_RegSave \
+    require_targets ta_all_computers_in_ou \
+    if REMOTE_DESKTOP_USERS in parent.restricted_groups_rids
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if DefaultSetFullControl

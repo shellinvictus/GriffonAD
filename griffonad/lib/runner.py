@@ -18,8 +18,7 @@ MASK_FORK = 0b10
 {% set DEBUG = False %}
 
 def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObject) -> int:
-    vars = {'rights': rights}
-
+    vars = {}
     if target is not None:
         vars.update({
             'target.has_spn': len(target.spn) != 0,
@@ -28,8 +27,10 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'target.sensitive': target.sensitive,
             'target.groups': target.group_rids,
             'target.trustedtoauth': target.trustedtoauth,
+            'target.name': target.name,
         })
     if parent is not None:
+        restr_groups = rights['RestrictedGroups'] if 'RestrictedGroups' in rights else []
         vars.update({
             'parent.has_spn': len(parent.obj.spn) != 0,
             'parent.is_user': parent.obj.type == {{c.T_USER}},
@@ -40,6 +41,9 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'parent.sensitive': parent.obj.sensitive,
             'parent.trustedtoauth': parent.obj.trustedtoauth,
             'parent.groups': parent.obj.group_rids,
+            'parent.name': parent.obj.name,
+            # TODO improve the config.ml language to allow python object accesses
+            'parent.restricted_groups_rids': [int(o.sid.split('-')[-1]) for o in restr_groups],
         })
     vars.update(args.variables)
     return rpn_eval(condition, vars)

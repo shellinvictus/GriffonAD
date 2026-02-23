@@ -57,6 +57,26 @@ class x_ta_users_and_groups_without_admincount(Require):
         return ret
 
 
+class x_ta_all_computers_in_domain(Require):
+    CACHE = {}
+
+    def get(db:Database, parent:Owned, target:LDAPObject):
+        if target.sid in x_ta_all_computers_in_domain.CACHE:
+            return x_ta_all_computers_in_domain.CACHE[target.sid]
+
+        ret = []
+
+        # iter_users contains only interesting users so it's relatively fast
+        for o in db.iter_users():
+            if db.objects_by_sid[o.sid].type == c.T_COMPUTER:
+                ret.append(o)
+
+        if not ret:
+            return None
+
+        return ret
+
+
 class x_ta_all_computers_in_ou(Require):
     CACHE = {}
 
