@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/griffonad/assets/version-0.6.11.svg?raw=true)
+![griffon version](/griffonad/assets/version-0.6.12.svg?raw=true)
 ![gpl](/griffonad/assets/gpl.svg?raw=true)
 ![offsec](/griffonad/assets/offsec.svg?raw=true)
 ![python](/griffonad/assets/python.svg?raw=true)
@@ -187,6 +187,7 @@ Embedded tools
 - `griffonad/tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
 - `griffonad/tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
 - `griffonad/tools/aesKrbKeyGen.py`: login parameters uniformization
+- `griffonad/tools/toggleDisable.py`: toggle the flag ACCOUNTDISABLE
 
 
 Customization

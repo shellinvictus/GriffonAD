@@ -1,3 +1,8 @@
+0.6.12: 2026/02/23
+- New scenario which allows you to toggle the flag ACCOUNTDISABLE
+- config.ml improvements
+- Fix: Scenarios with SeBackup/Backup Operators were still badly implemented
+
 0.6.11: 2026/02/19
 - config.ml improvements
 - Revert the scenario CanRDP+SeBackup where it's useful when the user is not in
