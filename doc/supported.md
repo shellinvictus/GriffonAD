@@ -27,6 +27,7 @@ Users:
 - CanRDP (Remote Desktop User, unchecked values in json for the attribute RemoteDesktopUsers)
 - CanPSRemote (Remote Management Users)
 - CanRDP + SeBackup from GPO
+- User activation
 
 Computers:
 

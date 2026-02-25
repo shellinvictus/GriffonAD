@@ -164,7 +164,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print('GriffonAD 0.6.12')
+        print('GriffonAD 0.6.13')
         print('https://github.com/shellinvictus/GriffonAD')
         exit(0)
 
