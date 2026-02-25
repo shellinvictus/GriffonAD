@@ -43,7 +43,7 @@ class LDAPObject():
         self.protected = False # in protected users group
         self.group_rids = set() # list of groups this object belongs
         self.group_sids = set() # list of groups this object belongs
-        self.gpo_links_to_ou = [] # only for GPO, it contains the ou dn 
+        self.gpo_links_to_ou = [] # only for GPO, it contains the ou dn
         self.from_domain = o['Properties']['domain']
 
         # Arg is most of the time set to None, it's useful for right=AllowedToDelegate,
@@ -185,6 +185,10 @@ class Database():
     def __load_json(self, filename:str):
         data = json.load(open(filename, 'r'))
         objects = data['data']
+        meta_type = data['meta']['type']
+        if meta_type not in c.BH_OBJECT_TYPE:
+            print(f'[!] skipping unknown object type: {meta_type}')
+            return
         type = c.BH_OBJECT_TYPE[data['meta']['type']]
         for o_json in objects:
             sid = o_json['ObjectIdentifier']
