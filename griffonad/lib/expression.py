@@ -47,8 +47,6 @@ def rpn_eval(polish:list, vars:dict={}) -> int:
                 case _:
                     if x in vars:
                         stack.append(vars[x])
-                    elif x.startswith('opt.'): # undefined here, otherwise it should be present in vars
-                        stack.append(False)
                     else:
                         print(f'error: undefined variable {x}')
                         exit(0)

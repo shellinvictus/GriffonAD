@@ -248,7 +248,7 @@ class MiniLanguage():
     def execute_function(self, db, target, action):
         paths = []
         funcname = f'{c.ML_TYPES_TO_STR[target.type]}_{action.replace("::", "xx")}'
-        code = self.code + f'\n{funcname}(args, set(), None, target)'
+        code = self.code + f'\n{funcname}(args, set(), None, set(), target)'
         exec(code, {
             'args': self.args,
             'target': target,
