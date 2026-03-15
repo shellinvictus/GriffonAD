@@ -22,6 +22,12 @@ will not be able to run some scenarios:
 Then run on the DC the script below (powershell -> run as administrator).
 Don't look too much in create.ps1 if you don't want to be spoiled 🙂 !
 
+    # check if the result is empty
+    Get-KdsRootKey
+
+    # if empty: Add-KdsRootKey -EffectiveTime ((Get-Date).AddHours(-10))
+
+    # install
     Set-ExecutionPolicy unrestricted
     .\create.ps1
 
