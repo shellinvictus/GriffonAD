@@ -15,6 +15,8 @@ Challenge
 
 You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
 
+Write-ups are here on the [wiki](https://github.com/shellinvictus/GriffonAD/wiki).
+
 
 Installation
 ============
