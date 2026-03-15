@@ -70,7 +70,8 @@ class LDAPObject():
             self.rid = 0
         elif self.type == c.T_GPO:
             self.gpo_dirname_id = '{' + self.dn.split('{')[1].split('}')[0] + '}'
-            self.name = self.gpo_dirname_id + '[' + o['Properties']['name'] + ']'
+            name = o['Properties']['name']
+            self.name = self.gpo_dirname_id + '[' + o['Properties']['name'].split('@')[0] + ']'
             self.rid = 0
         elif self.type == c.T_CONTAINER or self.type == c.T_OU:
             self.rid = 0

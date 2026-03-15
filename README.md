@@ -101,11 +101,10 @@ Other options:
 > About the `many` target: it means that you can have multiple targets.
 > It depends of the right you have:
 > 
-> - `GenericAll`: on all users and groups with admincount=0 if the user is in the Account
-> Operators group
-> - `AddKeyCredentialLink`: on all users with admincount=0 if the user is in the Key Admins group
-> - `AllowedToDelegate`: means an unconstrained delegation
-> - `SeBackupPrivilege`: can access to DC/C$ (`FIXME` theorically also on all computers, does it requires RDP?)
+> - `GenericAll` = user is in the Account Operators group
+> - `AddKeyCredentialLink`: user is in the Key Admins group
+> - `SeBackupPrivilege`: user is in the Backup Operators group
+> - `AllowedToDelegate`: unconstrained delegation
 
 > [!NOTE]
 > Supported ACEs here: [supported](/doc/supported.md)
