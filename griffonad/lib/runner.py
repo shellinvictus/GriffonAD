@@ -29,6 +29,8 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'target.trustedtoauth': target.trustedtoauth,
             'target.name': target.name,
             'target.disabled': not target.enabled,
+            'target.is_gmsa': target.is_gmsa,
+            'target.sid': target.sid,
         })
     if parent is not None:
         restr_groups = rights['RestrictedGroups'] if 'RestrictedGroups' in rights else []
@@ -44,6 +46,8 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             'parent.groups': parent.obj.group_rids,
             'parent.name': parent.obj.name,
             'parent.disabled': not parent.obj.enabled,
+            'parent.is_gmsa': parent.obj.is_gmsa,
+            'parent.sid': parent.obj.sid,
             # TODO improve the config.ml language to allow python object accesses
             'parent.restricted_groups_rids': [int(o.sid.split('-')[-1]) for o in restr_groups],
         })

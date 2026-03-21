@@ -33,6 +33,14 @@ set DOMAIN_CONTROLLERS = "DOMAIN CONTROLLERS@" # TODO: check languages
 ::_Secretsdump(computer) -> ::_TransformPasswordToAES
 ::_TransformPasswordToAES(any) -> apply_with_aes
 
+# GMSA first because below AllExtendedRights is checked before GenericWrite
+# -> prefer AddGMSAReader instead of ForceChangePassword
+GenericAll(user) -> ::AddGMSAReader if target.is_gmsa
+GenericWrite(user) -> ::AddGMSAReader if target.is_gmsa
+ReadGMSAPassword(user) -> ::ReadGMSAPassword
+::AddGMSAReader(user) -> ::ReadGMSAPassword
+::ReadGMSAPassword(user) -> apply_with_aes
+
 # FullControl, let Griffon choose the best scenario
 # any != many
 GenericAll(any) -> AllExtendedRights
@@ -109,9 +117,6 @@ SessionForUser(user) -> ::LSASS_dumper
 # DONT_REQ_PREAUTH: userAccountControl & 0x400000
 ::EnableNP(user) -> ::ASREPRoasting
 ::ASREPRoasting(user) -> apply_with_cracked_passwd if target.np
-
-ReadGMSAPassword(user) -> ::ReadGMSAPassword
-::ReadGMSAPassword(user) -> apply_with_aes
 
 # Computer
 AdminTo(computer) -> ::_Secretsdump

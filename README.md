@@ -177,18 +177,19 @@ Embedded tools
 ==============
 
 - `griffonad/tools/attr.py`: generic script to modify one ldap attribute
-- `griffonad/tools/addspn.py`: modify the attribute servicePrincipalName
-- `griffonad/tools/logonscript.py`: modify the attribute msTSInitialProgram
-- `griffonad/tools/addmember.py`: modify the attribute member
-- `griffonad/tools/toggleNP.py`: enable or disable the donotpreauth flag
-- `griffonad/tools/getbyname.py`: get all attributes of one object
-- `griffonad/tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
-- `griffonad/tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
-- `griffonad/tools/scriptsini.py`: re-format a scripts.ini with correct encoding
-- `griffonad/tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
-- `griffonad/tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
+- `griffonad/tools/addGMSAReader.py`: add a user to read a GMSA password
 - `griffonad/tools/aesKrbKeyGen.py`: login parameters uniformization
+- `griffonad/tools/addmember.py`: modify the attribute member
+- `griffonad/tools/addspn.py`: modify the attribute servicePrincipalName
+- `griffonad/tools/getbyname.py`: get all attributes of one object
+- `griffonad/tools/gpttmpl.py`: re-format a GptTmpl.inf with correct encoding
+- `griffonad/tools/logonscript.py`: modify the attribute msTSInitialProgram
+- `griffonad/tools/readpol.py`: export Registry.pol to json and rewrite the pol file 
+- `griffonad/tools/readgmsa.py` (from gMSADumper.py): simplified and login parameters uniformization
+- `griffonad/tools/scriptsini.py`: re-format a scripts.ini with correct encoding
+- `griffonad/tools/toggleNP.py`: enable or disable the donotpreauth flag
 - `griffonad/tools/toggleDisable.py`: toggle the flag ACCOUNTDISABLE
+- `griffonad/tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
 
 
 Customization

@@ -84,6 +84,7 @@ class LDAPObject():
                 self.name = o['Properties']['name'].split('@')[0]
 
         self.is_krbtgt = self.name.upper() == 'KRBTGT'
+        self.is_gmsa = self.type == c.T_USER and self.name[-1] == '$'
 
     def __str__(self):
         return self.name
@@ -120,6 +121,7 @@ class FakeLDAPObject(LDAPObject):
         self.description = ''
         self.enabled = True
         self.from_domain = ''
+        self.is_gmsa = False
 
     def __str__(self):
         return self.name
