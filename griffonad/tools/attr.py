@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import binascii
 from ldap_auth import ldap_auth, add_common_parameters
 from ldap3 import SUBTREE, MODIFY_REPLACE, MODIFY_DELETE, MODIFY_ADD
 
@@ -28,10 +29,17 @@ def funcattr(args, key):
             val = [s.decode() for s in attr[key]]
             print(f'[+] current value is:')
             for v in val:
-                print(v)
+                if args.hex:
+                    print(binascii.hexlify(v).decode())
+                else:
+                    print(v)
         except:
+            val = attr[key]
             for v in attr[key]:
-                print(v)
+                if args.hex:
+                    print(binascii.hexlify(v).decode())
+                else:
+                    print(v)
             if args.add or args.rm:
                 print('[-] error: unsupported binary values')
                 return
@@ -40,17 +48,23 @@ def funcattr(args, key):
         print()
         val = []
 
-
-    if args.w:
+    if args.w is not None:
+        if args.hex:
+            args.w = binascii.unhexlify(args.w)
         if args.w in val:
             print(f'[-] the entry already exists')
         elif conn.modify(dn, {key: [(MODIFY_REPLACE, [args.w])]}):
             print(f'[+] the entry was written')
             print(f'[+] current value is:')
-            print(args.w)
+            if args.hex:
+                print(binascii.hexlify(args.w).decode())
+            else:
+                print(args.w)
         else:
             print(f'[-] error: the entry wasn\'t written')
-    elif args.add:
+    elif args.add is not None:
+        if args.hex:
+            args.add = binascii.unhexlify(args.add)
         if args.add in val:
             print(f'[-] the entry already exists')
         elif conn.modify(dn, {key: [(MODIFY_ADD, [args.add])]}):
@@ -58,7 +72,10 @@ def funcattr(args, key):
             print(f'[+] current value is:')
             val.append(args.add)
             for v in val:
-                print(v)
+                if args.hex:
+                    print(binascii.hexlify(v).decode())
+                else:
+                    print(v)
         else:
             print(f'[-] error: the entry wasn\'t added, you may try to remove the old value or the format is not correct')
     elif args.flush:
@@ -72,7 +89,10 @@ def funcattr(args, key):
             print(f'[+] current value is:')
             val.remove(args.rm)
             for v in val:
-                print(v)
+                if args.hex:
+                    print(binascii.hexlify(v))
+                else:
+                    print(v)
         else:
             print(f'[-] error: the entry wasn\'t deleted')
 
@@ -83,6 +103,7 @@ def attr_common_parameters(parser):
     parser.add_argument('-rm', type=str, default=None, metavar='STRING', help='Remove an entry')
     parser.add_argument('-w', type=str, default=None, metavar='STRING', help='Write, replace the content')
     parser.add_argument('-flush', action='store_true', default=False, help='Remove all')
+    parser.add_argument('-hex', action='store_true', default=False, help='Binary value, with -w write it in hexa')
 
 
 if __name__ == '__main__':
