@@ -1,3 +1,7 @@
+0.6.15: 2026/03/21
+- New scenario with AddGMSAReader which allows a user to add himself if he has the permission to write on a service account
+- Added parameter -hex to attr.py
+
 0.6.14: 2026/03/14
 - Fix: bad number of parameters when using the option --fromv
 
