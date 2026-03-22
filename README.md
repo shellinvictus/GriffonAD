@@ -218,6 +218,8 @@ Customization
 The file config.ml is fully customizable, you can set your preferences based on
 scenario priorities (more at [config.md](/doc/config.md)).
 
+[![asciicast](https://asciinema.org/a/860787.svg)](https://asciinema.org/a/860787)
+
 
 Tests
 =====
