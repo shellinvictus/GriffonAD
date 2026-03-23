@@ -84,7 +84,7 @@ class LDAPObject():
                 self.name = o['Properties']['name'].split('@')[0]
 
         self.is_krbtgt = self.name.upper() == 'KRBTGT'
-        self.is_gmsa = self.type == c.T_USER and self.name[-1] == '$'
+        self.is_gmsa = self.type == c.T_USER and self.name.endswith('$')
 
     def __str__(self):
         return self.name
