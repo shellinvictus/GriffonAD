@@ -469,3 +469,29 @@ def print_desc(db:Database):
                 else:
                     print(color1_object(o))
                 print('   ', o.description)
+
+
+def print_parent_paths(db:Database, obj:LDAPObject):
+    def __rec(sid, path):
+        if sid not in db.parents:
+            print(' —> '.join([color1_object(db.objects_by_sid[x]) for x in path]))
+            return
+        for par in db.parents[sid]:
+            if par not in path:
+                copy = list(path)
+                copy.insert(0, par)
+                __rec(par, copy)
+
+    print()
+
+    if obj.sid in [f'{db.domain.sid}', f'{db.main_dc.sid}'] and 'many' in db.parents:
+        path = [obj.sid]
+        for par in db.parents['many']:
+            if par not in path:
+                copy = list(path)
+                copy.insert(0, par)
+                __rec(par, copy)
+
+    __rec(obj.sid, [obj.sid])
+
+    print()

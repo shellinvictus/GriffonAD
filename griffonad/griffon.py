@@ -21,7 +21,8 @@ import griffonad
 import griffonad.lib.consts as c
 import griffonad.config
 from griffonad.lib.print import (print_path, print_paths, print_script,
-        print_groups, print_hvt, print_ous, print_desc, print_comment)
+        print_groups, print_hvt, print_ous, print_desc, print_comment,
+        print_parent_paths)
 from griffonad.lib.database import Database, Owned
 from griffonad.lib.ml import MiniLanguage
 from griffonad.lib.graph import Graph
@@ -153,7 +154,8 @@ def main():
     arg_paths.add_argument('--fromv', action='store_true', help='Paths from vulnerable users (NP users (only unprotected users), password not required,  and kerberoastable users)')
     arg_paths.add_argument('--rights', action='store_true', help='With --fromo or --fromv, display rights instead of actions')
     arg_paths.add_argument('--da', action='store_true', help='Only paths to domain admin')
-    arg_paths.add_argument('--from', type=str, metavar='USER', help='Get paths from this user')
+    arg_paths.add_argument('--from', type=str, metavar='NAME', help='Get paths from this object (user, group, ...)')
+    arg_paths.add_argument('--to', type=str, metavar='NAME', help='Get paths to this object')
     parser.add_argument('-f', '--no-follow', action='store_true',
             help='Don\'t try to continue on owned targets but display all available scenarios for one target')
 
@@ -252,6 +254,14 @@ def main():
     if args.desc:
         print_desc(db)
         trace_stop(args)
+        exit(0)
+
+    if args.to:
+        obj = db.search_by_name(args.to)
+        if obj is None:
+            print(f"[-] error: can't find the object '{args.to}'")
+            exit(1)
+        print_parent_paths(db, obj)
         exit(0)
 
     if not args.fromv and not args.fromo and not args.__getattribute__('from'):
