@@ -169,6 +169,8 @@ you will see all scenarios but without continuing the path on the new owned targ
 - `--to`: display paths to the object.
 
 
+Example with `--to`:
+
     griffon lab/json/* --to CORP.LOCAL
 
     ...
