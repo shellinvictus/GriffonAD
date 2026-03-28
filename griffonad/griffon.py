@@ -222,7 +222,10 @@ def main():
             db.propagate_can_admin(ml)
             # db.reduce_aces()
             db.set_has_sessions()
-            db.prune_users()
+
+            if not args.desc:
+                db.prune_users()
+
             db.load_owned(args)
 
             diff = time.time() - t
