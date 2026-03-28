@@ -1,3 +1,7 @@
+0.6.17: 2026/03/28
+- New parameter --to which aims to find steps to the object
+- Print all users with --desc (all users are kept)
+
 0.6.16: 2026/03/24
 - Fix: empty sAMAccountName (@itzvenom)
 

@@ -1,7 +1,7 @@
 GriffonAD
 =========
 
-![griffon version](/griffonad/assets/version-0.6.16.svg?raw=true)
+![griffon version](/griffonad/assets/version-0.6.17.svg?raw=true)
 ![gpl](/griffonad/assets/gpl.svg?raw=true)
 ![offsec](/griffonad/assets/offsec.svg?raw=true)
 ![python](/griffonad/assets/python.svg?raw=true)
@@ -166,6 +166,17 @@ scenarios for the current target. For example: with a GenericAll on a user, you 
 reset the password, add a shadow key credential... If this option is unset, it will
 take the first scenario (in config.ml it's ForceChangePassword). With this option,
 you will see all scenarios but without continuing the path on the new owned target.
+- `--to`: display paths to the object.
+
+
+    griffon lab/json/* --to CORP.LOCAL
+
+    ...
+    ★PREPROD_USER —> ★PREPROD$ —> ★DATABASE$ —> ♦CORP.LOCAL
+    ★DEXY —> ★SVC$ —> ★PROD$ —> ★DATABASE$ —> ♦CORP.LOCAL
+    ★KELLY —> ★MAINTENERS —> ★SVC$ —> ★PROD$ —> ★DATABASE$ —> ♦CORP.LOCAL
+    ★SYS —> ★MAINTENERS —> ★SVC$ —> ★PROD$ —> ★DATABASE$ —> ♦CORP.LOCAL
+    ...
 
 
 <details>
