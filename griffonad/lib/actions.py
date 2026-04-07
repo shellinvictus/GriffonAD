@@ -70,6 +70,13 @@ class x_WriteSPN(Action):
     def rollback(target:LDAPObject):
         target.spn = target.old_spn
 
+class x_SPNJacking(Action):
+    def commit(target:LDAPObject):
+        target.old_spn = list(target.spn)
+        target.spn = []
+    def rollback(target:LDAPObject):
+        target.spn = target.old_spn
+
 class x_EnableNP(Action):
     def commit(target:LDAPObject):
         target.old_np = target.np
