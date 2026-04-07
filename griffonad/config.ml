@@ -176,6 +176,12 @@ __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
 WriteAccountRestrictions(computer) -> AddAllowedToAct
 AddKeyCredentialLink(computer) -> ::AddKeyCredentialLink
 
+WriteSPN(computer) -> ::WriteSPN
+GenericWrite(computer) -> WriteSPN
+WriteDacl(computer) -> ::DaclServicePrincipalName
+::DaclServicePrincipalName(computer) -> WriteSPN
+::WriteSPN(computer) -> ::Kerberoasting if not target.disabled
+
 GenericWrite(computer) -> AddAllowedToAct
 # correct but it duplicates the path AddAllowedToAct
 # GenericWrite(computer) -> WriteAccountRestrictions
