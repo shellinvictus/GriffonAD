@@ -1,5 +1,12 @@
 # Definitions
 
+WARNING: only require_targets can be set on a non action statement, examples:
+
+    RIGHT -> do_something require_targets XX
+    ::ACTION -> do_something require_targets XX
+    ::ACTION -> do_something require|require_once|require_for_auth XX
+
+
 **parent**: the object is an instance of lib.database.Owned. Its rights
 are applied and its credentials are used to authenticate (written as
 `p=` below).

@@ -166,6 +166,13 @@ class MiniLanguage():
                 print(line)
                 exit(1)
 
+            if res['require_class_name'] and \
+                    not res['symbol'].startswith('::') and \
+                    res['require_suffix'] != '_targets':
+                print(f'{filename}: you cannot set a require|require_once|require_for_auth on an action (prefixed with ::)')
+                print(line)
+                exit(1)
+
             p = Predicate(
                     res['symbol'],
                     object_type,
