@@ -169,7 +169,7 @@ if __name__ == '__main__':
     if args.k:
         cmd += ' -k'
     if args.aesKey:
-        cmd += ' -k'
+        cmd += f' -aesKey {args.aesKey}'
     if args.use_ldaps:
         cmd += ' -use-ldaps'
     if data:
