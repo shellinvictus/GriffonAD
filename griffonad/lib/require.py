@@ -241,7 +241,7 @@ class x_add_computer(Require):
         if parent.krb_auth:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR -dc-host {dc_name}"
         elif parent.secret_type == c.T_SECRET_NTHASH:
-            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret} -computer-name '{required_object.secret}' -computer-pass '{required_object.secret}' -method SAMR"
+            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
         elif parent.secret_type == c.T_SECRET_AESKEY:
             cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -aesKey {parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
         elif parent.secret_type == c.T_SECRET_PASSWORD:
