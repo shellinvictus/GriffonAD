@@ -141,8 +141,9 @@ From owned users, it reads the text file `owned`.
 > - `SAMACCOUNTNAME` : insensitive case, a computer ends with a `$`
 > - `TYPE` = `password` | `aes` | `nt`
 >
-> A password for a computer MUST BE set in hex. The separator can be changed with the
-> option `--sep` (you can put a string with more than one character).
+> A password for a computer MUST BE set in hex (it will be then converted to an aesKey).
+> The separator can be changed with the option `--sep` (you can put a string with more
+> than one character).
 
     # Warning: if you put multiple secrets for one user, only the last one will be kept!
     cat owned

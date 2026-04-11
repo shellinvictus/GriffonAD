@@ -173,7 +173,7 @@ class Database():
                 print(f"[-] error: can't find the object '{line[0]}' in the file owned")
                 exit(1)
 
-            if obj.type == c.T_COMPUTER:
+            if obj.type == c.T_COMPUTER and c.MAP_SECRET_TYPE[line[1]] == c.T_SECRET_PASSWORD:
                 self.owned_db[obj.name.upper()] = Owned(obj,
                     secret=get_aes_256_from_hex(self.domain.name, obj.name, line[2]),
                     secret_type=c.T_SECRET_AESKEY,
