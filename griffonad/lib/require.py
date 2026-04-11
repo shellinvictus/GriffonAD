@@ -226,13 +226,13 @@ class x_add_computer(Require):
         ]
 
         if parent.krb_auth:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} | grep MachineAccountQuota -A 2"
+            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.T_SECRET_NTHASH:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
+            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.T_SECRET_AESKEY:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} | grep MachineAccountQuota -A 2"
+            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
         elif parent.secret_type == c.T_SECRET_PASSWORD:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} | grep MachineAccountQuota -A 2"
+            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
 
         print_line(comment, cmd, v)
 
