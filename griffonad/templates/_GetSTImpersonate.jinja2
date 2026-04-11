@@ -12,4 +12,6 @@ getST.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -dc-ip {{dc_ip}} -
 {%- endif %}
 
 export KRB5CCNAME='Administrator@{{requested_spn|replace('/', '_')}}@{{fqdn}}.ccache'
+{%- set contains_fqdn = requested_spn.upper().endswith(fqdn.upper()) %}
 {{- set_attr(parent, 'krb_auth', True) }}
+{{- set_attr(parent, 'krb_need_fqdn', contains_fqdn) }}

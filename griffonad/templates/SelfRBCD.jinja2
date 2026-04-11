@@ -15,7 +15,6 @@
 {% set parent = require['object'] %}
 {% include '_GetSTImpersonate.jinja2' %}
 
-
 {# Save the ticket for AllowedToDelegate (-additional-ticket) #}
 ticket="$KRB5CCNAME"
-unset $KRB5CCNAME
+unset KRB5CCNAME
