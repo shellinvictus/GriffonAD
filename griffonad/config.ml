@@ -180,14 +180,21 @@ GenericWrite(computer) -> AddAllowedToAct
 # correct but it duplicates the path AddAllowedToAct
 # GenericWrite(computer) -> WriteAccountRestrictions
 GenericWrite(computer) -> AddKeyCredentialLink
+GenericWrite(computer) -> WriteSPN
 WriteDacl(computer) -> ::DaclAccountRestrictions
 WriteDacl(computer) -> ::DaclKeyCredentialLink
+WriteDacl(computer) -> ::DaclServicePrincipalName
 # DaclAllowedToAct is an other alternative to DaclAccountRestrictions
 # WriteDacl(computer) -> ::DaclAllowedToAct
 # ::DaclAllowedToAct(computer) -> AddAllowedToAct
 ::DaclAccountRestrictions(computer) -> AddAllowedToAct
 ::DaclKeyCredentialLink(computer) -> AddKeyCredentialLink
+::DaclServicePrincipalName(computer) -> WriteSPN
 ::AddKeyCredentialLink(computer) -> apply_with_ticket
+WriteSPN(computer) -> ::SPNJacking \
+    require_once unprotected_owned_with_spn \
+    if not target.disabled
+::SPNJacking(computer) -> stop
 
 # Group
 AddMember(group) -> ::AddMember

