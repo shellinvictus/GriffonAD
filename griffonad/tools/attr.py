@@ -77,7 +77,7 @@ def funcattr(args, key):
                 else:
                     print(v)
         else:
-            print(f'[-] error: the entry wasn\'t added, you may try to remove the old value or the format is not correct')
+            print(f'[-] error: the entry wasn\'t added, you may try to remove the old value or the format is not correct or you don\'t have the rights')
     elif args.flush:
         if conn.modify(dn, {key: [(MODIFY_REPLACE, [])]}):
             print(f'[+] the key {key} was flushed')
