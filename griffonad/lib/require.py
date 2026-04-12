@@ -3,6 +3,8 @@ from griffonad.lib.actions import *
 import griffonad.lib.consts as c
 import griffonad.config
 
+WRITE_SPN = {'GenericAll', 'GenericWrite', 'WriteSPN', 'WriteDacl', 'WriteOwner', 'Owner'}
+
 
 # TODO: move require commands in jinja templates
 
@@ -18,6 +20,33 @@ class Require():
 ###############################################################################
 # require_targets: return a list of LDAPObject (not Owned)
 # Convention: all of them are prefixed by ta_
+
+
+# We need to find 3 users:
+# - an owned user which is able to remove the SPN of the original target
+# - a new target to pwn
+# - another owned user which is able to set the SPN on the new target
+class x_ta_spn_jacking_requirements(Require):
+    def get(db:Database, parent:Owned, target:LDAPObject) -> list:
+        ret = []
+        found_writer = False
+
+        for owned in db.owned_db.values():
+            for sid, rights in owned.obj.rights_by_sid.items():
+                new_target = db.objects_by_sid[sid]
+                if new_target.type == c.T_COMPUTER and set(rights.keys()).intersection(WRITE_SPN):
+                    if sid == target.sid:
+                        target.spn_writer = owned
+                        found_writer = True
+                    else:
+                        new_target.spn_writer = owned
+                        ret.append(new_target)
+
+        if not found_writer:
+            return []
+
+        return ret
+
 
 class x_ta_dc(Require):
     def get(db:Database, parent:Owned, target:LDAPObject) -> list:

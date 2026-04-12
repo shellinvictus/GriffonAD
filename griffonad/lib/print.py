@@ -372,14 +372,19 @@ def print_script(args, db:Database, path:list):
     last_parent = None
 
     previous_action = ''
+    original_target = None
 
     for parent, symbol, target, require in path:
+        if original_target is None:
+            original_target = target
 
         if last_target is not None and target is not None and \
                 target.name != last_target.name:
             print(f'{Fore.YELLOW}{last_target.name} is owned{Style.RESET_ALL}')
             print(f'{Fore.YELLOW}Next target is {target.name}{Style.RESET_ALL}')
             print()
+            if last_parent != parent:
+                original_target = target
 
         if target is not None and last_target is not None and \
                 last_target.sid != target.sid and target.sid in db.users:
@@ -431,6 +436,7 @@ def print_script(args, db:Database, path:list):
             v = {
                 'previous_action': previous_action,
                 'require': require,
+                'original_target': original_target,
             }
 
             if parent is not None:

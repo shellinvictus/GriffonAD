@@ -151,6 +151,7 @@ AllowedToDelegate(computer) -> __AllowedToDelegate_ok \
 
 # Constrained delegations with protocol transition
 # TRUSTED_TO_AUTH_FOR_DELEGATION: userAccountControl & 0x1000000
+__AllowedToDelegate_ok(computer) => ::SPNJacking        if parent.trustedtoauth
 __AllowedToDelegate_ok(computer) -> ::AllowedToDelegate if parent.trustedtoauth
 
 # else
@@ -168,10 +169,13 @@ __AllowedToDelegate_ok(computer) -> ::AllowedToDelegate if parent.trustedtoauth
 #
 # TODO: U2U?
 __AllowedToDelegate_ok(computer) -> ::SelfRBCD if not parent.trustedtoauth
-::SelfRBCD(computer) -> ::AllowedToDelegate require_once unprotected_owned_with_spn_not_eq_parent
-::SelfRBCD(computer) -> ::AllowedToDelegate require_once add_computer if AllowAddComputer
+::SelfRBCD(computer) -> __NextSelfRBCD require_once unprotected_owned_with_spn_not_eq_parent
+::SelfRBCD(computer) -> __NextSelfRBCD require_once add_computer if AllowAddComputer
+__NextSelfRBCD(computer) => ::SPNJacking
+__NextSelfRBCD(computer) -> ::AllowedToDelegate
 
 ::AllowedToDelegate(computer) -> ::_Secretsdump
+::SPNJacking(computer) -> ::AllowedToDelegate require_targets ta_spn_jacking_requirements
 
 WriteAccountRestrictions(computer) -> AddAllowedToAct
 AddKeyCredentialLink(computer) -> ::AddKeyCredentialLink

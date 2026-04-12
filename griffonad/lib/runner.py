@@ -211,18 +211,16 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
         rights=dict,
         target:LDAPObject=None) -> bool:
 
-    status = STATUS_NOT_FOUND
-
     {# detect loops #}
     if target is not None and target.name.upper() in db.owned_db:
-        return status
+        return STATUS_NOT_FOUND
 
     {% if DEBUG %}
     print(f'{parent.obj} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')
     {% endif %}
 
     if not args.no_follow and '{{sym}}' in executed_symbols:
-        return status
+        return STATUS_NOT_FOUND
 
     stack.append((parent, '{{sym}}', target, None))
     executed_symbols.add('{{sym}}')
@@ -233,6 +231,8 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
     if cla is not None:
         cla.commit(target)
     {% endif %}
+
+    status = STATUS_NOT_FOUND
 
 {# Take all predicates A -> B where another predicate exists with B -> ... (excluding
  # TERMINALS which don't have 'next' predicates)
@@ -413,7 +413,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
     {% endif %}
 
     {% if DEBUG %}
-    print(f'##end {parent.obj} -> {{xxsym}}({target})', found_one)
+    print(f'##end {parent.obj} -> {{xxsym}}({target})', bin(status))
     {% endif %}
 
     stack.pop()
