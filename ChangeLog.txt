@@ -1,3 +1,7 @@
+0.6.19: 2026/04/12
+- SPN-Jacking scenario (live + ghost) (co-author @fkxdr)
+- Fix: bug the in ml language
+
 0.6.18: 2026/04/11
 - Fix: wrong targeted SPN for RBCD
 - Fix: secret conversion in the owned file for computers
