@@ -16,6 +16,7 @@ from griffonad.lib.utils import sanityze_symbol, password_to_nthash
 
 COMMENT_RE = re.compile(r'^(#.*)$', re.MULTILINE)
 
+
 def color1_object(o:LDAPObject, underline=False) -> str:
     if o is None:
         return 'many'
@@ -474,7 +475,12 @@ def print_desc(db:Database):
 def print_parent_paths(db:Database, obj:LDAPObject):
     def __rec(sid, path):
         if sid not in db.parents:
-            print(' —> '.join([color1_object(db.objects_by_sid[x]) for x in path]))
+            l = []
+            for sid in path:
+                o = db.objects_by_sid[sid]
+                underline = o.name.upper() in db.owned_db
+                l.append(color1_object(o, underline=underline))
+            print(' —> '.join(l))
             return
         for par in db.parents[sid]:
             if par not in path:
