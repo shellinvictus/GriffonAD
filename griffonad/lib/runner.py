@@ -6,6 +6,9 @@ import griffonad.config
 from griffonad.lib.database import Owned, LDAPObject
 from griffonad.lib.expression import rpn_eval
 
+{# Each value of the stack is a tuple like:
+ # (parent, 'action_or_right_name', target, require_object_or_None)
+ #}
 stack = []
 
 STATUS_FOUND_ONE = 0b01
@@ -208,20 +211,21 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
         rights=dict,
         target:LDAPObject=None) -> bool:
 
+    status = STATUS_NOT_FOUND
+
     {# detect loops #}
     if target is not None and target.name.upper() in db.owned_db:
-        return False
+        return status
 
     {% if DEBUG %}
     print(f'{parent.obj} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')
     {% endif %}
 
     if not args.no_follow and '{{sym}}' in executed_symbols:
-        return False 
+        return status
 
     stack.append((parent, '{{sym}}', target, None))
     executed_symbols.add('{{sym}}')
-    status = STATUS_NOT_FOUND
 
     {# commit the action #}
     {% if sym.startswith('::') %}
@@ -267,7 +271,9 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
         warn('{{pred.elsewarn}}', parent, target)
     {% endif %}
 
-    {# check if the require and the condition are valid #}
+    {# check if the require and the condition are valids
+     # if the flag MASK_FORK is set, it's like if we didn't found one path
+     #}
 
     if status != STATUS_FOUND_ONE and req is not None{% if pred.condition is not none %} and cond_ok{% endif %}:
 
@@ -278,43 +284,52 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
             print(f'error: {{pred.symbol}} require_targets[{{pred.require_class_name}}] expected a list of targets, not {type(req)}')
             exit(0)
 
+        backup = stack[-1]
+
         {# for require_targets the result is a list #}
-        for t in req:
-            p = parent
-            r = {'object': t, 'class_name': '{{pred.require_class_name}}', 'original_target': target}
-            stack[-1] = (p, "{{pred.symbol}}", t, r)
+        for new_target in req:
+            if new_target.name.upper() in db.owned_db:
+                continue
+
+            r = {
+                'object': new_target,
+                'class_name': '{{pred.require_class_name}}',
+                'original_target': target
+            }
+            stack[-1] = (parent, "{{pred.symbol}}", new_target, r)
 
             {# reset the executed_symbols (to set()) because the target changes #}
 
             {% if pred.symbol_result in c.TERMINALS %}
 
-            st = {{pred.symbol_result}}(args, set(), p, rights, t)
+            st = {{pred.symbol_result}}(args, set(), parent, rights, new_target)
 
             {% else %}
 
-            {# t is the new target #}
-            if t.type == {{c.T_DC}}:
-                st = dc_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_USER}}:
-                st = user_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_COMPUTER}}:
-                st = computer_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_DOMAIN}}:
-                st = domain_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_GPO}}:
-                st = gpo_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_GROUP}}:
-                st = group_{{xxsymres}}(args, set(), p, rights, t)
-            elif t.type == {{c.T_OU}}:
-                st = ou_{{xxsymres}}(args, set(), p, rights, t)
+            if new_target.type == {{c.T_DC}}:
+                st = dc_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_USER}}:
+                st = user_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_COMPUTER}}:
+                st = computer_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_DOMAIN}}:
+                st = domain_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_GPO}}:
+                st = gpo_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_GROUP}}:
+                st = group_{{xxsymres}}(args, set(), parent, rights, new_target)
+            elif new_target.type == {{c.T_OU}}:
+                st = ou_{{xxsymres}}(args, set(), parent, rights, new_target)
 
             {% endif %}
 
-            status |= st & MASK_FOUND
+            status = st | status & MASK_FOUND
 
         {% if pred.do_fork %}
         status |= MASK_FORK # fork
         {% endif %}
+
+        stack[-1] = backup
 
         {# require_for_auth: replace the parent by the require object #}
         {% elif pred.is_required_for_auth %}
@@ -323,12 +338,17 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
             print(f'error: {{pred.symbol}} require_for_auth[{{pred.require_class_name}}] expected an Owned object, not a {type(req)}')
             exit(0)
 
-        r = {'object': req, 'class_name': '{{pred.require_class_name}}'}
+        backup = stack[-1]
+        r = {
+            'object': req,
+            'class_name': '{{pred.require_class_name}}'
+        }
         {# replace the parent, used for the auth, by req #}
         stack[-1] = (req, "{{pred.symbol}}", target, r)
         {# replace the parent by req #}
         st = {{xxsymres}}(args, executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
+        stack[-1] = backup
 
         {# require_once: used only once time, internally, during the execution of the action #}
         {% elif pred.is_required_once %}
@@ -337,10 +357,15 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
             print(f'error: {{pred.symbol}} require_once[{{pred.require_class_name}}] expected an Owned object, not a {type(req)}')
             exit(0)
 
-        r = {'object': req, 'class_name': '{{pred.require_class_name}}'}
+        backup = stack[-1]
+        r = {
+            'object': req,
+            'class_name': '{{pred.require_class_name}}'
+        }
         stack[-1] = (parent, "{{pred.symbol}}", target, r)
         st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
+        stack[-1] = backup
 
         {# simple require, the require becomes the parent for the next actions (not the current) #}
         {% else %}
@@ -349,25 +374,33 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
             print(f'error: {{pred.symbol}} require[{{pred.require_class_name}}] expected an Owned object, not a {type(req)}')
             exit(0)
 
-        r = {'object': req, 'class_name': '{{pred.require_class_name}}'}
+        backup = stack[-1]
+        r = {
+            'object': req,
+            'class_name': '{{pred.require_class_name}}'
+        }
         {# here parent is used for the authentication (the stack is used to generate the path
          # and the first value is the object we use to authenticate) #}
         stack[-1] = (parent, "{{pred.symbol}}", target, r) 
         {# replace the parent by req #}
         st = {{xxsymres}}(args, executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
+        stack[-1] = backup
 
         {% endif %}
 
     {# default: no require #}
+    {# end of 'manage all require statements' #}
     {% else %}
 
+    {# if the flag MASK_FORK is set, it's like if we didn't found one path #}
     if status != STATUS_FOUND_ONE{% if pred.condition is not none %} and cond_ok{% endif %}:
         st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
     {% endif %}
 
+{# end loop which iterates on all predicates #}
 {% endfor %}
 
     {# end of the function #}
