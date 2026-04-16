@@ -120,7 +120,6 @@ SessionForUser(user) -> ::LSASS_dumper
 
 # Computer
 AdminTo(computer) -> ::_Secretsdump
-SeBackupPrivilege(computer) -> ::RegBackup
 ReadLAPSPassword(computer) -> ::ReadLAPSPassword
 ::ReadLAPSPassword(computer) -> ::_TransformPasswordToAES
 ::RegBackup(computer) -> ::_TransformPasswordToAES
@@ -213,20 +212,18 @@ GetChanges_GetChangesInFilteredSet(domain) -> ::DCSync if parent.is_dc
 # from GPOs
 AdminTo(domain) -> ::DCSync # local Administrator
 
-# If the GPO is applied on the entire domaine
-# also ok on all computers but we are admin here!
+# From a GPO applied on the domain or if the user is in the BO group
+# We can also target all computers
 SeBackupPrivilege(domain) -> ::RegBackup \
     require_targets ta_dc \
-    if BACKUP_OPERATORS in parent.groups or \
-        BACKUP_OPERATORS in parent.restricted_groups_rids
+    if BACKUP_OPERATORS in parent.groups
 
-# FIXME: a simple user cannot RDP on a on the DC even if he is
+# FIXME: a simple user cannot RDP on the DC even if he is
 # in the RDP Users group?
 SeBackupPrivilege(domain) -> ::CanRDP_RegSave \
     require_targets ta_all_computers_in_domain \
     if BACKUP_OPERATORS not in parent.groups and \
-        BACKUP_OPERATORS not in parent.restricted_groups_rids and \
-        REMOTE_DESKTOP_USERS in parent.restricted_groups_rids
+        REMOTE_DESKTOP_USERS in parent.groups
 
 # DC
 GenericWrite(dc) -> AddKeyCredentialLink
@@ -255,29 +252,20 @@ WriteDacl(gpo) -> ::DaclFullControl
 
 # OU
 
-# Unimplemented
-# https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
-# https://markgamache.blogspot.com/2020/07/exploiting-ad-gplink-for-good-or-evil.html
-GenericWrite(ou) -> WriteGPLink
-WriteGPLink(ou) -> ::WriteGPLink
-::WriteGPLink(ou) -> stop
-
-# If the user is a direct member of Backup Operators or
-# a GPO is applied on the 'Domain Controllers' container
+# From a GPO applied on an OU or on the 'Domain Controllers' container
 SeBackupPrivilege(ou) -> __IsInBackupGroup \
-    if BACKUP_OPERATORS in parent.groups or \
-        BACKUP_OPERATORS in parent.restricted_groups_rids
+    if BACKUP_OPERATORS in parent.restricted_groups_rids
 
 SeBackupPrivilege(ou) -> __NotInBackupGroup \
-    if BACKUP_OPERATORS not in parent.groups and \
-        BACKUP_OPERATORS not in parent.restricted_groups_rids
+    if BACKUP_OPERATORS not in parent.restricted_groups_rids
+
+AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
 
 __IsInBackupGroup(ou) -> ::RegBackup \
     require_targets ta_one_dc_in_ou \
     if DOMAIN_CONTROLLERS in target.name
 
-AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
-
+# Not on the 'Domain Controllers' container
 __IsInBackupGroup(ou) -> ::RegBackup \
     require_targets ta_all_computers_in_ou \
     if DOMAIN_CONTROLLERS not in target.name
@@ -289,6 +277,13 @@ __IsInBackupGroup(ou) -> ::RegBackup \
 __NotInBackupGroup(ou) -> ::CanRDP_RegSave \
     require_targets ta_all_computers_in_ou \
     if REMOTE_DESKTOP_USERS in parent.restricted_groups_rids
+
+# Unimplemented
+# https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
+# https://markgamache.blogspot.com/2020/07/exploiting-ad-gplink-for-good-or-evil.html
+GenericWrite(ou) -> WriteGPLink
+WriteGPLink(ou) -> ::WriteGPLink
+::WriteGPLink(ou) -> stop
 
 # Last chance
 __WriteDacl(any) -> ::DaclFullControl if DefaultSetFullControl

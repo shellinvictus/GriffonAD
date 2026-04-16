@@ -416,6 +416,11 @@ class Database():
             f'{self.domain.sid}-526', # Key admins
         ]
 
+        # Backup operators
+        sid = f'{self.domain.name}-S-1-5-32-551'
+        if sid in self.objects_by_sid:
+            self.objects_by_sid[sid].rights_by_sid[self.domain.sid] = {'SeBackupPrivilege': None}
+
         # Remote desktop users
         sid = f'{self.domain.name}-S-1-5-32-555'
         if sid in self.objects_by_sid:
