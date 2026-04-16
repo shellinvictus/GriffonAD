@@ -7,10 +7,15 @@ GriffonAD
 ![python](/griffonad/assets/python.svg?raw=true)
 
 Generate low-level commands (mainly impacket) to exploit the Active
-Directory easily: learn and control every steps. Griffon supports many
-scenarios, take a look into [config.ml](griffonad/config.ml) !
+Directory easily: learn and control every steps.
+
+Here is an example of all implemented scenarios for a user
+([more here](https://github.com/shellinvictus/GriffonAD/wiki/GriffonAD-mind-map)):
+
+<img width="4184" alt="user" src="https://github.com/user-attachments/assets/9ec1bab5-c647-497c-a2c8-9fc93d395fe1" />
 
 [![asciicast](https://asciinema.org/a/860452.svg)](https://asciinema.org/a/860452)
+
 
 Challenge
 ---------
@@ -224,15 +229,6 @@ Embedded tools
 - `griffonad/tools/toggleNP.py`: enable or disable the donotpreauth flag
 - `griffonad/tools/toggleDisable.py`: toggle the flag ACCOUNTDISABLE
 - `griffonad/tools/xmltask.py`: generate an xml for schedule task (mimic a real xml)
-
-
-Customization
-=============
-
-The file config.ml is fully customizable, you can set your preferences based on
-scenario priorities (more at [config.md](/doc/config.md)).
-
-[![asciicast](https://asciinema.org/a/860787.svg)](https://asciinema.org/a/860787)
 
 
 Tests
