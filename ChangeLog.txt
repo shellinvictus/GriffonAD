@@ -1,3 +1,7 @@
+0.6.20: 2026/04/16
+- Fix: RDP with kerberos (@fkxdr)
+- Fix: add the SeBackupPrivilege on the domain if the user is in Backup Operators
+
 0.6.19: 2026/04/12
 - SPN-Jacking scenario (live + ghost) (co-author @fkxdr)
 - Fix: bug the in ml language
