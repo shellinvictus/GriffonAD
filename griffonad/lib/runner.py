@@ -4,7 +4,7 @@ import griffonad.lib.require
 import griffonad.lib.actions
 import griffonad.config
 from griffonad.lib.database import Owned, LDAPObject
-from griffonad.lib.expression import rpn_eval
+from griffonad.lib.expression import rpn_eval, Var, Str
 
 {# Each value of the stack is a tuple like:
  # (parent, 'action_or_right_name', target, require_object_or_None)
