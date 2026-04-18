@@ -10,10 +10,9 @@
 {% set requested_spn = parent.obj.rights_by_sid[original_target.sid]['AllowedToDelegate'][0] %}
 {% set do_u2u = False %}
 {% include '_GetSTImpersonate.jinja2' %}
-
-
 {# For SPN-Jacking #}
 {% if original_target.sid != target.sid %}
+
 # Substitute the sname in the ticket
 {%- set contains_fqdn = requested_spn.upper().endswith(fqdn.upper()) %}
 

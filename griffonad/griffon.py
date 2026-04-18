@@ -5,8 +5,9 @@ import re
 import tracemalloc
 import linecache
 import json
+import readline
 from colorama import init as colorama_init
-from colorama import Style
+from colorama import Back, Fore, Style
 Style.UNDERLINE = '\033[4m'
 Style.STRIKE = '\033[9m'
 
@@ -156,17 +157,17 @@ def main():
     arg_paths.add_argument('--da', action='store_true', help='Only paths to domain admin')
     arg_paths.add_argument('--from', type=str, metavar='NAME', help='Get paths from this object (user, group, ...)')
     arg_paths.add_argument('--to', type=str, metavar='NAME', help='Get paths to this object')
-    parser.add_argument('-f', '--no-follow', action='store_true',
-            help='Don\'t try to continue on owned targets but display all available scenarios for one target')
 
     arg_script = parser.add_argument_group('Script generation')
-    arg_script.add_argument('-s', '--script', metavar='N', type=str, help='Generate commands for a given path. N is the line number')
+    arg_script.add_argument('-i', '--interactive', action='store_true',
+            help='Interactive mode (works with --from only, not fromo and fromv)')
     arg_script.add_argument('--dc-ip', type=str, default='DC_IP', metavar='DC_IP')
+    arg_script.add_argument('-s', '--script', metavar='N', type=str, help='Generate commands for a given path. N is the line number')
 
     args = parser.parse_args()
 
     if args.version:
-        print('GriffonAD 0.6.20')
+        print('GriffonAD 0.6.21')
         print('https://github.com/shellinvictus/GriffonAD')
         exit(0)
 
@@ -174,7 +175,7 @@ def main():
 
     config_path = os.path.join(griffonad.__path__[0], 'config.ml')
 
-    ml = MiniLanguage(args)
+    ml = MiniLanguage()
     ml.compile(config_path)
 
     if args.save_compiled:
@@ -269,14 +270,14 @@ def main():
         trace_stop(args)
         exit(0)
 
-    final_paths = []
+    all_paths = []
 
     if args.fromo:
-        final_paths = ml.execute_owned(db)
+        all_paths = ml.execute_owned(db)
     elif args.fromv:
-        final_paths = ml.execute_np(db)
-        final_paths += ml.execute_user_spn(db)
-        final_paths += ml.execute_password_not_required(db)
+        all_paths = ml.execute_np(db)
+        all_paths += ml.execute_user_spn(db)
+        all_paths += ml.execute_password_not_required(db)
     elif args.__getattribute__('from'):
         obj = db.search_by_name(args.__getattribute__('from'))
         if obj is None:
@@ -285,19 +286,74 @@ def main():
         owned = db.owned_db.get(obj.name.upper(), None)
         if owned is None:
             owned = Owned(obj, secret='PASSWORD', secret_type=c.T_SECRET_PASSWORD)
-        final_paths = ml.execute_user_rights(db, owned)
+
+        if args.interactive:
+            final_path = []
+
+            print()
+            print(f'{Fore.RED}GriffonAD interactive mode{Style.RESET_ALL}')
+            print(f'{Fore.RED}—————{Style.RESET_ALL}')
+
+            while True:
+                results = ml.execute_user_rights(db, owned, step_by_step=True)
+                if not results:
+                    break
+                print_paths(args, db, results)
+                while True:
+                    try:
+                        line = input(f'Choose a line number: ')
+                        line = int(line, 16)
+                        if line >= len(results):
+                            print('[-] out of range line')
+                        else:
+                            break
+                    except EOFError:
+                        print()
+                        exit(0)
+                    except KeyboardInterrupt:
+                        print()
+                        exit(0)
+                    except:
+                        if line:
+                            print(f'[-] error: unknown line {line}')
+
+                print(f'{Fore.RED}—————{Style.RESET_ALL}')
+
+                final_path += results[line]
+                new_owned = ml.owned_per_paths[line]
+
+                if new_owned is None:
+                    break
+
+                if new_owned.obj.type == c.T_GROUP:
+                    owned.obj.rights_by_sid = new_owned.obj.rights_by_sid
+                else:
+                    owned = new_owned
+                    db.owned_db[owned.obj.name.upper()] = owned
+
+            if final_path:
+                print()
+                print(f'{Fore.YELLOW}[+] Final path is:{Style.RESET_ALL}')
+                print()
+                print_path(args, final_path)
+                print()
+                print_script_start(args, db, final_path)
+
+            exit(0)
+        else:
+            all_paths = ml.execute_user_rights(db, owned)
 
     if not args.script:
-        print_paths(args, db, final_paths)
+        print_paths(args, db, all_paths)
         trace_stop(args)
         exit(0)
 
     # Script generation
     line = int(args.script, 16)
-    if line >= len(final_paths):
+    if line >= len(all_paths):
         print(f'[-] error: no path for the line {line}')
         exit(1)
-    path = final_paths[line]
+    path = all_paths[line]
     print()
     print_path(args, path)
     print()

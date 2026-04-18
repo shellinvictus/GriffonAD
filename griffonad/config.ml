@@ -194,7 +194,7 @@ WriteDacl(computer) -> ::DaclKeyCredentialLink
 AddMember(group) -> ::AddMember
 AddSelf(group) -> ::AddMember
 GenericWrite(group) -> AddMember
-GenericWrite(group) -> AddSelf
+# GenericWrite(group) -> AddSelf
 WriteDacl(group) -> ::DaclMemberShips
 WriteDacl(group) -> ::DaclSelf
 ::DaclMemberShips(group) -> AddMember

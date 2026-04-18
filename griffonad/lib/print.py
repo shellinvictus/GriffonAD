@@ -384,8 +384,8 @@ def print_script(db:Database, glob:dict, path:list):
 
         if last_target is not None and target is not None and \
                 target.name != last_target.name:
-            print(f'{Fore.YELLOW}{last_target.name} is owned{Style.RESET_ALL}')
-            print(f'{Fore.YELLOW}Next target is {target.name}{Style.RESET_ALL}')
+            print(f'{Fore.YELLOW}[+] {last_target.name} is owned{Style.RESET_ALL}')
+            print(f'{Fore.YELLOW}[+] Next target is {target.name}{Style.RESET_ALL}')
             print()
             if last_parent != parent:
                 original_target = target

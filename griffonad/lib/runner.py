@@ -20,7 +20,7 @@ MASK_FORK = 0b10
 
 {% set DEBUG = False %}
 
-def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObject) -> int:
+def do_rpn_eval(condition:list, parent:Owned, rights:dict, target:LDAPObject) -> int:
     vars = {
         'db.domain_controllers_guid': db.domain_controllers_guid
     }
@@ -56,110 +56,117 @@ def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObje
             # TODO improve the config.ml language to allow python object accesses
             'parent.restricted_groups_rids': [int(o.sid.split('-')[-1]) for o in restr_groups],
         })
-    vars.update(args.variables)
+    vars.update(variables)
     return rpn_eval(condition, vars)
 
 {# Functions return True if a path was found
  # apply*: if the run failed, add at least a shortest path #}
 
-def apply_with_forced_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_forced_passwd(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_forced_passwd", target, None))
-    if args.no_follow:
-        paths.append(list(stack))
-        stack.pop()
-        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=griffonad.config.DEFAULT_PASSWORD, secret_type={{c.T_SECRET_PASSWORD}})
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
+        paths.append(list(stack))
+        stack.pop()
+        return STATUS_NOT_FOUND
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    st = run(new_owned, new_owned.obj.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_blank_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_blank_passwd(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_blank_passwd", target, None))
-    if args.no_follow:
-        paths.append(list(stack))
-        stack.pop()
-        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret='', secret_type={{c.T_SECRET_PASSWORD}})
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
+        paths.append(list(stack))
+        stack.pop()
+        return STATUS_NOT_FOUND
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    st = run(new_owned, new_owned.obj.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_group(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_group(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_group", target, None))
-    if args.no_follow:
+    if STEP_BY_STEP:
+        owned_per_paths.append(Owned(target))
         paths.append(list(stack))
         stack.pop()
         return STATUS_NOT_FOUND
-    st = run(args, parent, target.rights_by_sid)
+    st = run(parent, target.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_cracked_passwd(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_cracked_passwd(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_cracked_passwd", target, None))
-    if args.no_follow:
-        paths.append(list(stack))
-        stack.pop()
-        return STATUS_NOT_FOUND
     new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_CRACKED_PASSWORD', secret_type={{c.T_SECRET_PASSWORD}})
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
+        paths.append(list(stack))
+        stack.pop()
+        return STATUS_NOT_FOUND
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    st = run(new_owned, new_owned.obj.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
     return STATUS_FOUND_ONE
 
-def apply_with_ticket(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_ticket(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_ticket", target, None))
-    if args.no_follow:
-        paths.append(list(stack))
-        stack.pop()
-        return STATUS_NOT_FOUND
     new_owned = Owned(target, krb_auth=True)
-    db.owned_db[new_owned.obj.name.upper()] = new_owned
-    st = run(args, new_owned, new_owned.obj.rights_by_sid)
-    if ~st & MASK_FOUND:
-        paths.append(list(stack))
-    del db.owned_db[new_owned.obj.name.upper()]
-    stack.pop()
-    return STATUS_FOUND_ONE
-
-def apply_with_aes(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
-    stack.append((parent, "apply_with_aes", target, None))
-    if args.no_follow:
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
         paths.append(list(stack))
         stack.pop()
         return STATUS_NOT_FOUND
-    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.T_SECRET_AESKEY}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    st = run(args, new_owned, new_owned.obj.rights_by_sid)
+    st = run(new_owned, new_owned.obj.rights_by_sid)
     if ~st & MASK_FOUND:
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
     return STATUS_FOUND_ONE
 
-def stop(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_aes(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+    stack.append((parent, "apply_with_aes", target, None))
+    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_AESKEY', secret_type={{c.T_SECRET_AESKEY}})
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
+        paths.append(list(stack))
+        stack.pop()
+        return STATUS_NOT_FOUND
+    db.owned_db[new_owned.obj.name.upper()] = new_owned
+    st = run(new_owned, new_owned.obj.rights_by_sid)
+    if ~st & MASK_FOUND:
+        paths.append(list(stack))
+    del db.owned_db[new_owned.obj.name.upper()]
+    stack.pop()
+    return STATUS_FOUND_ONE
+
+def stop(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "stop", target, None))
     paths.append(list(stack))
     stack.pop()
-    if args.no_follow:
+    if STEP_BY_STEP:
+        owned_per_paths.append(None)
         return STATUS_NOT_FOUND
     return STATUS_FOUND_ONE
 
 last_parent = None
 n_exec = 0
-def restart(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def restart(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     global last_parent, n_exec
     if last_parent != parent:
         last_parent = parent
@@ -168,17 +175,18 @@ def restart(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPOb
     if n_exec == 10:
         print('Exec aborted, too many recursion of restart on', parent)
         exit(0)
-    return run(args, parent, parent.obj.rights_by_sid)
+    return run(parent, parent.obj.rights_by_sid)
 
-def apply_with_nthash(args, executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
+def apply_with_nthash(executed_symbols:set, parent:Owned, rights:dict, target:LDAPObject=None) -> bool:
     stack.append((parent, "apply_with_nthash", target, None))
-    if args.no_follow:
+    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_NTHASH', secret_type={{c.T_SECRET_NTHASH}})
+    if STEP_BY_STEP:
+        owned_per_paths.append(new_owned)
         paths.append(list(stack))
         stack.pop()
         return STATUS_NOT_FOUND
-    new_owned = Owned(target, secret=f'{target.name.upper().replace("$","")}_NTHASH', secret_type={{c.T_SECRET_NTHASH}})
     db.owned_db[new_owned.obj.name.upper()] = new_owned
-    if not run(args, new_owned, new_owned.obj.rights_by_sid):
+    if not run(new_owned, new_owned.obj.rights_by_sid):
         paths.append(list(stack))
     del db.owned_db[new_owned.obj.name.upper()]
     stack.pop()
@@ -207,7 +215,6 @@ def warn(message:str, parent:Owned, target:LDAPObject):
 
 {# run all symbol_results for a given symbol #}
 def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
-        args,
         executed_symbols:set,
         parent:Owned,
         rights=dict,
@@ -221,7 +228,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
     print(f'{parent.obj} -> {{xxsym}}', target, '{{c.ML_TYPES_TO_STR[ty]}}')
     {% endif %}
 
-    if not args.no_follow and '{{sym}}' in executed_symbols:
+    if not STEP_BY_STEP and '{{sym}}' in executed_symbols:
         return STATUS_NOT_FOUND
 
     stack.append((parent, '{{sym}}', target, None))
@@ -256,7 +263,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 
     {# manage the predicate condition #}
     {% if pred.condition is not none %}
-    cond_ok = do_rpn_eval(args, {{pred.condition}}, parent, rights, target)
+    cond_ok = do_rpn_eval({{pred.condition}}, parent, rights, target)
     {% if pred.elsewarn is not none %}
     if not cond_ok:
         warn('{{pred.elsewarn}}', parent, target)
@@ -304,24 +311,24 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 
             {% if pred.symbol_result in c.TERMINALS %}
 
-            st = {{pred.symbol_result}}(args, set(), parent, rights, new_target)
+            st = {{pred.symbol_result}}(set(), parent, rights, new_target)
 
             {% else %}
 
             if new_target.type == {{c.T_DC}}:
-                st = dc_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = dc_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_USER}}:
-                st = user_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = user_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_COMPUTER}}:
-                st = computer_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = computer_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_DOMAIN}}:
-                st = domain_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = domain_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_GPO}}:
-                st = gpo_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = gpo_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_GROUP}}:
-                st = group_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = group_{{xxsymres}}(set(), parent, rights, new_target)
             elif new_target.type == {{c.T_OU}}:
-                st = ou_{{xxsymres}}(args, set(), parent, rights, new_target)
+                st = ou_{{xxsymres}}(set(), parent, rights, new_target)
 
             {% endif %}
 
@@ -348,7 +355,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
         {# replace the parent, used for the auth, by req #}
         stack[-1] = (req, "{{pred.symbol}}", target, r)
         {# replace the parent by req #}
-        st = {{xxsymres}}(args, executed_symbols, req, rights, target)
+        st = {{xxsymres}}(executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
         stack[-1] = backup
 
@@ -365,7 +372,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
             'class_name': '{{pred.require_class_name}}'
         }
         stack[-1] = (parent, "{{pred.symbol}}", target, r)
-        st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
+        st = {{xxsymres}}(executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
         stack[-1] = backup
 
@@ -385,7 +392,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
          # and the first value is the object we use to authenticate) #}
         stack[-1] = (parent, "{{pred.symbol}}", target, r) 
         {# replace the parent by req #}
-        st = {{xxsymres}}(args, executed_symbols, req, rights, target)
+        st = {{xxsymres}}(executed_symbols, req, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
         stack[-1] = backup
 
@@ -397,7 +404,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 
     {# if the flag MASK_FORK is set, it's like if we didn't found one path #}
     if status != STATUS_FOUND_ONE{% if pred.condition is not none %} and cond_ok{% endif %}:
-        st = {{xxsymres}}(args, executed_symbols, parent, rights, target)
+        st = {{xxsymres}}(executed_symbols, parent, rights, target)
         status = st | status & MASK_FOUND{% if pred.do_fork %} | MASK_FORK # fork{% endif %}
 
     {% endif %}
@@ -425,7 +432,7 @@ def {{c.ML_TYPES_TO_STR[ty]}}_{{xxsym}}(
 {% endfor %}
 
 {# apply all rights of parent #}
-def run(args, parent:Owned, rights_by_sid:dict) -> bool:
+def run(parent:Owned, rights_by_sid:dict) -> bool:
     status = STATUS_NOT_FOUND
 
     {# apply all rights of parent #}
@@ -437,7 +444,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in ml.symbols_by_type[c.T_MANY] %}
             {% set xxsym = sym|replace('::', 'xx') %}
             if '{{sym}}' in rights:
-                st = many_{{xxsym}}(args, executed_symbols, parent, rights)
+                st = many_{{xxsym}}(executed_symbols, parent, rights)
                 if st & MASK_FOUND:
                     status |= MASK_FOUND
             {% endfor %}
@@ -460,7 +467,7 @@ def run(args, parent:Owned, rights_by_sid:dict) -> bool:
             {% for sym in symbols %}
             {% if sym[:2] != '::' and sym[0] != '_' %}
             if '{{sym}}' in rights:
-                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(args, executed_symbols, parent, rights, target)
+                st = {{c.ML_TYPES_TO_STR[ty]}}_{{sym}}(executed_symbols, parent, rights, target)
                 if st & MASK_FOUND:
                     status |= MASK_FOUND
                     {# don't continue if STATUS_FORK_FOUND_ONE #}

@@ -57,7 +57,7 @@ class Predicate():
 
 
 class MiniLanguage():
-    def __init__(self, args):
+    def __init__(self):
         # TODO: replace string types by int types
 
         # List of (left) symbols for each object type
@@ -119,8 +119,7 @@ class MiniLanguage():
             c.T_OU: set(),
             c.T_CONTAINER: set(),
         }
-        self.args = args
-        self.args.variables = {}
+        self.variables = {}
 
 
     def __parse_file(self, filename):
@@ -152,7 +151,7 @@ class MiniLanguage():
                 elif res['value'] == 'false': v = True
                 elif res['value'][0] == '"': v = res['value'][1:-1]
                 else: v = int(res['value'])
-                self.args.variables[res['varname']] = v
+                self.variables[res['varname']] = v
                 continue
 
             res = REGEX_PREDICATE.match(line)
@@ -235,16 +234,20 @@ class MiniLanguage():
         # remove empty lines
         self.code = "\n".join([s.rstrip() for s in code.split("\n") if s.rstrip()])
 
-    def execute_user_rights(self, db, o):
+    def execute_user_rights(self, db, o, step_by_step=False):
         paths = []
         # The magic is here!
-        code = self.code + '\nrun(args, parent, parent.obj.rights_by_sid)'
-        exec(code, {
-            'args': self.args,
+        code = self.code + '\nrun(parent, parent.obj.rights_by_sid)'
+        v = {
+            'STEP_BY_STEP': step_by_step,
+            'variables': self.variables,
             'parent': o,
             'db': db,
-            'paths': paths
-        })
+            'paths': paths,
+            'owned_per_paths': [],
+        }
+        exec(code, v)
+        self.owned_per_paths = v['owned_per_paths']
         return paths
 
     # Start paths from owned objects
@@ -257,13 +260,17 @@ class MiniLanguage():
     def execute_function(self, db, target, action):
         paths = []
         funcname = f'{c.ML_TYPES_TO_STR[target.type]}_{action.replace("::", "xx")}'
-        code = self.code + f'\n{funcname}(args, set(), None, set(), target)'
-        exec(code, {
-            'args': self.args,
+        code = self.code + f'\n{funcname}(set(), None, set(), target)'
+        v = {
+            'STEP_BY_STEP': False,
+            'variables': self.variables,
             'target': target,
             'db': db,
-            'paths': paths
-        })
+            'paths': paths,
+            'owned_per_paths': [],
+        }
+        exec(code, v)
+        self.owned_per_paths = v['owned_per_paths']
         return paths
 
     # Start paths from users with the donotpreauth flag
