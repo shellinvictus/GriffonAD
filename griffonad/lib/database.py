@@ -39,7 +39,7 @@ class LDAPObject():
         self.is_admin = False
         self.can_admin = False
         self.type = type
-        self.sid = o['ObjectIdentifier'] # it's the guid for gpo
+        self.sid = o['ObjectIdentifier'] # it's a guid for gpos and containers
         self.protected = False # in protected users group
         self.group_rids = set() # list of groups this object belongs
         self.group_sids = set() # list of groups this object belongs
@@ -230,7 +230,6 @@ class Database():
             if type == c.T_COMPUTER:
                 self.save_sessions(o_json)
 
-
     def save_sessions(self, o_json):
         # Collector 'Session'
         for sess in o_json['Sessions']['Results']:
@@ -365,6 +364,14 @@ class Database():
                     ou_dn = o.dn[i+1:]
                     if ou_dn.startswith('OU=') and ou_dn in self.ous_by_dn:
                         self.ous_by_dn[ou_dn]['members'].append(o.sid)
+
+        self.domain_controllers_guid = ''
+        if self.main_dc is not None:
+            dn = ','.join(self.main_dc.dn.split(',')[1:])
+            if dn in self.ous_dn_to_sid:
+                self.domain_controllers_guid = self.ous_dn_to_sid[dn]
+        if self.domain_controllers_guid == '':
+            print(f'warning: the DOMAIN_CONTROLLERS container wasn\'t found')
 
 
     def propagate_aces(self):

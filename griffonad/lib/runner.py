@@ -21,7 +21,9 @@ MASK_FORK = 0b10
 {% set DEBUG = False %}
 
 def do_rpn_eval(args, condition:list, parent:Owned, rights:dict, target:LDAPObject) -> int:
-    vars = {}
+    vars = {
+        'db.domain_controllers_guid': db.domain_controllers_guid
+    }
     if target is not None:
         vars.update({
             'target.has_spn': len(target.spn) != 0,

@@ -14,8 +14,6 @@ set KEY_ADMINS = 526
 set ENTERPRISE_KEY_ADMINS = 527
 set REMOTE_DESKTOP_USERS = 555
 
-set DOMAIN_CONTROLLERS = "DOMAIN CONTROLLERS@" # TODO: check languages
-
 #
 # Convention:
 # ::NAME(target) = this is an action (generated code is in templates/)
@@ -263,12 +261,12 @@ AdminTo(ou) -> AdminTo require_targets ta_all_computers_in_ou
 
 __IsInBackupGroup(ou) -> ::RegBackup \
     require_targets ta_one_dc_in_ou \
-    if DOMAIN_CONTROLLERS in target.name
+    if target.sid == db.domain_controllers_guid
 
 # Not on the 'Domain Controllers' container
 __IsInBackupGroup(ou) -> ::RegBackup \
     require_targets ta_all_computers_in_ou \
-    if DOMAIN_CONTROLLERS not in target.name
+    if target.sid != db.domain_controllers_guid
 
 # The user has only the SeBackup privilege and is NOT in the Backup
 # Operators group, then we need to RDP to enable the backup privilege
