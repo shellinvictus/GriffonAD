@@ -15,6 +15,8 @@ Here is an example of all implemented scenarios for a user
 
 <img width="4184" alt="user" src="https://github.com/user-attachments/assets/b189ee9b-a293-45c7-86fa-f180c9cb13c8" />
 
+<img width="985" alt="path_kerb_svc" src="https://github.com/user-attachments/assets/cfc85acc-8f3c-41d4-bb16-7bb3ce49bfd5" />
+
 [![asciicast](https://asciinema.org/a/860452.svg)](https://asciinema.org/a/860452)
 
 
