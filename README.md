@@ -1,18 +1,19 @@
 GriffonAD
 =========
 
-![griffon version](/griffonad/assets/version-0.6.20.svg?raw=true)
+![griffon version](/griffonad/assets/version-0.6.21.svg?raw=true)
 ![gpl](/griffonad/assets/gpl.svg?raw=true)
 ![offsec](/griffonad/assets/offsec.svg?raw=true)
 ![python](/griffonad/assets/python.svg?raw=true)
 
 Generate low-level commands (mainly impacket) to exploit the Active
-Directory easily: learn and control every steps.
+Directory easily: learn and control every steps. Interactive mode available
+to select scenarios.
 
 Here is an example of all implemented scenarios for a user
 ([more here](https://github.com/shellinvictus/GriffonAD/wiki/GriffonAD-mind-map)):
 
-<img width="4184" alt="user" src="https://github.com/user-attachments/assets/9ec1bab5-c647-497c-a2c8-9fc93d395fe1" />
+<img width="4184" alt="user" src="https://github.com/user-attachments/assets/b189ee9b-a293-45c7-86fa-f180c9cb13c8" />
 
 [![asciicast](https://asciinema.org/a/860452.svg)](https://asciinema.org/a/860452)
 
@@ -21,7 +22,6 @@ Challenge
 ---------
 
 You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
-
 Write-ups are here on the [wiki](https://github.com/shellinvictus/GriffonAD/wiki).
 
 
@@ -210,6 +210,10 @@ Step 4: Generate the script
 Use the line number to generate the script and run the commands!
 
     griffon lab/json/* --fromo -s0 --dc-ip 10.0.0.2
+
+Or use the interactive mode (only with `--from`):
+
+    griffon lab/json/* --from TARGET -i --dc-ip 10.0.0.2
 
 
 Embedded tools
