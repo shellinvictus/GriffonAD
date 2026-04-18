@@ -1,9 +1,10 @@
 from griffonad.lib.database import LDAPObject, FakeLDAPObject, Owned, Database
 from griffonad.lib.actions import *
+from griffonad.lib.print import print_script
 import griffonad.lib.consts as c
 import griffonad.config
 
-WRITE_SPN = {'GenericAll', 'GenericWrite', 'WriteSPN', 'WriteDacl', 'WriteOwner', 'Owner'}
+WRITE_SPN = {'GenericAll', 'GenericWrite', 'WriteSPN', 'WriteDacl', 'WriteOwner', 'Owns'}
 
 
 # TODO: move require commands in jinja templates
@@ -13,7 +14,7 @@ class Require():
     def get(db:Database, parent:Owned, target:LDAPObject) -> object:
         pass
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         pass
 
 
@@ -46,6 +47,30 @@ class x_ta_spn_jacking_requirements(Require):
             return []
 
         return ret
+
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
+        tmp_target = require['object']
+        writer = tmp_target.spn_writer
+        rights = writer.obj.rights_by_sid[tmp_target.sid]
+
+        if 'GenericAll' in rights or 'GenericWrite' in  rights or 'WriteSPN' in rights:
+            return
+
+        v = vars(glob, parent=writer, target=tmp_target)
+        comment = 'require: we need to set the capability to write a SPN on {target} for {parent}'
+        print_comment(comment, v)
+
+        if 'WriteDacl' in rights or 'Owns' in rights:
+            path = [
+                (writer, '::DaclServicePrincipalName', tmp_target, None),
+            ]
+        elif 'WriteOwner' in rights:
+            path = [
+                (writer, '::WriteOwner', tmp_target, None),
+                (writer, '::DaclServicePrincipalName', tmp_target, None),
+            ]
+
+        print_script(db, glob, path)
 
 
 class x_ta_dc(Require):
@@ -194,7 +219,7 @@ class x_unprotected_owned_with_spn(Require):
                 return o
         return None
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
         comment = 'require: unprotected_owned_with_spn -> {required_object.obj.name}'
         print_comment(comment, v)
@@ -207,7 +232,7 @@ class x_unprotected_owned_with_spn_not_eq_parent(Require):
                 return o
         return None
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
         comment = 'require: unprotected_owned_with_spn_not_eq_parent -> {required_object.obj.name}'
         print_comment(comment, v)
@@ -220,7 +245,7 @@ class x_owned_user_without_spn(Require):
                 return o
         return None
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
         comment = 'require: owned_user_without_spn -> {required_object.obj.name}'
         print_comment(comment, v)
@@ -232,7 +257,7 @@ class x_any_owned(Require):
             return next(iter(db.owned_db.values()))
         return None
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
         comment = 'require: owned_user_without_spn -> {required_object.obj.name}'
         print_comment(comment, v)
@@ -246,7 +271,7 @@ class x_add_computer(Require):
         obj.spn = ['HOST/' + obj.name.replace('$', '')]
         return Owned(obj, secret=griffonad.config.DEFAULT_PASSWORD, secret_type=c.T_SECRET_PASSWORD)
 
-    def print(glob:dict, parent:Owned, require:dict):
+    def print(db:Database, glob:dict, parent:Owned, require:dict):
         v = vars(glob, parent, target=None, required_object=require['object'])
 
         comment = [

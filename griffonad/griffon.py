@@ -20,7 +20,7 @@ from pathlib import Path
 import griffonad
 import griffonad.lib.consts as c
 import griffonad.config
-from griffonad.lib.print import (print_path, print_paths, print_script,
+from griffonad.lib.print import (print_path, print_paths, print_script_start,
         print_groups, print_hvt, print_ous, print_desc, print_comment,
         print_parent_paths)
 from griffonad.lib.database import Database, Owned
@@ -301,7 +301,7 @@ def main():
     print()
     print_path(args, path)
     print()
-    print_script(args, db, path)
+    print_script_start(args, db, path)
     trace_stop(args)
 
 if __name__ == '__main__':

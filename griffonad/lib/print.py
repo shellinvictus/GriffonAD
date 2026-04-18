@@ -330,7 +330,7 @@ def render_template(filename, **kwargs):
     print()
 
 
-def print_script(args, db:Database, path:list):
+def print_script_start(args, db:Database, path:list):
     glob = {
         'fqdn': db.domain.name,
         'fqdn_lower': db.domain.name.lower(),
@@ -368,6 +368,10 @@ def print_script(args, db:Database, path:list):
     if glob['dc_ip'] == 'DC_IP':
         print_comment('Use the option --dc-ip to set DC_IP!')
 
+    print_script(db, glob, path)
+
+
+def print_script(db:Database, glob:dict, path:list):
     last_target = None
     last_parent = None
 
@@ -428,7 +432,7 @@ def print_script(args, db:Database, path:list):
 
         if require is not None:
             class_name = sanityze_symbol(require['class_name'])
-            griffonad.lib.require.__getattribute__(class_name).print(glob, parent, require)
+            griffonad.lib.require.__getattribute__(class_name).print(db, glob, parent, require)
 
         if symbol.startswith('::'):
             # Print commands, we will create a new owned object if we have a full control on it
