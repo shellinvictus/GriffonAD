@@ -6,19 +6,15 @@ GriffonAD
 ![offsec](/griffonad/assets/offsec.svg?raw=true)
 ![python](/griffonad/assets/python.svg?raw=true)
 
+<img height="300" alt="griffon" src="https://github.com/user-attachments/assets/104b5742-168e-4e07-baa6-fb16f2011831" />
+
 Generate low-level commands (mainly impacket) to exploit the Active
 Directory easily: learn and control every steps. Interactive mode available
 to select scenarios.
 
-Here is an example of all implemented scenarios for a user
-([more here](https://github.com/shellinvictus/GriffonAD/wiki/GriffonAD-mind-map)):
-
-<img width="4184" alt="user" src="https://github.com/user-attachments/assets/b189ee9b-a293-45c7-86fa-f180c9cb13c8" />
-
 <img width="985" alt="path_kerb_svc" src="https://github.com/user-attachments/assets/cfc85acc-8f3c-41d4-bb16-7bb3ce49bfd5" />
 
 [![asciicast](https://asciinema.org/a/860452.svg)](https://asciinema.org/a/860452)
-
 
 Challenge
 ---------
@@ -26,6 +22,13 @@ Challenge
 You can play with Griffon by installing a vulnerable AD: [lab](/lab/README.md).
 Write-ups are here on the [wiki](https://github.com/shellinvictus/GriffonAD/wiki).
 
+Mind map
+--------
+
+Here is an example of all implemented scenarios for a user
+([more here](https://github.com/shellinvictus/GriffonAD/wiki/GriffonAD-mind-map)):
+
+<img width="4184" alt="user" src="https://github.com/user-attachments/assets/b189ee9b-a293-45c7-86fa-f180c9cb13c8" />
 
 Installation
 ============
@@ -36,7 +39,6 @@ Installation
 
 You will need the latest version of impacket to use dacledit.py on some
 scenarios of GriffonAD. The expected commit is fortra/impacket@bf2d749f49588183b7aee732276440fe018a417d.
-
 
 ## Installing with Venv
 
