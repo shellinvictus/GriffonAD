@@ -430,7 +430,12 @@ def print_script(db:Database, glob:dict, path:list):
                     set_attr=set_attr,
                     nopass=nopass)
 
-        if require is not None:
+        # some require statements can recall the print_script function to print
+        # commands. If they put the same require object there will be an infinite
+        # loop. So they can call print_script with another require object with or
+        # without a class_name. This is used to facilitate command generation in
+        # a require class.
+        if require is not None and 'class_name' in require:
             class_name = sanityze_symbol(require['class_name'])
             griffonad.lib.require.__getattribute__(class_name).print(db, glob, parent, require)
 

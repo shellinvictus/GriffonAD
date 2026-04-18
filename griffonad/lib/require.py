@@ -272,33 +272,10 @@ class x_add_computer(Require):
         return Owned(obj, secret=griffonad.config.DEFAULT_PASSWORD, secret_type=c.T_SECRET_PASSWORD)
 
     def print(db:Database, glob:dict, parent:Owned, require:dict):
-        v = vars(glob, parent, target=None, required_object=require['object'])
-
-        comment = [
-            'Check if the machine account quota is > zero, otherwise this scenario will',
-            'not work (try with --opt noaddcomputer)',
-        ]
-
-        if parent.krb_auth:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.T_SECRET_NTHASH:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -hashes :{parent.secret} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.T_SECRET_AESKEY:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}@{dc_name}' -dc-ip {dc_ip} -k -aesKey {parent.secret} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
-        elif parent.secret_type == c.T_SECRET_PASSWORD:
-            cmd = "./tools/getbyname.py '{fqdn}/{parent.obj.name}:{parent.secret}@{dc_name}' -dc-ip {dc_ip} -t {domain_short_name} -use-ldaps | grep MachineAccountQuota -A 2"
-
-        print_line(comment, cmd, v)
-
-        comment = 'Add a computer in the domain'
-
-        if parent.krb_auth:
-            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR -dc-host {dc_name}"
-        elif parent.secret_type == c.T_SECRET_NTHASH:
-            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -hashes :{parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
-        elif parent.secret_type == c.T_SECRET_AESKEY:
-            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}' -dc-ip {dc_ip} -k -no-pass -aesKey {parent.secret} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
-        elif parent.secret_type == c.T_SECRET_PASSWORD:
-            cmd = "addcomputer.py '{fqdn}/{parent.obj.name}:{parent.secret}' -dc-ip {dc_ip} -computer-name '{required_object.obj.name}' -computer-pass '{required_object.secret}' -method SAMR"
-
-        print_line(comment, cmd, v)
+        path = [(
+            parent,
+            '::AddComputer',
+            require['object'].obj, # the target must be a LDAPObject
+            {'object': require['object']} # pass the Owned object as the require to get the secret
+        )]
+        print_script(db, glob, path)
