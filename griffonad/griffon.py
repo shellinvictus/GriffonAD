@@ -209,7 +209,6 @@ def main():
 
             db = Database()
             db.load_objects(args)
-            db.populate_ous()
             db.populate_groups()
 
             if args.sysvol:

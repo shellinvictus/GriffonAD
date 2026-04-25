@@ -134,7 +134,7 @@ class Database():
     def __init__(self):
         self.objects_by_sid = {} # sid -> LDAPObject, or guid for gpo
         self.groups_by_sid = {} # group_sid -> [member_sid, ...]
-        self.ous_by_dn = {} # ou_dn -> {'members': [sid, ...], 'gpo_links': [gpo_guid, ...]}
+        self.ous_by_dn = {} # ou_dn -> {'members': [sid, ...], 'gpo_links': [gpo_guid, ...]}, domains are also added
         self.ous_dn_to_sid = {} # ou_dn -> ou_sid
         self.main_dc = None # LDAPObject
         self.domain = None # LDAPObject
@@ -146,6 +146,8 @@ class Database():
         # All user sids (users + computers)
         # The set is simplified by prune_users to keep only interesting users.
         self.users = set()
+
+        self.domain_controllers_guid = ''
 
 
     def sid_to_dn(self, sid:str) -> str:
@@ -189,31 +191,35 @@ class Database():
         data = json.load(open(filename, 'r'))
         objects = data['data']
         meta_type = data['meta']['type']
+
         if meta_type not in c.BH_OBJECT_TYPE:
             print(f'[!] skipping unknown object type: {meta_type}')
             return
+
         type = c.BH_OBJECT_TYPE[data['meta']['type']]
+
         for o_json in objects:
             sid = o_json['ObjectIdentifier']
             o = LDAPObject(o_json, type)
+
             # For GPOs, index by both ObjectIdentifier (RustHound/BloodHound CE) and DN GUID (old BloodHound)
             if type == c.T_GPO:
                 gpo_guid_from_dn = o.gpo_dirname_id.strip('{}').upper()
+                self.objects_by_name[o.gpo_dirname_id] = o
                 # Index by ObjectIdentifier (normalized to uppercase)
                 self.objects_by_sid[sid.upper()] = o
                 # Also index by DN GUID (normalized to uppercase)
                 self.objects_by_sid[gpo_guid_from_dn] = o
             else:
+                self.objects_by_name[o.name.upper()] = o
                 self.objects_by_sid[sid] = o
+
             # Bloodhound adds the domain as a prefix for builtin sid
             # Example: CORP-LOCAL-S-1-5-32-555
             # save the sid translation, used with sysvol
             if sid.startswith(o.from_domain):
                 self.prefixed_sids[sid.replace(o.from_domain + '-', '')] = sid
-            if type == c.T_GPO:
-                self.objects_by_name[o.gpo_dirname_id] = o
-            else:
-                self.objects_by_name[o.name.upper()] = o
+
             if type == c.T_COMPUTER and 'OU=DOMAIN CONTROLLERS' in \
                      o_json['Properties']['distinguishedname']:
                 o.type = c.T_DC
@@ -222,13 +228,34 @@ class Database():
                     self.main_dc = o
                 elif o.rid < self.main_dc.rid:
                     self.main_dc = o
+
             elif type == c.T_DOMAIN:
                 # TODO: actually support for only one domain
-                self.domain = self.objects_by_sid[sid]
+                self.domain = o
+                # add also the domain in the ous_by_dn object to link GPOs
+                # gpo_links is populated once all json will be loaded
+                self.ous_by_dn[o.dn] = {
+                    'members': [],
+                    'gpo_links': [],
+                }
+                self.ous_dn_to_sid[o.dn] = o.sid
+
             elif type == c.T_USER or type == c.T_COMPUTER:
+                if type == c.T_COMPUTER:
+                    self.save_sessions(o_json)
                 self.users.add(sid)
-            if type == c.T_COMPUTER:
-                self.save_sessions(o_json)
+
+            elif type == c.T_OU:
+                self.ous_by_dn[o.dn] = {
+                    'members': [
+                        child['ObjectIdentifier']
+                        for child in o_json['ChildObjects']
+                    ],
+                    # gpo_links is populated once all json will be loaded
+                    'gpo_links': [],
+                }
+                self.ous_dn_to_sid[o.dn] = o.sid
+
 
     def save_sessions(self, o_json):
         # Collector 'Session'
@@ -271,6 +298,30 @@ class Database():
             self.domain.name = 'UNKNOWN_DOMAIN'
             self.domain.dn = 'UNKNOWN_DOMAIN_DN'
             self.type = c.T_DOMAIN
+
+        if self.main_dc is not None:
+            dn = ','.join(self.main_dc.dn.split(',')[1:])
+            if dn in self.ous_dn_to_sid:
+                self.domain_controllers_guid = self.ous_dn_to_sid[dn]
+
+        if self.domain_controllers_guid == '':
+            print(f'warning: the DOMAIN_CONTROLLERS container wasn\'t found')
+
+        # Create links OUs <=> GPOs
+        # iterates on OUs + domain
+        for dn, data in self.ous_by_dn.items():
+            o = self.objects_by_sid[self.ous_dn_to_sid[dn]]
+            for lk in o.bloodhound_json['Links']:
+                gpo_guid = lk['GUID'].upper()
+                self.ous_by_dn[o.dn]['gpo_links'].append(gpo_guid)
+                if gpo_guid in self.objects_by_sid:
+                    # Note: this is not a sid for GPO but Bloodhound sets the gpo id in
+                    # ObjectIdentifier, which is saved into LDAPObject.sid
+                    self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
+                    # Not every efficient, bu we expect the list is not too long
+                    self.objects_by_sid[gpo_guid].gpo_links_to_ou.sort()
+                else:
+                    logger(f'warning: GPO {gpo_guid} linked from {o.dn} not found in collected data')
 
 
     def set_has_sessions(self):
@@ -330,48 +381,6 @@ class Database():
             self.protected_users = self.groups_by_sid[sid]
             for p_sid in self.protected_users:
                 self.objects_by_sid[p_sid].protected = True
-
-
-    def populate_ous(self):
-        # Note: this is not a sid for GPO but Bloodhound set the gpo id in
-        # ObjectIdentifier, which is saved into LDAPObject.sid
-
-        # Populate all links on each OU
-        for sid, o in self.objects_by_sid.items():
-            # also check for domains, some gpos may be linked
-            if o.type == c.T_OU or o.type == c.T_DOMAIN:
-                self.ous_dn_to_sid[o.dn] = sid
-                self.ous_by_dn[o.dn] = {'members': [], 'gpo_links': []}
-                for lk in o.bloodhound_json['Links']:
-                    gpo_guid = lk['GUID'].upper()
-                    self.ous_by_dn[o.dn]['gpo_links'].append(gpo_guid)
-                    if gpo_guid in self.objects_by_sid:
-                        self.objects_by_sid[gpo_guid].gpo_links_to_ou.append(o.dn)
-                        # Not every efficient, bu we expect the list is not too long
-                        self.objects_by_sid[gpo_guid].gpo_links_to_ou.sort()
-                    else:
-                        logger(f'warning: GPO {gpo_guid} linked from {o.dn} not found in collected data')
-
-        # Populate OU members
-        for sid, o in self.objects_by_sid.items():
-            # Not sure if all these types can be in an OU
-            if o.type in [c.T_GROUP, c.T_USER, c.T_COMPUTER, c.T_DC]:
-                i = o.dn.find(',')
-                # Keep only the OU part, example:
-                # if we have CN=MYUSER,OU=MYOU,DC=CORP,DC=LOCAL
-                # the result is OU=MYOU,DC=CORP,DC=LOCAL
-                if i != -1:
-                    ou_dn = o.dn[i+1:]
-                    if ou_dn.startswith('OU=') and ou_dn in self.ous_by_dn:
-                        self.ous_by_dn[ou_dn]['members'].append(o.sid)
-
-        self.domain_controllers_guid = ''
-        if self.main_dc is not None:
-            dn = ','.join(self.main_dc.dn.split(',')[1:])
-            if dn in self.ous_dn_to_sid:
-                self.domain_controllers_guid = self.ous_dn_to_sid[dn]
-        if self.domain_controllers_guid == '':
-            print(f'warning: the DOMAIN_CONTROLLERS container wasn\'t found')
 
 
     def propagate_aces(self):
