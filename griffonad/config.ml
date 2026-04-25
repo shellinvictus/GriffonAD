@@ -87,6 +87,7 @@ GenericWrite(user) -> AddKeyCredentialLink
 GenericWrite(user) -> WriteUserAccountControl
 GenericWrite(user) -> WriteSPN
 GenericWrite(user) -> SetLogonScript
+WriteDacl(user) -> ::DaclFullControl
 WriteDacl(user) -> ::DaclResetPassword
 WriteDacl(user) -> ::DaclKeyCredentialLink
 WriteDacl(user) -> ::DaclUserAccountControl
@@ -181,6 +182,7 @@ GenericWrite(computer) -> AddAllowedToAct
 # correct but it duplicates the path AddAllowedToAct
 # GenericWrite(computer) -> WriteAccountRestrictions
 GenericWrite(computer) -> AddKeyCredentialLink
+WriteDacl(computer) -> ::DaclFullControl
 WriteDacl(computer) -> ::DaclAccountRestrictions
 WriteDacl(computer) -> ::DaclKeyCredentialLink
 # DaclAllowedToAct is an other alternative to DaclAccountRestrictions
@@ -195,6 +197,7 @@ AddMember(group) -> ::AddMember
 AddSelf(group) -> ::AddMember
 GenericWrite(group) -> AddMember
 # GenericWrite(group) -> AddSelf
+WriteDacl(group) -> ::DaclFullControl
 WriteDacl(group) -> ::DaclMemberShips
 WriteDacl(group) -> ::DaclSelf
 ::DaclMemberShips(group) -> AddMember
@@ -230,23 +233,22 @@ AddKeyCredentialLink(dc) -> ::AddKeyCredentialLink
 ::RegBackup(dc) -> apply_with_aes
 
 # GPO
+GenericWrite(gpo) -> ::GPOAddLocalAdmin        if DoGPOAddLocalAdmin
 GenericWrite(gpo) -> ::GPOLogonScript          if DoGPOLogonScript
 GenericWrite(gpo) -> ::GPOImmediateTask        if DoGPOImmediateTask
 GenericWrite(gpo) -> ::GPODisableDefender      if DoGPODisableDefender
-GenericWrite(gpo) -> ::GPOAddLocalAdmin        if DoGPOAddLocalAdmin
 WriteDacl(gpo) -> ::DaclFullControl
 
-# Execute a command
-::GPOImmediateTask(gpo) => stop               require_targets ta_all_computers_in_ou
-::GPOImmediateTask(gpo) => stop               require_targets ta_all_users_in_ou
-# Execute a script (Startup / Logon)
-::GPOLogonScript(gpo) => stop                 require_targets ta_all_computers_in_ou
-::GPOLogonScript(gpo) => stop                 require_targets ta_all_users_in_ou
-# Disable windows defender + disable firewall + enable RDP
-::GPODisableDefender(gpo) => stop             require_targets ta_all_computers_in_ou
-# Stop forking for the last predicate
 # Set the parent in the local Administrators group (via the RestrictedGroups)
 ::GPOAddLocalAdmin(gpo) -> ::_Secretsdump     require_targets ta_all_computers_in_ou
+# Execute a command
+::GPOImmediateTask(gpo) -> stop               require_targets ta_all_computers_in_ou
+::GPOImmediateTask(gpo) -> stop               require_targets ta_all_users_in_ou
+# Execute a script (Startup / Logon)
+::GPOLogonScript(gpo) -> stop                 require_targets ta_all_computers_in_ou
+::GPOLogonScript(gpo) -> stop                 require_targets ta_all_users_in_ou
+# Disable windows defender + disable firewall + enable RDP
+::GPODisableDefender(gpo) -> stop             require_targets ta_all_computers_in_ou
 
 # OU
 
@@ -281,12 +283,11 @@ __NotInBackupGroup(ou) -> ::CanRDP_RegSave \
 # https://markgamache.blogspot.com/2020/07/exploiting-ad-gplink-for-good-or-evil.html
 GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
+WriteDacl(ou) -> ::DaclFullControl
 ::WriteGPLink(ou) -> stop
 
 # Last chance
-__WriteDacl(any) -> ::DaclFullControl if DefaultSetFullControl
-__WriteDacl(any) -> WriteDacl         if not DefaultSetFullControl
 ::DaclFullControl(any) -> GenericAll
-Owns(any) -> __WriteDacl
+Owns(any) -> WriteDacl
 ::WriteOwner(any) -> Owns
 WriteOwner(any) -> ::WriteOwner
