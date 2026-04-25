@@ -201,7 +201,7 @@ if __name__ == '__main__':
             help='Example: "2025-01-25T13:18:52" (time is UTC)\n'
                  'You can also set "--start-at immediate" for an immediate task')
     parser.add_argument('--filter', type=str, metavar='NAME',
-            help='Execute the task only for the target, add the $ at the end if it\'s a computer')
+            help='Execute the task only for the target (a user or a computer), add the $ at the end if it\'s a computer')
     parser.add_argument('--filter-sid', type=str, metavar='SID',
             help='Required only if filter is a user')
 
