@@ -281,10 +281,12 @@ __NotInBackupGroup(ou) -> ::CanRDP_RegSave \
 # Unimplemented
 # https://www.synacktiv.com/publications/ounedpy-exploiting-hidden-organizational-units-acl-attack-vectors-in-active-directory
 # https://markgamache.blogspot.com/2020/07/exploiting-ad-gplink-for-good-or-evil.html
-GenericWrite(ou) -> WriteGPLink
 WriteGPLink(ou) -> ::WriteGPLink
+GenericWrite(ou) -> WriteGPLink
 WriteDacl(ou) -> ::DaclFullControl
-::WriteGPLink(ou) -> stop
+# Wait users and computers to retrieve our malicious GPO
+::WriteGPLink(ou) => ::_Secretsdump  require_targets ta_all_computers_in_ou
+::WriteGPLink(ou) => stop            require_targets ta_all_users_in_ou
 
 # Last chance
 ::DaclFullControl(any) -> GenericAll
