@@ -1,3 +1,8 @@
+0.6.22: 2026/04/25
+- Fix: path continuation for WriteGPLink (#16)
+- Fix: preferred getbysam.py instead of getbyname.py in AddComputer
+- Fix: set FullControl by default if we have only WriteDacl
+
 0.6.21: 2026/04/18
 - Feature: interactive mode with the option -i
 - Fix: SPN-Jacking with non-WriteSPN rights #12
