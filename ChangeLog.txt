@@ -1,3 +1,6 @@
+0.6.23: 2026/04/26
+- Optimizing OU and GPO link loading
+
 0.6.22: 2026/04/25
 - Fix: path continuation for WriteGPLink (#16)
 - Fix: preferred getbysam.py instead of getbyname.py in AddComputer
